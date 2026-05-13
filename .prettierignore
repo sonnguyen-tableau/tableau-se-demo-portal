@@ -1,0 +1,12 @@
+node_modules
+.next
+.turbo
+dist
+build
+coverage
+.pnpm-store
+pnpm-lock.yaml
+*.hyper
+*.twb
+*.twbx
+services/factory/.venv

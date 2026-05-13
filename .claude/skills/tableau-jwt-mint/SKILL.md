@@ -1,0 +1,171 @@
+---
+name: Tableau Connected App JWT Mint
+description: Use when minting a Connected App Direct Trust JWT for the Tableau Embedding API v3. Covers required and optional claims, scope values per embed type, HS256 signing with jose, multi-tenant user attributes (TenantId, Region), 10-minute TTL, anti-replay jti, and the common mistakes that cause silent re-login prompts.
+dependencies: jose@^5
+---
+
+# Tableau Connected App JWT Mint
+
+Use this skill any time you need to mint, refresh, debug, or review a JWT used by the Tableau Embedding API v3 with a Connected App configured for **Direct Trust**. This is the project's locked auth model.
+
+## When to use
+
+- Implementing or changing `/api/tableau/token` in `apps/web/`.
+- Reviewing how user-attribute claims map to workbook `USERATTRIBUTE()` calls.
+- Diagnosing a "Tableau login prompt appears inside the embed" or `unknown-auth-error` symptom.
+- Writing or updating tests for the JWT minter.
+
+## Required claims (must all be present)
+
+| Claim | Value | Notes |
+| --- | --- | --- |
+| `iss` | Connected App **Client ID** | from Tableau Cloud admin UI |
+| `kid` | Connected App **Secret ID** | identifies which secret signed this JWT |
+| `aud` | `"tableau"` | literal string |
+| `sub` | Tableau user identity (email) | must be a known Tableau user (or UBL anonymous) |
+| `scp` | array of scope strings | see scope table below |
+| `jti` | `crypto.randomUUID()` | anti-replay; must be unique per token |
+| `exp` | now + **600 seconds (10 min max)** | Tableau rejects longer-lived tokens |
+| `iat` | now (seconds) | issued-at |
+| `nbf` | now (seconds) | not-before |
+
+## Scope values (`scp`) per embed type
+
+| Component | Required scope(s) |
+| --- | --- |
+| `<TableauViz>` | `tableau:views:embed` |
+| `<TableauPulse>` | `tableau:insights:embed` |
+| `<TableauAuthoringViz>` | `tableau:views:embed_authoring`, `tableau:views:embed` |
+| Mixed page (viz + pulse) | both `tableau:views:embed` and `tableau:insights:embed` |
+
+Always include every scope the page needs in ONE JWT and reuse it across all components on that page.
+
+## Multi-tenant user-attribute claims
+
+These are arbitrary top-level claims that workbooks consume via `USERATTRIBUTE("Name")`. The Tableau Cloud site setting **Enable capture of user attributes in authentication workflows** must be ON for these to take effect.
+
+```
+TenantId   → consumed by data policies for row-level security
+Region     → optional geo filter ("NA" | "EMEA" | "APAC")
+AccountId  → optional, used when a tenant has sub-accounts
+```
+
+For dynamic group membership (e.g., "internal-employees" sees all tenants), use the reserved namespaced claim:
+
+```
+"https://tableau.com/groups": ["tenant-acme", "internal-employees"]
+```
+
+For Tableau Cloud on-demand access, include:
+
+```
+"https://tableau.com/oda": "true"
+```
+
+## Reference implementation (canonical)
+
+```ts
+// apps/web/lib/tableau-jwt.ts
+import { SignJWT } from "jose";
+import { randomUUID } from "node:crypto";
+
+export type TableauScope =
+  | "tableau:views:embed"
+  | "tableau:views:embed_authoring"
+  | "tableau:insights:embed";
+
+export interface MintParams {
+  sub: string;                          // user email
+  scopes: TableauScope[];               // one or more
+  tenantId: string;
+  region?: "NA" | "EMEA" | "APAC";
+  groups?: string[];                    // optional Tableau groups
+  onDemandAccess?: boolean;             // Tableau Cloud only
+}
+
+const TEN_MIN = 60 * 10;
+
+export async function mintTableauJwt(p: MintParams): Promise<string> {
+  const clientId = required("TABLEAU_CONNECTED_APP_CLIENT_ID");
+  const secretId = required("TABLEAU_CONNECTED_APP_SECRET_ID");
+  const secret = required("TABLEAU_CONNECTED_APP_SECRET_VALUE");
+  const now = Math.floor(Date.now() / 1000);
+
+  const builder = new SignJWT({
+    scp: p.scopes,
+    TenantId: p.tenantId,
+    ...(p.region ? { Region: p.region } : {}),
+    ...(p.groups?.length ? { "https://tableau.com/groups": p.groups } : {}),
+    ...(p.onDemandAccess ? { "https://tableau.com/oda": "true" } : {}),
+  })
+    .setProtectedHeader({ alg: "HS256", kid: secretId, iss: clientId })
+    .setIssuer(clientId)
+    .setSubject(p.sub)
+    .setAudience("tableau")
+    .setJti(randomUUID())
+    .setIssuedAt(now)
+    .setNotBefore(now)
+    .setExpirationTime(now + TEN_MIN);
+
+  return builder.sign(new TextEncoder().encode(secret));
+}
+
+function required(key: string): string {
+  const v = process.env[key];
+  if (!v) throw new Error(`Missing env: ${key}`);
+  return v;
+}
+```
+
+## Route handler skeleton
+
+```ts
+// apps/web/app/api/tableau/token/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { mintTableauJwt } from "@/lib/tableau-jwt";
+import { enforceImpressionBudget } from "@/lib/billing";
+
+export const runtime = "nodejs";
+
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user) return new NextResponse("unauthorized", { status: 401 });
+
+  const { scopes } = (await req.json()) as { scopes: string[] };
+  await enforceImpressionBudget(session.user.tenantId); // throws 429 on budget breach
+
+  const jwt = await mintTableauJwt({
+    sub: session.user.email,
+    scopes: scopes as never,
+    tenantId: session.user.tenantId,
+    region: session.user.region,
+    groups: session.user.groups,
+  });
+  return NextResponse.json({ token: jwt, expiresIn: 600 });
+}
+```
+
+## Common mistakes (causes silent failures)
+
+1. **Caching JWTs across users.** Every call must mint fresh; the `sub` claim must match the actual user. Caching causes Tableau to log every user in as whoever held the cached token.
+2. **Different tokens for `<TableauViz>` and `<TableauPulse>` on the same page.** Causes intermittent re-login prompts. Mint once, pass both components the same `token` prop.
+3. **Missing `scp`.** Tableau returns a generic "authentication failed" with no detail.
+4. **TTL > 10 minutes.** Tableau silently rejects. Stay ≤ 600 seconds.
+5. **Wrong `kid`.** If you rotate the Connected App secret, both `kid` and `TABLEAU_CONNECTED_APP_SECRET_VALUE` must update atomically.
+6. **Forgetting the user-attribute site setting.** `USERATTRIBUTE("TenantId")` will return null and data policies silently allow everything. This is a SECURITY incident — verify the setting whenever onboarding a new Tableau site.
+7. **Algorithm mismatch.** Connected Apps with Direct Trust use HS256 (shared secret). Do not switch to RS256 without also reconfiguring the Connected App.
+
+## Verifying a minted JWT
+
+```bash
+# Quick decode (does not verify signature; for debug only)
+node -e 'console.log(JSON.parse(Buffer.from(process.argv[1].split(".")[1], "base64url").toString()))' "$JWT"
+```
+
+Look for: `aud=tableau`, `scp` contains the expected scope, `exp - iat == 600`, `TenantId` matches the user's tenant.
+
+## Related skills
+
+- `multitenant-rls` — how `TenantId` flows from JWT to workbook to data policy.
+- `tableau-embed-component` — how to pass the minted JWT into the React components correctly.

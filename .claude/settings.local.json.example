@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.anthropic.com/schemas/claude-code/settings.json",
+  "note": "Copy to .claude/settings.local.json (gitignored) and fill in real values. Never commit this file with real secrets — the secret-scan PreToolUse hook will block it anyway.",
+  "env": {
+    "TABLEAU_SITE": "https://10ax.online.tableau.com/#/site/<your-site-name>",
+    "TABLEAU_CONNECTED_APP_CLIENT_ID": "<client-uuid-from-tableau-admin>",
+    "TABLEAU_CONNECTED_APP_SECRET_ID": "<secret-uuid-from-tableau-admin>",
+    "TABLEAU_CONNECTED_APP_SECRET_VALUE": "<secret-value-from-tableau-admin>",
+    "TABLEAU_PAT_NAME": "<service-account-pat-name>",
+    "TABLEAU_PAT_SECRET": "<service-account-pat-secret>",
+    "ANTHROPIC_API_KEY": "<sk-ant-...>",
+    "NEXTAUTH_SECRET": "<generate-with: openssl rand -base64 32>",
+    "PORTAL_ENV": "dev"
+  }
+}

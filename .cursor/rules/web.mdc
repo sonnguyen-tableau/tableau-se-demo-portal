@@ -1,0 +1,50 @@
+---
+description: Rules for the Next.js portal under apps/web/
+globs:
+  - apps/web/**
+  - packages/tableau-jwt/**
+  - packages/mcp-tools/**
+---
+
+# apps/web rules
+
+## Stack
+
+- Next.js 15 (App Router), React 19, TypeScript strict, Tailwind CSS, shadcn/ui.
+- `@tableau/embedding-api-react` pinned to the Tableau Cloud minor version.
+- NextAuth (Auth.js v5) for portal auth.
+- `jose` for JWT signing.
+
+## Routing & tenancy
+
+- All tenant-scoped pages: `apps/web/app/t/[tenantSlug]/...`.
+- Middleware (`apps/web/middleware.ts`) MUST verify `tenantSlug === session.user.tenantId` (or the user has the `internal-employees` group) for every `/t/...` request.
+- `/api/tableau/token` and `/api/chat` are tenant-aware: derive tenant from session, not from URL/body.
+
+## Tableau embedding
+
+- Use `<TableauViz>` and `<TableauPulse>` from `@tableau/embedding-api-react`.
+- Mint the JWT in a server action or route handler (`/api/tableau/token`), pass to client components.
+- **Reuse one JWT** across all Tableau components on a page.
+- Add `onVizLoadError` to detect auth issues and trigger a token refetch.
+- See `.claude/skills/tableau-embed-component/` and `.claude/docs/embedding-api-cheatsheet.md`.
+
+## Agent chat
+
+- `/api/chat` uses the Anthropic SDK with native MCP `mcp_servers` parameter.
+- Pre-fetch `get-datasource-metadata` and inject the field list into the system prompt before the first LLM call.
+- Constrain the toolset via `packages/mcp-tools/allowlist.ts`.
+- Stream SSE; never buffer full responses.
+- Forward the end-user identity to the MCP server as `Tableau-User`.
+
+## Validation
+
+- Every Route Handler validates its request body with Zod at the top.
+- Never trust `searchParams` or `params` without parsing.
+
+## Don't
+
+- Don't import server-only modules into client components.
+- Don't cache JWTs across users.
+- Don't use `any`. Don't use `as` to launder untyped data — narrow it.
+- Don't add a new `/api/...` route without security-reviewer subagent review.

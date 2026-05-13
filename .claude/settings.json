@@ -1,0 +1,95 @@
+{
+  "$schema": "https://docs.anthropic.com/schemas/claude-code/settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "TodoWrite",
+      "Bash(pnpm:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(uv:*)",
+      "Bash(uvx:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(node:*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(rg:*)",
+      "Bash(jq:*)",
+      "Bash(docker compose:*)",
+      "Bash(curl:*)",
+      "Bash(chmod:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(docker:*)",
+      "Bash(kubectl:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(:(){:|:&};:)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(*DROP TABLE*)",
+      "Bash(*TRUNCATE*)",
+      "Bash(eval *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|StrReplace",
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/secret-scan.sh" }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/typecheck-on-commit.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|StrReplace",
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/format-on-write.sh" }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/session-start.sh" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/prompt-router.sh" }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "TABLEAU_SITE": "",
+    "TABLEAU_CONNECTED_APP_CLIENT_ID": "",
+    "TABLEAU_CONNECTED_APP_SECRET_ID": "",
+    "TABLEAU_MCP_URL": "http://localhost:8081",
+    "PORTAL_ENV": "dev"
+  }
+}

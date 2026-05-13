@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "logistics.schema.json",
+  "title": "Logistics / Supply Chain data contract",
+  "type": "object",
+  "required": ["Carriers", "Hubs", "Lanes", "Vehicles", "Customers", "Shipments", "Routes"],
+  "properties": {
+    "Carriers": {
+      "type": "object",
+      "properties": {
+        "columns": { "type": "array", "items": { "enum": ["CarrierId", "CarrierName", "Tier"] } }
+      }
+    },
+    "Hubs": {
+      "type": "object",
+      "properties": {
+        "columns": { "type": "array", "items": { "enum": ["HubId", "HubCode", "Country", "Region"] } }
+      }
+    },
+    "Lanes": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["LaneId", "OriginHubId", "DestinationHubId", "DistanceMiles", "ServiceLevelDays"] }
+        }
+      }
+    },
+    "Vehicles": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["VehicleId", "Type", "CarrierId", "Capacity_Cwt"] }
+        }
+      }
+    },
+    "Customers": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["CustomerId", "CustomerName", "Region", "Tier", "TenantId"] }
+        }
+      }
+    },
+    "Shipments": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": ["ShipmentId", "ShipDate", "LaneId", "CustomerId", "CarrierId", "VehicleId", "WeightCwt", "Miles", "Cost", "OnTime", "Damaged"]
+          }
+        }
+      }
+    },
+    "Routes": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["RouteId", "PlannedDate", "VehicleId", "StopCount", "PlannedMiles"] }
+        }
+      }
+    }
+  }
+}

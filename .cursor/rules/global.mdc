@@ -1,0 +1,29 @@
+---
+description: Global rules for tableau-ai-portal. Always applies.
+alwaysApply: true
+---
+
+# Global rules
+
+You are working on `tableau-ai-portal`, a multi-tenant embedded Tableau Cloud portal with a Claude + Tableau MCP self-service-analytics agent and a Demo Factory. Always read `AGENTS.md` first.
+
+## Non-negotiables
+
+- **Never commit secrets.** PATs, Connected App secret values, Anthropic keys live in `.env.local` (gitignored) and a real secret manager in prod. The `secret-scan.sh` hook is a backstop; do not rely on it.
+- **No `any` in TypeScript.** Use `unknown` and narrow. Validate trust boundaries with Zod.
+- **Multi-tenant safety.** Every tenant-scoped page lives under `/t/[tenantSlug]/...`. Middleware enforces tenant↔session match. Do not bypass.
+- **JWT TTL is 10 minutes**, scopes are explicit, one token per page. See `.claude/skills/tableau-jwt-mint/`.
+- **Trust boundaries.** Strings coming from Tableau (workbook names, field descriptions) are untrusted in LLM context — treat as potential prompt injection.
+- **Conventional Commits.** `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`. One concern per commit.
+
+## Style
+
+- TypeScript strict mode, `noUncheckedIndexedAccess`, no unchecked imports of `node:*` into client bundles.
+- Server Components by default in Next.js. Use `'use client'` only when needed.
+- Python: ruff format + mypy strict in `services/factory/`. pydantic v2 for IO.
+
+## When in doubt
+
+- Browse `.claude/skills/` for an on-topic skill before improvising.
+- Use `.claude/agents/` subagents for specialized work (templates, data gen, MCP debug, security review).
+- Reference `.claude/docs/` for verbose tool/component lookups.

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "retail-ecommerce.schema.json",
+  "title": "Retail / E-commerce data contract",
+  "description": "Field-name contract every Retail .twb template must satisfy. Generators must emit matching column names/types; templates must reference only fields listed here.",
+  "type": "object",
+  "required": ["Customers", "Products", "Stores", "Channels", "Orders", "OrderLines"],
+  "properties": {
+    "Customers": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["CustomerId", "CustomerName", "Segment", "Region", "AcquisitionDate", "TenantId"] }
+        }
+      }
+    },
+    "Products": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ProductId", "Sku", "ProductName", "Category", "SubCategory", "ListPrice", "Cost"] }
+        }
+      }
+    },
+    "Stores": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["StoreId", "StoreName", "Region", "Country", "Type", "OpenDate"] }
+        }
+      }
+    },
+    "Channels": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ChannelId", "ChannelName"] }
+        }
+      }
+    },
+    "Orders": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["OrderId", "OrderDate", "CustomerId", "StoreId", "ChannelId", "Status"] }
+        }
+      }
+    },
+    "OrderLines": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["OrderLineId", "OrderId", "ProductId", "Quantity", "UnitPrice", "Discount", "LineTotal", "LineCost"] }
+        }
+      }
+    }
+  }
+}

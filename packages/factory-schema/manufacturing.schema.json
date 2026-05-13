@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "manufacturing.schema.json",
+  "title": "Manufacturing / Operations data contract",
+  "type": "object",
+  "required": ["Plants", "Lines", "Products", "Suppliers", "ProductionRuns", "Defects", "Shipments"],
+  "properties": {
+    "Plants": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["PlantId", "PlantName", "Country", "Region", "Capacity_UnitsPerDay"] }
+        }
+      }
+    },
+    "Lines": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["LineId", "PlantId", "LineName", "AvailabilityPct"] }
+        }
+      }
+    },
+    "Products": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ProductId", "Sku", "ProductName", "TargetCycleSec", "UnitCost"] }
+        }
+      }
+    },
+    "Suppliers": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["SupplierId", "SupplierName", "Country", "ScoreCard"] }
+        }
+      }
+    },
+    "ProductionRuns": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": ["RunId", "RunDate", "LineId", "ProductId", "Shift", "PlannedUnits", "ActualUnits", "DowntimeMinutes", "TenantId"]
+          }
+        }
+      }
+    },
+    "Defects": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["DefectId", "RunId", "Category", "Severity", "Quantity"] }
+        }
+      }
+    },
+    "Shipments": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ShipmentId", "ShipDate", "PlantId", "SupplierId", "Units", "OnTime"] }
+        }
+      }
+    }
+  }
+}

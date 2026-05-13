@@ -1,0 +1,44 @@
+---
+description: Rules specific to industry workbook templates under services/factory/templates/
+globs:
+  - services/factory/templates/**
+  - packages/factory-schema/**
+  - services/factory/tests/test_template_*.py
+---
+
+# Template-specific rules
+
+## You are editing a Tableau workbook template contract
+
+Read `.claude/skills/industry-template-author/SKILL.md` first. Consider delegating to the `template-authoring` subagent.
+
+## Hard rules
+
+1. **The schema is the law.** `packages/factory-schema/<industry>.schema.json` defines the entities, fields, types, and calculated fields a template may use. To add a field, update the schema and the generator first.
+2. **Stable sheet names.** They are referenced by the portal's viz↔agent context bridge. Renames must be coordinated.
+3. **Data policy required.** Every published data source must filter on `TenantId`.
+4. **No external image URLs.** Branding is portal-level.
+5. **No hardcoded tenant names or dates.** Use parameters and `TODAY()`.
+
+## Workflow
+
+```bash
+# Before changing anything:
+uv run pytest services/factory/tests/test_template_<industry>.py -q
+
+# After:
+uv run pytest services/factory/tests/test_template_<industry>.py -q
+# All views must render on the canonical fixture dataset.
+```
+
+## When stuck
+
+- Wrong field name → check the schema.
+- View shows "no data" → check RLS / TenantId for the test persona.
+- Workbook won't publish → see `factory-pipeline-debug` skill, stage 8 (workbook).
+
+## Don't
+
+- Don't include real customer data in the template's saved extract.
+- Don't reference fields outside the schema.
+- Don't add a live database connection — use the published `.hyper` data source the factory creates.

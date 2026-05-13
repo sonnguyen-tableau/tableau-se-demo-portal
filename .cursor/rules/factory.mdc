@@ -1,0 +1,54 @@
+---
+description: Rules for the Python factory sidecar under services/factory/
+globs:
+  - services/factory/**
+  - packages/factory-schema/**
+---
+
+# services/factory rules
+
+## Stack
+
+- Python 3.12, FastAPI, pydantic v2, uv (deps + venv).
+- Playwright (scrape), `httpx` (fallback).
+- `anthropic` Python SDK for profile, schema, and vision calls.
+- `faker` + `numpy` for data generation.
+- Tableau **Hyper API** (`tableauhyperapi`) for `.hyper` writes.
+- **Tableau Server Client (TSC)** (`tableauserverclient`) for publish/permissions/Pulse.
+- Tableau **Document API** (`tableaudocumentapi`) for `.twb`/`.twbx` rewrites.
+
+## Pipeline contract
+
+The 11-stage pipeline (scrape → profile → schema → confirm → generate → hyper → publish → workbook → pulse → brand → provision) emits one SSE event per stage and one JSON-line log entry. Stages are idempotent and checkpointed; resume from any stage via `--from-stage N`.
+
+## Style
+
+- pydantic v2 models for every public IO (request bodies, SSE events, Claude response shapes).
+- Type hints on every function. `mypy --strict` is required.
+- `ruff` format + `ruff check`. No `# noqa` without a comment explaining why.
+- Logging: structured JSON via `structlog`. Never log secrets or PII.
+
+## Data generation
+
+- Vectorized only (NumPy + Faker batch). Per-row Python loops for >10K rows are disallowed.
+- Deterministic with seed. Same inputs → identical output.
+- Total row count budget per tenant: 150-300K. Enforce in the orchestrator.
+- See `.claude/skills/factory-pipeline-debug/` and the `data-gen-tuner` subagent.
+
+## Templates
+
+- Templates in `services/factory/templates/<industry>.twb` are **immutable contracts** — fields, sheet names, parameters must match `packages/factory-schema/<industry>.schema.json`.
+- See `.claude/skills/industry-template-author/` and the `template-authoring` subagent.
+
+## Tableau
+
+- Publish uses TSC with project name `tenant-<slug>`. Create the project if missing.
+- Every published data source MUST have a data policy: `[TenantId] = USERATTRIBUTE("TenantId") OR USERATTRIBUTE("TenantId") = "internal"`.
+- Pulse metric definitions use the `ext_assigned_id` idempotency key per skill `pulse-metric-builder`.
+
+## Don't
+
+- Don't generate `.twb` from scratch. Use the templates.
+- Don't bypass the row-count budget.
+- Don't run Claude calls without `response_format`/tool_use structured output.
+- Don't hold an open Hyper connection across requests; open and close per job.
