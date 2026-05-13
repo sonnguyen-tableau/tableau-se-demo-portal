@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Tableau AI Portal
 
 A multi-tenant embedded analytics portal on **Tableau Cloud** with a **Claude-powered Self-Service Analytics AI agent** (via the official `@tableau/mcp-server`), plus a **Demo Factory** that auto-generates a fully-branded, industry-tailored Tableau analytics portal from a single customer URL.
@@ -71,3 +72,6 @@ pnpm dev
 ## License
 
 Internal / proprietary (placeholder).
+=======
+# tableau-ai-portal
+>>>>>>> 3c85a2b (first commit)
