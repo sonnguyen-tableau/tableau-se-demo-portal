@@ -8,7 +8,7 @@ export interface TenantContext {
   isInternal: boolean;
 }
 
-const INTERNAL_GROUP = "internal-employees";
+const INTERNAL_GROUPS = ["internal-employees", "internal"];
 
 export function tenantFromSession(session: Session | null): TenantContext | null {
   if (!session?.user) return null;
@@ -19,7 +19,9 @@ export function tenantFromSession(session: Session | null): TenantContext | null
     tenantName: user.tenantName,
     region: user.region,
     groups,
-    isInternal: groups.includes(INTERNAL_GROUP) || user.tenantId === "internal",
+    isInternal:
+      groups.some((g) => INTERNAL_GROUPS.includes(g)) ||
+      user.tenantId === "internal",
   };
 }
 
