@@ -43,11 +43,11 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
 
   return (
     <div
-      className="flex min-h-dvh bg-sf-neutral-2"
+      className="flex h-dvh overflow-hidden bg-sf-neutral-2"
       style={{ ...(themeToInlineStyle(theme.cssText)) }}
     >
       {/* ── Sidebar ────────────────────────────────────────────────────────── */}
-      <aside className="hidden w-64 shrink-0 flex-col bg-sf-blue-90 lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col bg-sf-blue-90 lg:flex h-full overflow-hidden">
         {/* Brand header */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
           {theme.logoUrl ? (
@@ -141,9 +141,9 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
       </aside>
 
       {/* ── Main ──────────────────────────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
         {/* Mobile top bar */}
-        <header className="flex items-center justify-between border-b border-sf-neutral-3 bg-white px-5 py-3 lg:hidden">
+        <header className="flex items-center justify-between border-b border-sf-neutral-3 bg-white px-5 py-3 lg:hidden shrink-0">
           <div className="flex items-center gap-2">
             <SalesforceBankIcon size={26} />
             <span className="text-sm font-semibold text-sf-neutral-9">{ctx?.tenantName ?? tenantSlug}</span>
@@ -151,8 +151,8 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
           <span className="text-xs text-sf-neutral-6">{session.user.email}</span>
         </header>
 
-        <main className="flex-1 overflow-auto">
-          <div className="mx-auto max-w-7xl p-6">{children}</div>
+        <main className="flex-1 overflow-auto min-h-0">
+          <div className="mx-auto max-w-[1600px] p-4">{children}</div>
         </main>
       </div>
     </div>

@@ -30,41 +30,12 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   );
   if (!dashboard) notFound();
 
-  // How many sibling views in this workbook?
   const siblings = catalog.dashboards.filter((d) => d.workbookSlug === workbookSlug);
-
-  const breadcrumb = (
-    <nav className="mb-4 flex items-center gap-1.5 text-sm text-sf-neutral-5">
-      <Link href={`/t/${tenantSlug}/dashboards`} className="hover:text-sf-neutral-9 transition-colors">
-        Dashboards
-      </Link>
-      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-      </svg>
-      {siblings.length > 1 ? (
-        <>
-          <Link
-            href={`/t/${tenantSlug}/dashboards/${workbookSlug}`}
-            className="hover:text-sf-neutral-9 transition-colors"
-          >
-            {dashboard.workbookName}
-          </Link>
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-          <span className="font-medium text-sf-neutral-9">{dashboard.viewName}</span>
-        </>
-      ) : (
-        <span className="font-medium text-sf-neutral-9">{dashboard.workbookName}</span>
-      )}
-    </nav>
-  );
 
   if (!isTableauConfigured()) {
     return (
-      <div className="space-y-4">
-        {breadcrumb}
-        <h2 className="text-xl font-bold text-sf-neutral-9">{dashboard.workbookName}</h2>
+      <div className="space-y-3">
+        <Breadcrumb tenantSlug={tenantSlug} workbookSlug={workbookSlug} dashboard={dashboard} siblings={siblings} viewSlug={viewSlug} />
         <UnconfiguredState viewPath={dashboard.viewPath} />
       </div>
     );
@@ -90,8 +61,8 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   } catch (e) {
     if (e instanceof ImpressionBudgetExceededError) {
       return (
-        <div className="space-y-4">
-          {breadcrumb}
+        <div className="space-y-3">
+          <Breadcrumb tenantSlug={tenantSlug} workbookSlug={workbookSlug} dashboard={dashboard} siblings={siblings} viewSlug={viewSlug} />
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-900">
             <h3 className="font-semibold">Đã đạt hạn mức lượt xem trong ngày</h3>
             <p className="mt-1 text-sm">
@@ -107,45 +78,104 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   const src = tableauViewUrl(dashboard.viewPath);
 
   return (
-    <div className="space-y-4">
-      {breadcrumb}
+    // Stretch to fill the scrollable main area — no fixed height so it grows with the page
+    <div className="flex flex-col gap-2 h-full" style={{ minHeight: "calc(100vh - 2rem)" }}>
+      {/* Top bar: breadcrumb + view tabs in one compact row */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 shrink-0">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1 text-xs text-sf-neutral-5 min-w-0">
+          <Link href={`/t/${tenantSlug}/dashboards`} className="hover:text-sf-neutral-9 transition-colors shrink-0">
+            Dashboards
+          </Link>
+          <ChevronIcon />
+          {siblings.length > 1 ? (
+            <>
+              <Link
+                href={`/t/${tenantSlug}/dashboards/${workbookSlug}`}
+                className="hover:text-sf-neutral-9 transition-colors truncate max-w-[160px]"
+              >
+                {dashboard.workbookName}
+              </Link>
+              <ChevronIcon />
+              <span className="font-medium text-sf-neutral-9 truncate max-w-[200px]">{dashboard.viewName}</span>
+            </>
+          ) : (
+            <span className="font-medium text-sf-neutral-9 truncate max-w-[300px]">{dashboard.workbookName}</span>
+          )}
+        </nav>
 
-      {/* View switcher — show when workbook has multiple views */}
-      {siblings.length > 1 && (
-        <div className="flex flex-wrap gap-2">
-          {siblings.map((s) => (
-            <Link
-              key={s.viewSlug}
-              href={`/t/${tenantSlug}/dashboards/${workbookSlug}/${s.viewSlug}`}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                s.viewSlug === viewSlug
-                  ? "bg-sf-blue-70 text-white"
-                  : "border border-sf-neutral-3 bg-white text-sf-neutral-7 hover:border-sf-blue-70 hover:text-sf-blue-70"
-              }`}
-            >
-              {s.viewName}
-            </Link>
-          ))}
-        </div>
-      )}
-
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-sf-neutral-9">
-            {siblings.length > 1 ? `${dashboard.workbookName} — ${dashboard.viewName}` : dashboard.workbookName}
-          </h2>
-          <p className="mt-0.5 text-sm text-sf-neutral-5">{dashboard.projectName}</p>
-        </div>
+        {/* View tabs */}
+        {siblings.length > 1 && (
+          <div className="flex flex-wrap gap-1.5">
+            {siblings.map((s) => (
+              <Link
+                key={s.viewSlug}
+                href={`/t/${tenantSlug}/dashboards/${workbookSlug}/${s.viewSlug}`}
+                className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                  s.viewSlug === viewSlug
+                    ? "bg-sf-blue-70 text-white"
+                    : "border border-sf-neutral-3 bg-white text-sf-neutral-7 hover:border-sf-blue-70 hover:text-sf-blue-70"
+                }`}
+              >
+                {s.viewName}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
+      {/* Main content: viz + chat side by side, fills remaining space */}
       <VizContextProvider>
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,2.5fr)_minmax(0,1fr)]">
-          <TableauVizShell src={src} initialToken={token} height="700px" />
-          <div className="min-h-[700px]">
+        <div className="flex flex-1 gap-3 min-h-0" style={{ minHeight: "600px" }}>
+          {/* Tableau embed — takes 2/3 of width, full height */}
+          <div className="flex-[2_1_0%] min-w-0 min-h-0">
+            <TableauVizShell src={src} initialToken={token} height="100%" />
+          </div>
+          {/* Chat panel — fixed ~380px wide */}
+          <div className="w-[360px] shrink-0 min-h-0">
             <ChatPanel />
           </div>
         </div>
       </VizContextProvider>
     </div>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+// Typed to avoid repeating prop drilling inline
+interface BreadcrumbProps {
+  tenantSlug: string;
+  workbookSlug: string;
+  dashboard: { workbookName: string; viewName: string };
+  siblings: { viewSlug: string }[];
+  viewSlug: string;
+}
+
+function Breadcrumb({ tenantSlug, workbookSlug, dashboard, siblings }: BreadcrumbProps) {
+  return (
+    <nav className="flex items-center gap-1 text-xs text-sf-neutral-5">
+      <Link href={`/t/${tenantSlug}/dashboards`} className="hover:text-sf-neutral-9 transition-colors">
+        Dashboards
+      </Link>
+      <ChevronIcon />
+      {siblings.length > 1 ? (
+        <>
+          <Link href={`/t/${tenantSlug}/dashboards/${workbookSlug}`} className="hover:text-sf-neutral-9 transition-colors">
+            {dashboard.workbookName}
+          </Link>
+          <ChevronIcon />
+          <span className="font-medium text-sf-neutral-9">{dashboard.viewName}</span>
+        </>
+      ) : (
+        <span className="font-medium text-sf-neutral-9">{dashboard.workbookName}</span>
+      )}
+    </nav>
   );
 }

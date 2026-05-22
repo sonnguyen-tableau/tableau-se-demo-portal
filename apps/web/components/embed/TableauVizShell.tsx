@@ -192,8 +192,13 @@ export function TableauVizShell({ src, initialToken, height = "700px" }: Props):
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src, token, height]);
 
+  const isFill = height === "100%";
+
   return (
-    <div className="relative w-full rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm" style={{ minHeight: height }}>
+    <div
+      className="relative w-full rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm"
+      style={isFill ? { width: "100%", height: "100%" } : { minHeight: height }}
+    >
       {loading && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
@@ -217,7 +222,7 @@ export function TableauVizShell({ src, initialToken, height = "700px" }: Props):
           </p>
         </div>
       )}
-      <div ref={containerRef} style={{ width: "100%", height }} />
+      <div ref={containerRef} style={{ width: "100%", height: isFill ? "100%" : height }} />
     </div>
   );
 }

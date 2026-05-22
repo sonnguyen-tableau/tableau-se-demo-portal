@@ -128,7 +128,7 @@ export function ChatPanel(): ReactElement {
   };
 
   return (
-    <div className="flex h-full flex-col rounded-lg border border-[hsl(var(--border))]">
+    <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       <header className="border-b border-[hsl(var(--border))] px-4 py-3">
         <h3 className="text-sm font-semibold">Chat phân tích AI</h3>
         <p className="mt-0.5 text-xs text-[hsl(var(--muted-foreground))]">
