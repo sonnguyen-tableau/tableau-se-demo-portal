@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 import { getLiveCatalog, type LiveProject } from "@/lib/tableau-rest";
+import { getVisibleWorkbookIds } from "@/lib/catalog-filter";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -26,7 +28,18 @@ function projectIcon(name: string): string {
 
 export default async function DashboardsIndex({ params }: PageProps) {
   const { tenantSlug } = await params;
-  const catalog = await getLiveCatalog();
+  const session = await auth();
+  const userEmail = session?.user?.email ?? "";
+
+  const [catalog, visibleIds] = await Promise.all([
+    getLiveCatalog(),
+    getVisibleWorkbookIds(userEmail),
+  ]);
+
+  // Filter dashboards to only those the user can see
+  const dashboards = visibleIds
+    ? catalog.dashboards.filter((d) => visibleIds.has(d.workbookId))
+    : catalog.dashboards;
 
   const projectMap = new Map<string, LiveProject>(catalog.projects.map((p) => [p.id, p]));
 
@@ -40,7 +53,7 @@ export default async function DashboardsIndex({ params }: PageProps) {
     viewCount: number;
   };
   const workbookMap = new Map<string, WorkbookEntry>();
-  for (const d of catalog.dashboards) {
+  for (const d of dashboards) {
     if (!workbookMap.has(d.workbookId)) {
       workbookMap.set(d.workbookId, {
         workbookId: d.workbookId,

@@ -52,6 +52,36 @@ export async function getHiddenWorkbookIds(): Promise<Set<string>> {
   return hasKv() ? readIdsFromKv() : readIdsFromFile();
 }
 
+/**
+ * Returns a combined filter: workbook is visible when it passes BOTH:
+ *  1. Not in the global hidden set
+ *  2. In the user's allowlist (if the user has one)
+ *
+ * Returns null when no filtering is needed (user sees all non-hidden workbooks).
+ */
+export async function getVisibleWorkbookIds(userEmail: string): Promise<Set<string> | null> {
+  const { getWorkbookFilter } = await import("@/lib/portal-users");
+  const [hidden, userAllowed] = await Promise.all([
+    getHiddenWorkbookIds(),
+    getWorkbookFilter(userEmail),
+  ]);
+
+  if (userAllowed === null && hidden.size === 0) return null; // fast path: no filtering
+
+  // We need the full workbook list to compute the intersection
+  const { getCachedWorkbooks } = await import("@/lib/tableau-rest");
+  const all = getCachedWorkbooks().map((w) => w.id);
+
+  const visible = new Set(
+    all.filter((id) => {
+      if (hidden.has(id)) return false;
+      if (userAllowed !== null && !userAllowed.has(id)) return false;
+      return true;
+    }),
+  );
+  return visible;
+}
+
 export async function setHiddenWorkbookIds(ids: string[]): Promise<void> {
   if (hasKv()) {
     await writeIdsToKv(ids);

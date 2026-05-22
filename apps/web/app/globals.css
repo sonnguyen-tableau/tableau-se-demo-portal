@@ -48,3 +48,10 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+
+
+@layer components {
+  .field-input {
+    @apply w-full rounded-lg border border-sf-neutral-3 bg-white px-2.5 py-2 text-sm text-sf-neutral-9 outline-none transition focus:border-sf-blue-70 focus:ring-2 focus:ring-sf-blue-10 disabled:opacity-50;
+  }
+}

@@ -52,11 +52,33 @@ export const authConfig: NextAuthConfig = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (env.PORTAL_ENV !== "dev") return null;
         const parsed = signInSchema.safeParse(credentials);
         if (!parsed.success) return null;
+        const { email, password } = parsed.data;
+
+        // 1. Try KV-stored portal users first (works in all environments)
+        try {
+          const { verifyPortalUser } = await import("@/lib/portal-users");
+          const kvUser = await verifyPortalUser(email, password);
+          if (kvUser) {
+            return {
+              id: kvUser.email,
+              email: kvUser.email,
+              name: kvUser.email.split("@")[0] ?? kvUser.email,
+              tenantId: kvUser.tenantId,
+              tenantName: kvUser.tenantName,
+              ...(kvUser.region ? { region: kvUser.region } : {}),
+              groups: kvUser.groups,
+            };
+          }
+        } catch {
+          // KV unavailable — fall through to DEV_USERS_JSON
+        }
+
+        // 2. Fall back to DEV_USERS_JSON (dev / local only)
+        if (env.PORTAL_ENV !== "dev") return null;
         const user = devUsers.find(
-          (u) => u.email === parsed.data.email && u.password === parsed.data.password,
+          (u) => u.email === email && u.password === password,
         );
         if (!user) return null;
         const displayName = user.email.split("@")[0] ?? user.email;
