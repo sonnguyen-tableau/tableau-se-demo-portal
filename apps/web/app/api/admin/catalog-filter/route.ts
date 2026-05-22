@@ -17,7 +17,8 @@ export async function GET(): Promise<Response> {
 }
 
 const putSchema = z.object({
-  hiddenWorkbookIds: z.array(z.string().uuid()).max(2000),
+  // Tableau workbook IDs are UUIDs but may be uppercase — accept any non-empty string
+  hiddenWorkbookIds: z.array(z.string().min(1)).max(2000),
 });
 
 export async function PUT(req: Request): Promise<Response> {
