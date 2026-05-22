@@ -18,9 +18,16 @@ function loadDevUsers(): DevUser[] {
   if (env.PORTAL_ENV !== "dev") return [];
   const raw = env.DEV_USERS_JSON;
   if (!raw) return [];
-  const parsed = z.array(devUserSchema).safeParse(JSON.parse(raw));
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    console.warn("DEV_USERS_JSON is not valid JSON; dev sign-in disabled");
+    return [];
+  }
+  const parsed = z.array(devUserSchema).safeParse(json);
   if (!parsed.success) {
-    console.warn("DEV_USERS_JSON failed validation; dev sign-in disabled");
+    console.warn("DEV_USERS_JSON failed validation; dev sign-in disabled", parsed.error.issues);
     return [];
   }
   return parsed.data;
