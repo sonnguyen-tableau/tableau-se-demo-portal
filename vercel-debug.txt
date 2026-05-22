@@ -1,0 +1,7 @@
+Domain to test (e.g. example.com): 
+┌───────────────────────────────────────
+├─────── Fetching IP Addresses
+│
+│ Range lookup failed - No response from API
+└───────────────────────────────────────
+
