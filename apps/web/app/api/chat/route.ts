@@ -25,9 +25,16 @@ const vizContextSchema = z
   })
   .optional();
 
+const historyMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().max(32_000),
+});
+
 const requestSchema = z.object({
   message: z.string().min(1).max(8000),
   vizContext: vizContextSchema,
+  // Prior turns for multi-turn conversation continuity (max 40 messages)
+  history: z.array(historyMessageSchema).max(40).optional(),
 });
 
 function sseLine(event: AgentEvent | { type: "open"; tools: readonly string[] }): string {
@@ -146,6 +153,7 @@ export async function POST(req: Request): Promise<Response> {
           apiKey: anthropicKey,
           systemPrompt,
           userMessage: parsed.data.message,
+          history: parsed.data.history,
           enableVizTools: true,
           ...(mcp ? { mcp } : {}),
         })) {

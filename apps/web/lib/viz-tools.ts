@@ -8,7 +8,7 @@ import type { McpToolDescriptor } from "./mcp-client";
  */
 export const VIZ_TOOLS: readonly McpToolDescriptor[] = [
   {
-    name: "viz.applyFilter",
+    name: "viz_applyFilter",
     description:
       "Apply a categorical filter to the embedded dashboard. The user sees the dashboard update. Use to drill down by Region, Segment, Category, etc.",
     input_schema: {
@@ -30,7 +30,7 @@ export const VIZ_TOOLS: readonly McpToolDescriptor[] = [
     },
   },
   {
-    name: "viz.clearFilter",
+    name: "viz_clearFilter",
     description: "Remove all values from a categorical filter (reset to all).",
     input_schema: {
       type: "object",
@@ -39,7 +39,7 @@ export const VIZ_TOOLS: readonly McpToolDescriptor[] = [
     },
   },
   {
-    name: "viz.selectMarks",
+    name: "viz_selectMarks",
     description:
       "Highlight specific marks in the dashboard (does NOT filter; just selects/emphasizes). Useful to direct the user's attention.",
     input_schema: {
@@ -52,12 +52,12 @@ export const VIZ_TOOLS: readonly McpToolDescriptor[] = [
     },
   },
   {
-    name: "viz.clearSelectedMarks",
+    name: "viz_clearSelectedMarks",
     description: "Clear any currently selected marks.",
     input_schema: { type: "object", properties: {} },
   },
   {
-    name: "viz.switchTab",
+    name: "viz_switchTab",
     description: "Switch the dashboard to a different sheet/tab by name.",
     input_schema: {
       type: "object",
@@ -66,7 +66,7 @@ export const VIZ_TOOLS: readonly McpToolDescriptor[] = [
     },
   },
   {
-    name: "viz.setParameter",
+    name: "viz_setParameter",
     description: "Set a workbook parameter value (use for currency, fiscal year, etc.).",
     input_schema: {
       type: "object",
@@ -77,5 +77,5 @@ export const VIZ_TOOLS: readonly McpToolDescriptor[] = [
 ] as const;
 
 export function isVizToolName(name: string): boolean {
-  return name.startsWith("viz.");
+  return name.startsWith("viz_");
 }

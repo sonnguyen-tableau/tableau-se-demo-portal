@@ -60,29 +60,37 @@ export async function openTableauMcp(opts: OpenOptions): Promise<TableauMcpSessi
   await client.connect(transport as unknown as Transport);
 
   const listed = await client.listTools();
+  // Build a map from sanitized name → original name for callTool reverse lookup
+  const sanitizedToOriginal = new Map<string, string>();
   const tools: McpToolDescriptor[] = listed.tools
     .filter((t: Tool) => isAgentToolAllowed(t.name))
-    .map((t: Tool) => ({
-      name: t.name,
-      description: t.description ?? "",
-      input_schema: (t.inputSchema as Record<string, unknown>) ?? {
-        type: "object",
-        properties: {},
-      },
-    }));
+    .map((t: Tool) => {
+      const sanitized = t.name.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 128);
+      sanitizedToOriginal.set(sanitized, t.name);
+      return {
+        name: sanitized,
+        description: t.description ?? "",
+        input_schema: (t.inputSchema as Record<string, unknown>) ?? {
+          type: "object",
+          properties: {},
+        },
+      };
+    });
 
   return {
     tools,
     callTool: async (name, args) => {
-      if (!isAgentToolAllowed(name)) {
+      // Reverse-map sanitized name back to original for the MCP call
+      const originalName = sanitizedToOriginal.get(name) ?? name;
+      if (!isAgentToolAllowed(originalName)) {
         return {
           isError: true,
           content: [
-            { type: "text", text: `Tool '${name}' is not in the agent allowlist.` },
+            { type: "text", text: `Tool '${originalName}' is not in the agent allowlist.` },
           ],
         };
       }
-      const result = await client.callTool({ name, arguments: args });
+      const result = await client.callTool({ name: originalName, arguments: args });
       const content = Array.isArray(result.content)
         ? (result.content as Array<{ type: string; text?: string; data?: unknown }>)
         : [];

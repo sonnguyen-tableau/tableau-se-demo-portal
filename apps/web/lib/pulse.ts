@@ -18,24 +18,9 @@ export interface TenantPulseConfig {
   metrics: PulseMetric[];
 }
 
-const CATALOG: Record<string, TenantPulseConfig> = {
-  // Placeholder entries. Real values arrive via the factory in Phase 9 and
-  // are unique per tenant.
-  "tenant-acme": {
-    tenantId: "tenant-acme",
-    metrics: [
-      { id: "revenue", name: "Revenue", metricId: "00000000-0000-0000-0000-aaaaaaaa0001" },
-      { id: "aov", name: "Average Order Value", metricId: "00000000-0000-0000-0000-aaaaaaaa0002" },
-      { id: "returns", name: "Return Rate", metricId: "00000000-0000-0000-0000-aaaaaaaa0003" },
-    ],
-  },
-  internal: {
-    tenantId: "internal",
-    metrics: [
-      { id: "impressions", name: "Site Impressions Today", metricId: "00000000-0000-0000-0000-bbbbbbbb0001" },
-    ],
-  },
-};
+// Pulse metrics are provisioned by the Factory (Phase 9+).
+// Empty catalog disables the Pulse section until real metric IDs are available.
+const CATALOG: Record<string, TenantPulseConfig> = {};
 
 export function getPulseConfig(tenantId: string): TenantPulseConfig | null {
   return CATALOG[tenantId] ?? null;

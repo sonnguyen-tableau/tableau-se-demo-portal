@@ -1,7 +1,6 @@
 "use client";
 
-import { type ReactElement } from "react";
-import { TableauPulse } from "@tableau/embedding-api-react";
+import { type ReactElement, useEffect, useRef } from "react";
 
 interface Props {
   src: string;
@@ -11,12 +10,43 @@ interface Props {
 }
 
 export function TableauPulseCard({ src, token, name, height = "260px" }: Props): ReactElement {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let origin = "https://prod-apsoutheast-c.online.tableau.com";
+    try { origin = new URL(src).origin; } catch { /* keep default */ }
+
+    const existing = document.querySelector('script[data-tableau-embed]');
+    const mount = () => {
+      const pulse = document.createElement("tableau-pulse") as HTMLElement & Record<string, unknown>;
+      pulse["src"] = src;
+      pulse["token"] = token;
+      (pulse as HTMLElement).style.cssText = `width:100%;height:${height};`;
+      container.innerHTML = "";
+      container.appendChild(pulse as HTMLElement);
+    };
+
+    if (existing) {
+      void customElements.whenDefined("tableau-pulse").then(mount);
+    } else {
+      const s = document.createElement("script");
+      s.type = "module";
+      s.setAttribute("data-tableau-embed", "1");
+      s.src = `${origin}/javascripts/api/tableau.embedding.3.latest.min.js`;
+      s.onload = () => void customElements.whenDefined("tableau-pulse").then(mount);
+      document.head.appendChild(s);
+    }
+
+    return () => { container.innerHTML = ""; };
+  }, [src, token, height]);
+
   return (
     <div className="rounded-lg border border-[hsl(var(--border))] p-3">
       <h4 className="mb-2 text-sm font-medium">{name}</h4>
-      <div style={{ minHeight: height }}>
-        <TableauPulse src={src} token={token} height={height} />
-      </div>
+      <div ref={containerRef} style={{ minHeight: height }} />
     </div>
   );
 }

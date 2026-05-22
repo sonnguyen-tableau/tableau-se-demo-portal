@@ -1,8 +1,12 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { auth, signOut } from "@/lib/auth";
 import { canAccessTenant, tenantFromSession } from "@/lib/tenant";
 import { getTenantTheme, themeToCssVariables } from "@/lib/tenant-theme";
+import { getLiveCatalog } from "@/lib/tableau-rest";
+import { SalesforceBankIcon } from "@/components/SalesforceBankLogo";
+import { ProjectTree } from "@/components/nav/ProjectTree";
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,15 +22,18 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
   if (!canAccessTenant(ctx, tenantSlug)) {
     return (
       <main className="mx-auto max-w-xl px-6 py-16">
-        <h1 className="text-xl font-semibold">Tenant mismatch</h1>
-        <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
-          You don&apos;t have access to <code>{tenantSlug}</code>.
+        <h1 className="text-xl font-semibold">Không có quyền truy cập</h1>
+        <p className="mt-2 text-sm text-sf-neutral-6">
+          Bạn không có quyền truy cập vào <code>{tenantSlug}</code>.
         </p>
       </main>
     );
   }
 
-  const rawTheme = await getTenantTheme(ctx?.tenantId ?? tenantSlug);
+  const [rawTheme, catalog] = await Promise.all([
+    getTenantTheme(ctx?.tenantId ?? tenantSlug),
+    getLiveCatalog(),
+  ]);
   const theme = {
     primary: rawTheme.primaryColor,
     logoUrl: rawTheme.logoUrl,
@@ -35,50 +42,154 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
 
   return (
     <div
-      className="mx-auto flex min-h-dvh max-w-6xl flex-col px-6 py-6"
+      className="flex min-h-dvh bg-sf-neutral-2"
       style={{ ...(themeToInlineStyle(theme.cssText)) }}
     >
-      <header className="mb-6 flex items-center justify-between border-b border-[hsl(var(--border))] pb-4">
-        <div className="flex items-center gap-3">
-          {theme.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={theme.logoUrl}
-              alt={ctx?.tenantName ?? tenantSlug}
-              className="h-8 w-8 rounded object-contain"
-            />
-          ) : (
-            <div
-              aria-hidden
-              className="h-8 w-8 rounded"
-              style={{ background: theme.primary }}
-            />
-          )}
-          <div>
-            <p className="text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
-              Tenant
-            </p>
-            <h1 className="text-xl font-semibold tracking-tight">
-              {ctx?.tenantName ?? tenantSlug}
-            </h1>
+      {/* ── Sidebar ────────────────────────────────────────────────────────── */}
+      <aside className="hidden w-64 shrink-0 flex-col bg-sf-blue-90 lg:flex">
+        {/* Brand header */}
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
+          <SalesforceBankIcon size={32} />
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="text-sm font-bold text-white truncate">Salesforce Bank</span>
+            <span className="text-[10px] font-medium text-blue-300 uppercase tracking-widest">Analytics Portal</span>
           </div>
         </div>
-        <span className="text-sm text-[hsl(var(--muted-foreground))]">
-          {session.user.email}
-        </span>
-      </header>
-      <div className="flex-1">{children}</div>
+
+        {/* Tenant badge */}
+        <div className="mx-4 mt-4 rounded-md bg-white/8 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-blue-300">Workspace</p>
+          <p className="mt-0.5 text-sm font-medium text-white truncate">{ctx?.tenantName ?? tenantSlug}</p>
+        </div>
+
+        {/* Nav */}
+        <nav className="mt-4 flex flex-col flex-1 min-h-0 px-3">
+          {/* Top links */}
+          <div className="space-y-0.5">
+            <NavLabel>Phân tích</NavLabel>
+            <NavLink href={`/t/${tenantSlug}`} icon={
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            }>Trang chủ</NavLink>
+            <NavLink href={`/t/${tenantSlug}/dashboards`} icon={
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            }>Tất cả Dashboards</NavLink>
+          </div>
+
+          {/* Project tree — scrollable */}
+          {catalog.projects.length > 0 && (
+            <>
+              <div className="my-3 border-t border-white/10" />
+              <NavLabel>Dự án</NavLabel>
+              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-white/10">
+                <ProjectTree
+                  projects={catalog.projects}
+                  dashboards={catalog.dashboards}
+                  tenantSlug={tenantSlug}
+                />
+              </div>
+            </>
+          )}
+
+          {/* AI section */}
+          <div className="mt-2 border-t border-white/10 pt-3 space-y-0.5">
+            <NavLabel>AI</NavLabel>
+            <NavLink href={`/t/${tenantSlug}/agent`} badge="New" icon={
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            }>AI Agent</NavLink>
+          </div>
+
+          {/* Admin — internal only */}
+          {ctx?.isInternal && (
+            <div className="mt-2 border-t border-white/10 pt-3 space-y-0.5">
+              <NavLabel>Admin</NavLabel>
+              <NavLink href={`/t/${tenantSlug}/admin`} icon={
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              }>Cấu hình catalog</NavLink>
+            </div>
+          )}
+        </nav>
+
+        {/* User section */}
+        <div className="border-t border-white/10 px-3 py-4 space-y-1">
+          <div className="flex items-center gap-2.5 px-3 py-2">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sf-blue-60 text-xs font-bold text-white">
+              {session.user.email?.slice(0, 1).toUpperCase()}
+            </div>
+            <p className="truncate text-xs text-blue-200">{session.user.email}</p>
+          </div>
+          <form action={async () => { "use server"; await signOut({ redirectTo: "/sign-in" }); }}>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-300 transition-colors hover:bg-white/8 hover:text-white"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Đăng xuất
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      {/* ── Main ──────────────────────────────────────────────────────────── */}
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Mobile top bar */}
+        <header className="flex items-center justify-between border-b border-sf-neutral-3 bg-white px-5 py-3 lg:hidden">
+          <div className="flex items-center gap-2">
+            <SalesforceBankIcon size={26} />
+            <span className="text-sm font-semibold text-sf-neutral-9">{ctx?.tenantName ?? tenantSlug}</span>
+          </div>
+          <span className="text-xs text-sf-neutral-6">{session.user.email}</span>
+        </header>
+
+        <main className="flex-1 overflow-auto">
+          <div className="mx-auto max-w-7xl p-6">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }
 
+function NavLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="mb-1 mt-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-blue-300/70">
+      {children}
+    </p>
+  );
+}
+
+function NavLink({
+  href,
+  icon,
+  badge,
+  children,
+}: {
+  href: string;
+  icon: ReactNode;
+  badge?: string;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white"
+    >
+      <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        {icon}
+      </svg>
+      <span className="flex-1">{children}</span>
+      {badge && (
+        <span className="rounded-full bg-sf-blue-60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+          {badge}
+        </span>
+      )}
+    </Link>
+  );
+}
+
 function themeToInlineStyle(cssText: string): Record<string, string> {
-  // Convert "--key: value; --key2: value2;" into a React-friendly object.
   return Object.fromEntries(
-    cssText
-      .split(";")
-      .map((d) => d.trim())
-      .filter(Boolean)
+    cssText.split(";").map((d) => d.trim()).filter(Boolean)
       .map((d) => {
         const [k, ...rest] = d.split(":");
         return [(k ?? "").trim(), rest.join(":").trim()] as const;

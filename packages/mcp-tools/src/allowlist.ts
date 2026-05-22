@@ -44,7 +44,7 @@ export const AGENT_TOOL_ALLOWLIST: readonly TableauMcpToolName[] = [
   "list-workbooks",
   "list-views",
   "search-content",
-  "get-view-data",
+  // get-view-data excluded — returns raw row-level data that exceeds context limits
   "get-view-image",
   "query-datasource",
   "generate-pulse-insight-brief",

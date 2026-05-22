@@ -2,24 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Salesforce Lightning Design System tokens */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --border: 214 32% 91%;
-  --brand-primary: #1a56db;
-  --brand-secondary: #f59e0b;
-  --brand-neutral: #0f172a;
-  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
+  /* Brand blues — SLDS brand palette */
+  --sf-blue-10: #eef4ff;
+  --sf-blue-20: #cfe4fe;
+  --sf-blue-40: #78b0fd;
+  --sf-blue-60: #1b96ff;   /* Primary interactive */
+  --sf-blue-70: #0176d3;   /* Accessible default */
+  --sf-blue-80: #0b5cab;   /* Dark / hover */
+  --sf-blue-90: #032d60;   /* Navy / sidebar */
 
-.dark {
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --border: 217 33% 24%;
+  /* Neutrals */
+  --sf-neutral-1:  #ffffff;
+  --sf-neutral-2:  #f3f3f3;
+  --sf-neutral-3:  #e5e5e5;
+  --sf-neutral-4:  #c9c9c9;
+  --sf-neutral-6:  #939393;
+  --sf-neutral-8:  #444444;
+  --sf-neutral-9:  #2b2826;
+  --sf-neutral-10: #080707;
+
+  /* Semantic */
+  --sf-success:  #2e844a;
+  --sf-warning:  #fe9339;
+  --sf-error:    #ea001e;
+
+  /* App tokens */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 7%;           /* sf-neutral-10 */
+  --muted: 0 0% 95%;               /* sf-neutral-2 */
+  --muted-foreground: 0 0% 58%;    /* sf-neutral-6 */
+  --border: 0 0% 90%;              /* sf-neutral-3 */
+  --brand-primary: #0176d3;        /* SLDS brand-60 accessible */
+  --brand-secondary: #032d60;      /* SLDS navy */
+  --brand-neutral: #080707;
+
+  --font-sans: "Salesforce Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {

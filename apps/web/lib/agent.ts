@@ -2,24 +2,36 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { TableauMcpSession, McpToolDescriptor } from "./mcp-client";
 import { VIZ_TOOLS, isVizToolName } from "./viz-tools";
 
-const DEFAULT_MODEL = "claude-sonnet-4-5-20250929";
+const DEFAULT_MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 4096;
 const MAX_TOOL_ROUNDS = 6;
+const MAX_TOOL_RESULT_CHARS = 8_000;
+const MAX_TOOL_DESCRIPTION_CHARS = 500;
 
 export type AgentEvent =
   | { type: "system"; message: string }
   | { type: "text_delta"; delta: string }
   | { type: "tool_use"; id: string; name: string; input: Record<string, unknown> }
   | { type: "tool_result"; id: string; ok: boolean; preview: string }
+  | { type: "tool_image"; id: string; mimeType: string; data: string }
+  | { type: "tool_table"; id: string; columns: string[]; rows: string[][] }
+  | { type: "tool_vegaspec"; id: string; spec: Record<string, unknown>; title?: string | undefined }
   | { type: "viz_action"; id: string; name: string; input: Record<string, unknown> }
   | { type: "error"; message: string }
   | { type: "done"; usage?: { input_tokens?: number; output_tokens?: number } };
+
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export interface AgentTurnInput {
   apiKey: string;
   model?: string;
   systemPrompt: string;
   userMessage: string;
+  /** Prior conversation turns for multi-turn continuity. */
+  history?: ConversationTurn[] | undefined;
   /** Optional MCP session for tool use. When omitted, runs as a plain chat. */
   mcp?: TableauMcpSession;
   /** Enable viz.* client-side tools. The route forwards them to the client. */
@@ -39,7 +51,23 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
     ? [...mcpTools, ...VIZ_TOOLS]
     : [...mcpTools];
 
+  // Truncate tool descriptions to keep tool definitions within budget
+  const trimmedTools: McpToolDescriptor[] = tools.map((t) => ({
+    ...t,
+    description: t.description.length > MAX_TOOL_DESCRIPTION_CHARS
+      ? t.description.slice(0, MAX_TOOL_DESCRIPTION_CHARS) + "…"
+      : t.description,
+  }));
+
+  // Build message list: history turns (text only) + current user message.
+  // History must alternate user/assistant; we skip tool-call blocks from prior
+  // turns since they aren't serialised in the history payload.
+  const historyMessages: Anthropic.MessageParam[] = (input.history ?? []).map((t) => ({
+    role: t.role,
+    content: t.content,
+  }));
   const messages: Anthropic.MessageParam[] = [
+    ...historyMessages,
     { role: "user", content: input.userMessage },
   ];
 
@@ -51,10 +79,28 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
       messages,
       stream: true,
     };
-    if (tools.length > 0) {
-      baseParams.tools = tools as unknown as Anthropic.Tool[];
+    if (trimmedTools.length > 0) {
+      baseParams.tools = trimmedTools as unknown as Anthropic.Tool[];
     }
-    const stream = anthropic.messages.stream(baseParams);
+
+    // Retry on overloaded_error with exponential backoff (up to 3 attempts)
+    let stream: Awaited<ReturnType<typeof anthropic.messages.stream>>;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        stream = anthropic.messages.stream(baseParams);
+        // Trigger connection; if overloaded it throws on first read
+        break;
+      } catch (err) {
+        const isOverloaded = err instanceof Error && err.message.includes("overloaded");
+        if (isOverloaded && attempt < 2) {
+          await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+          continue;
+        }
+        yield { type: "error", message: err instanceof Error ? err.message : "stream error" };
+        return;
+      }
+    }
+    stream = stream!;
 
     const toolCalls: Array<{ id: string; name: string; input: Record<string, unknown> }> = [];
 
@@ -65,9 +111,12 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
         }
       }
     } catch (err) {
+      const isOverloaded = err instanceof Error && err.message.includes("overloaded");
       yield {
         type: "error",
-        message: err instanceof Error ? err.message : "stream error",
+        message: isOverloaded
+          ? "Hệ thống AI đang quá tải, vui lòng thử lại sau vài giây."
+          : err instanceof Error ? err.message : "stream error",
       };
       return;
     }
@@ -131,17 +180,22 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
       yield { type: "tool_use", id: call.id, name: call.name, input: call.input };
       try {
         const result = await input.mcp.callTool(call.name, call.input);
+
+        // Emit rich events for image, table, and vega specs before the tool_result
+        const richContent = buildRichContent(result.content, call.name);
+        for (const ev of richContent.events) {
+          if (ev.type === "tool_image") yield { ...ev, id: call.id };
+          else if (ev.type === "tool_table") yield { ...ev, id: call.id };
+          else if (ev.type === "tool_vegaspec") yield { ...ev, id: call.id };
+        }
+
         const text = previewToolResult(result.content);
         yield { type: "tool_result", id: call.id, ok: !result.isError, preview: text };
         toolResults.push({
           type: "tool_result",
           tool_use_id: call.id,
           is_error: result.isError,
-          content: result.content.map((c) =>
-            c.type === "text"
-              ? { type: "text" as const, text: c.text ?? "" }
-              : { type: "text" as const, text: JSON.stringify(c) },
-          ),
+          content: richContent.anthropicContent as (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[],
         });
       } catch (e) {
         const msg = e instanceof Error ? e.message : "tool call failed";
@@ -162,6 +216,183 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
     type: "error",
     message: `Agent stopped after ${MAX_TOOL_ROUNDS} tool rounds without a final answer.`,
   };
+}
+
+type RichEvent =
+  | { type: "tool_image"; mimeType: string; data: string }
+  | { type: "tool_table"; columns: string[]; rows: string[][] }
+  | { type: "tool_vegaspec"; spec: Record<string, unknown>; title?: string | undefined };
+
+type AnthropicContentBlock =
+  | { type: "text"; text: string }
+  | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
+
+interface RichBuildResult {
+  events: RichEvent[];
+  anthropicContent: AnthropicContentBlock[];
+}
+
+const PULSE_TOOLS = new Set([
+  "generate-pulse-insight-brief",
+  "generate_pulse_insight_brief",
+  "generate-pulse-metric-value-insight-bundle",
+  "generate_pulse_metric_value_insight_bundle",
+]);
+
+function buildRichContent(
+  content: Array<{ type: string; text?: string; data?: unknown; mimeType?: string }>,
+  toolName = "",
+): RichBuildResult {
+  const events: RichEvent[] = [];
+  const anthropicContent: RichBuildResult["anthropicContent"] = [];
+  const isPulseTool = PULSE_TOOLS.has(toolName);
+
+  for (const block of content) {
+    if (block.type === "image" && typeof block.data === "string") {
+      const mimeType = typeof block.mimeType === "string" ? block.mimeType : "image/png";
+      events.push({ type: "tool_image", mimeType, data: block.data });
+      anthropicContent.push({
+        type: "image",
+        source: { type: "base64", media_type: mimeType, data: block.data },
+      });
+      continue;
+    }
+    if (block.type === "text" && typeof block.text === "string") {
+      // Extract Vega-Lite specs from Pulse tool JSON responses
+      if (isPulseTool) {
+        const specs = extractVegaSpecs(block.text, toolName);
+        for (const { spec, title } of specs) {
+          events.push({ type: "tool_vegaspec", spec, title });
+        }
+      }
+
+      // For non-Pulse tools, try rendering as a table
+      if (!isPulseTool) {
+        const table = tryParseTable(block.text);
+        if (table) {
+          events.push({ type: "tool_table", columns: table.columns, rows: table.rows });
+        }
+      }
+
+      const truncated = block.text.length > MAX_TOOL_RESULT_CHARS
+        ? block.text.slice(0, MAX_TOOL_RESULT_CHARS) + `\n\n[TRUNCATED: ${block.text.length - MAX_TOOL_RESULT_CHARS} more chars]`
+        : block.text;
+      anthropicContent.push({ type: "text", text: truncated });
+      continue;
+    }
+    const txt = JSON.stringify(block);
+    const truncated = txt.length > MAX_TOOL_RESULT_CHARS
+      ? txt.slice(0, MAX_TOOL_RESULT_CHARS) + "[TRUNCATED]"
+      : txt;
+    anthropicContent.push({ type: "text", text: truncated });
+  }
+
+  if (anthropicContent.length === 0) {
+    anthropicContent.push({ type: "text", text: "(empty result)" });
+  }
+
+  return { events, anthropicContent };
+}
+
+function isVegaLikeSpec(obj: unknown): obj is Record<string, unknown> {
+  if (typeof obj !== "object" || obj === null || Array.isArray(obj)) return false;
+  const o = obj as Record<string, unknown>;
+  // A Vega-Lite spec has at least a mark or layer/concat/hconcat/vconcat, plus data or encoding
+  return (
+    ("mark" in o || "layer" in o || "concat" in o || "hconcat" in o || "vconcat" in o) &&
+    ("data" in o || "encoding" in o || "$schema" in o)
+  );
+}
+
+function extractVegaSpecs(text: string, toolName: string): Array<{ spec: Record<string, unknown>; title?: string }> {
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return []; }
+  const results: Array<{ spec: Record<string, unknown>; title?: string }> = [];
+
+  const isBrief = toolName.includes("brief");
+
+  if (isBrief) {
+    // generate-pulse-insight-brief: response.source_insights[].viz
+    const sourceInsights = getPath(parsed, ["source_insights"]);
+    if (Array.isArray(sourceInsights)) {
+      for (const insight of sourceInsights) {
+        const viz = getPath(insight, ["viz"]);
+        const question = getPath(insight, ["question"]);
+        if (isVegaLikeSpec(viz)) {
+          if (typeof question === "string") {
+            results.push({ spec: viz, title: question });
+          } else {
+            results.push({ spec: viz });
+          }
+        }
+      }
+    }
+  } else {
+    // generate-pulse-metric-value-insight-bundle:
+    // response.bundle_response.result.insight_groups[].insights[].result.viz
+    // response.bundle_response.result.insight_groups[].summaries[].result.viz
+    const groups = getPath(parsed, ["bundle_response", "result", "insight_groups"]);
+    if (Array.isArray(groups)) {
+      for (const group of groups) {
+        const insights = getPath(group, ["insights"]);
+        if (Array.isArray(insights)) {
+          for (const insight of insights) {
+            const viz = getPath(insight, ["result", "viz"]);
+            const question = getPath(insight, ["result", "question"]) ?? getPath(insight, ["question"]);
+            if (isVegaLikeSpec(viz)) {
+              if (typeof question === "string") {
+                results.push({ spec: viz, title: question });
+              } else {
+                results.push({ spec: viz });
+              }
+            }
+          }
+        }
+        const summaries = getPath(group, ["summaries"]);
+        if (Array.isArray(summaries)) {
+          for (const summary of summaries) {
+            const viz = getPath(summary, ["result", "viz"]);
+            if (isVegaLikeSpec(viz)) {
+              results.push({ spec: viz });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return results;
+}
+
+function getPath(obj: unknown, path: string[]): unknown {
+  let cur = obj;
+  for (const key of path) {
+    if (typeof cur !== "object" || cur === null) return undefined;
+    cur = (cur as Record<string, unknown>)[key];
+  }
+  return cur;
+}
+
+const MAX_TABLE_ROWS = 200;
+
+function tryParseTable(text: string): { columns: string[]; rows: string[][] } | null {
+  const trimmed = text.trim();
+  // Only attempt if it looks like a JSON array
+  if (!trimmed.startsWith("[")) return null;
+  let parsed: unknown;
+  try { parsed = JSON.parse(trimmed); } catch { return null; }
+  if (!Array.isArray(parsed) || parsed.length === 0) return null;
+  const first = parsed[0];
+  if (typeof first !== "object" || first === null || Array.isArray(first)) return null;
+
+  const columns = Object.keys(first as Record<string, unknown>);
+  if (columns.length === 0) return null;
+
+  const rows: string[][] = (parsed as Array<Record<string, unknown>>)
+    .slice(0, MAX_TABLE_ROWS)
+    .map((row) => columns.map((col) => String(row[col] ?? "")));
+
+  return { columns, rows };
 }
 
 function previewToolResult(
