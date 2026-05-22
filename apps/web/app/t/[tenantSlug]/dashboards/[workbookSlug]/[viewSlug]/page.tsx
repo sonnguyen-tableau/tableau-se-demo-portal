@@ -78,8 +78,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   const src = tableauViewUrl(dashboard.viewPath);
 
   return (
-    // Stretch to fill the scrollable main area — no fixed height so it grows with the page
-    <div className="flex flex-col gap-2 h-full" style={{ minHeight: "calc(100vh - 2rem)" }}>
+    <div className="flex flex-col gap-2 flex-1 min-h-0">
       {/* Top bar: breadcrumb + view tabs in one compact row */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 shrink-0">
         {/* Breadcrumb */}
@@ -126,7 +125,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
 
       {/* Main content: viz + chat side by side, fills remaining space */}
       <VizContextProvider>
-        <div className="flex flex-1 gap-3 min-h-0" style={{ minHeight: "600px" }}>
+        <div className="flex flex-1 gap-3 min-h-0" style={{ minHeight: "500px" }}>
           {/* Tableau embed — takes 2/3 of width, full height */}
           <div className="flex-[2_1_0%] min-w-0 min-h-0">
             <TableauVizShell src={src} initialToken={token} height="100%" />

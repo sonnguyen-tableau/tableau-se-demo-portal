@@ -151,8 +151,8 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
           <span className="text-xs text-sf-neutral-6">{session.user.email}</span>
         </header>
 
-        <main className="flex-1 overflow-auto min-h-0">
-          <div className="mx-auto max-w-[1600px] p-4">{children}</div>
+        <main className="flex-1 overflow-auto min-h-0 flex flex-col">
+          <div className="mx-auto w-full max-w-[1600px] p-4 flex flex-col" style={{ minHeight: "100%" }}>{children}</div>
         </main>
       </div>
     </div>
