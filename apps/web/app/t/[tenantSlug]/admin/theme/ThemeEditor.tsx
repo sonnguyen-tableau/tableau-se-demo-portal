@@ -1,0 +1,288 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import type { TenantTheme, Tone } from "@/lib/tenant-theme";
+
+const FONT_OPTIONS = ["Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Source Sans Pro"];
+const TONE_OPTIONS: { value: Tone; label: string; desc: string }[] = [
+  { value: "professional", label: "Chuyên nghiệp", desc: "Nghiêm túc, rõ ràng, tin cậy" },
+  { value: "playful", label: "Năng động", desc: "Thân thiện, sáng tạo, gần gũi" },
+  { value: "technical", label: "Kỹ thuật", desc: "Chính xác, chi tiết, chuyên sâu" },
+];
+
+interface Props {
+  initial: TenantTheme;
+  tenantId: string;
+}
+
+export function ThemeEditor({ initial, tenantId }: Props) {
+  const [form, setForm] = useState<TenantTheme>(initial);
+  const [saving, startSave] = useTransition();
+  const [status, setStatus] = useState<"idle" | "ok" | "error">("idle");
+
+  function set<K extends keyof TenantTheme>(key: K, value: TenantTheme[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+    setStatus("idle");
+  }
+
+  function save() {
+    startSave(async () => {
+      try {
+        const res = await fetch("/api/admin/theme", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, tenantId }),
+        });
+        setStatus(res.ok ? "ok" : "error");
+        if (res.ok) {
+          // Reload to apply new theme to layout
+          window.location.reload();
+        }
+      } catch {
+        setStatus("error");
+      }
+    });
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 border-b border-sf-neutral-3 pb-5">
+        <div>
+          <h2 className="text-2xl font-bold text-sf-neutral-10">Tuỳ chỉnh giao diện</h2>
+          <p className="mt-1 text-sm text-sf-neutral-6">
+            Thay đổi logo, màu sắc và tên công ty hiển thị trong portal.
+          </p>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {status === "ok" && <span className="text-sm text-emerald-600 font-medium">✓ Đã lưu</span>}
+          {status === "error" && <span className="text-sm text-red-600 font-medium">Lỗi khi lưu</span>}
+          <button
+            onClick={save}
+            disabled={saving}
+            className="rounded-lg bg-sf-blue-70 px-4 py-2 text-sm font-semibold text-white shadow-sf-sm transition hover:bg-sf-blue-80 disabled:opacity-50"
+          >
+            {saving ? "Đang lưu…" : "Lưu thay đổi"}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+        {/* Form */}
+        <div className="space-y-6">
+          {/* Company info */}
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-sf-neutral-6">Thông tin công ty</h3>
+
+            <Field label="Tên công ty">
+              <input
+                type="text"
+                value={form.companyName}
+                onChange={(e) => set("companyName", e.target.value)}
+                placeholder="Salesforce Bank"
+                className={inputCls}
+              />
+            </Field>
+
+            <Field label="URL Logo" hint="Dán URL ảnh logo (PNG/SVG, nền trong suốt)">
+              <input
+                type="url"
+                value={form.logoUrl ?? ""}
+                onChange={(e) => set("logoUrl", e.target.value || undefined)}
+                placeholder="https://example.com/logo.png"
+                className={inputCls}
+              />
+            </Field>
+          </section>
+
+          {/* Colors */}
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-sf-neutral-6">Màu sắc</h3>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <ColorField
+                label="Màu chính"
+                hint="Nút, link, accent"
+                value={form.primaryColor}
+                onChange={(v) => set("primaryColor", v)}
+              />
+              <ColorField
+                label="Màu phụ"
+                hint="Highlight, badge"
+                value={form.secondaryColor}
+                onChange={(v) => set("secondaryColor", v)}
+              />
+              <ColorField
+                label="Màu nền tối"
+                hint="Sidebar, header"
+                value={form.neutralColor}
+                onChange={(v) => set("neutralColor", v)}
+              />
+            </div>
+          </section>
+
+          {/* Font */}
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-sf-neutral-6">Font chữ</h3>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {FONT_OPTIONS.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => set("fontFamily", f)}
+                  style={{ fontFamily: f }}
+                  className={`rounded-lg border px-3 py-2 text-sm transition ${
+                    form.fontFamily === f
+                      ? "border-sf-blue-70 bg-sf-blue-10 text-sf-blue-80 font-semibold"
+                      : "border-sf-neutral-3 bg-white text-sf-neutral-8 hover:border-sf-blue-70"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Tone */}
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-sf-neutral-6">Phong cách AI</h3>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {TONE_OPTIONS.map((t) => (
+                <button
+                  key={t.value}
+                  onClick={() => set("tone", t.value)}
+                  className={`rounded-xl border p-4 text-left transition ${
+                    form.tone === t.value
+                      ? "border-sf-blue-70 bg-sf-blue-10"
+                      : "border-sf-neutral-3 bg-white hover:border-sf-blue-70"
+                  }`}
+                >
+                  <p className={`text-sm font-semibold ${form.tone === t.value ? "text-sf-blue-80" : "text-sf-neutral-9"}`}>
+                    {t.label}
+                  </p>
+                  <p className="mt-0.5 text-xs text-sf-neutral-5">{t.desc}</p>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {/* Live preview */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-sf-neutral-6">Xem trước</h3>
+          <Preview theme={form} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+const inputCls =
+  "w-full rounded-lg border border-sf-neutral-3 bg-white px-3.5 py-2.5 text-sm text-sf-neutral-9 outline-none placeholder:text-sf-neutral-4 focus:border-sf-blue-70 focus:ring-2 focus:ring-sf-blue-10 transition";
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-semibold text-sf-neutral-8">{label}</label>
+      {hint && <p className="mb-1.5 text-xs text-sf-neutral-5">{hint}</p>}
+      {children}
+    </div>
+  );
+}
+
+function ColorField({
+  label, hint, value, onChange,
+}: {
+  label: string; hint: string; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-semibold text-sf-neutral-8">{label}</label>
+      <p className="mb-1.5 text-xs text-sf-neutral-5">{hint}</p>
+      <div className="flex items-center gap-2">
+        <div className="relative">
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="h-10 w-10 cursor-pointer rounded-lg border border-sf-neutral-3 p-0.5"
+          />
+        </div>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => /^#[0-9a-fA-F]{0,6}$/.test(e.target.value) && onChange(e.target.value)}
+          className="w-28 rounded-lg border border-sf-neutral-3 bg-white px-2.5 py-2 font-mono text-sm text-sf-neutral-9 outline-none focus:border-sf-blue-70 focus:ring-2 focus:ring-sf-blue-10 transition"
+          maxLength={7}
+        />
+      </div>
+    </div>
+  );
+}
+
+function Preview({ theme }: { theme: TenantTheme }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-sf-neutral-3 shadow-sf-sm">
+      {/* Sidebar preview */}
+      <div
+        className="flex items-center gap-2.5 px-4 py-3"
+        style={{ backgroundColor: theme.neutralColor }}
+      >
+        {theme.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={theme.logoUrl} alt="logo" className="h-7 w-7 rounded object-contain" />
+        ) : (
+          <div
+            className="flex h-7 w-7 items-center justify-center rounded text-xs font-bold text-white"
+            style={{ backgroundColor: theme.primaryColor }}
+          >
+            {theme.companyName.slice(0, 1)}
+          </div>
+        )}
+        <div>
+          <p className="text-xs font-bold text-white leading-tight" style={{ fontFamily: theme.fontFamily }}>
+            {theme.companyName || "Tên công ty"}
+          </p>
+          <p className="text-[10px] text-white/50 uppercase tracking-widest">Analytics Portal</p>
+        </div>
+      </div>
+
+      {/* Nav items preview */}
+      <div className="space-y-0.5 px-2 py-2" style={{ backgroundColor: theme.neutralColor }}>
+        {["Trang chủ", "Dashboards", "AI Agent"].map((item, i) => (
+          <div
+            key={item}
+            className="rounded px-2 py-1.5 text-xs"
+            style={{
+              backgroundColor: i === 1 ? theme.primaryColor + "33" : "transparent",
+              color: i === 1 ? "white" : "rgba(255,255,255,0.6)",
+              fontFamily: theme.fontFamily,
+            }}
+          >
+            {item}
+          </div>
+        ))}
+      </div>
+
+      {/* Content area preview */}
+      <div className="bg-white p-4 space-y-3">
+        <div
+          className="h-8 rounded-lg text-white text-xs font-semibold flex items-center px-3"
+          style={{ backgroundColor: theme.primaryColor, fontFamily: theme.fontFamily }}
+        >
+          Xem Dashboards
+        </div>
+        <div className="flex gap-2">
+          <div className="h-3 flex-1 rounded bg-sf-neutral-2" />
+          <div
+            className="h-3 w-16 rounded"
+            style={{ backgroundColor: theme.secondaryColor + "66" }}
+          />
+        </div>
+        <div className="h-3 w-3/4 rounded bg-sf-neutral-2" />
+        <div className="h-3 w-1/2 rounded bg-sf-neutral-2" />
+      </div>
+    </div>
+  );
+}

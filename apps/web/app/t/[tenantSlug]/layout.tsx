@@ -37,6 +37,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
   const theme = {
     primary: rawTheme.primaryColor,
     logoUrl: rawTheme.logoUrl,
+    companyName: rawTheme.companyName,
     cssText: themeToCssVariables(rawTheme),
   } as const;
 
@@ -49,9 +50,14 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
       <aside className="hidden w-64 shrink-0 flex-col bg-sf-blue-90 lg:flex">
         {/* Brand header */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
-          <SalesforceBankIcon size={32} />
+          {theme.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={theme.logoUrl} alt="logo" className="h-8 w-8 rounded object-contain shrink-0" />
+          ) : (
+            <SalesforceBankIcon size={32} />
+          )}
           <div className="flex flex-col leading-tight min-w-0">
-            <span className="text-sm font-bold text-white truncate">Salesforce Bank</span>
+            <span className="text-sm font-bold text-white truncate">{theme.companyName}</span>
             <span className="text-[10px] font-medium text-blue-300 uppercase tracking-widest">Analytics Portal</span>
           </div>
         </div>
@@ -103,8 +109,11 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
             <div className="mt-2 border-t border-white/10 pt-3 space-y-0.5">
               <NavLabel>Admin</NavLabel>
               <NavLink href={`/t/${tenantSlug}/admin`} icon={
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               }>Cấu hình catalog</NavLink>
+              <NavLink href={`/t/${tenantSlug}/admin/theme`} icon={
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              }>Tuỳ chỉnh giao diện</NavLink>
             </div>
           )}
         </nav>

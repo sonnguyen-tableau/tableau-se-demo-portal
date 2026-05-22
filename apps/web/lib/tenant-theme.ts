@@ -1,66 +1,134 @@
 /**
- * Tenant theme registry. Phase 10 ships an in-memory store; Phase 11 swaps
- * this for a Postgres-backed implementation. The interface is async so the
- * swap is invisible to callers.
+ * Tenant theme registry.
+ * - Production (Vercel KV configured): persists to Redis
+ * - Local dev: persists to data/tenant-themes.json
+ *
+ * Server-side only.
  */
+import { join } from "path";
 
 export type Tone = "professional" | "playful" | "technical";
 
 export interface TenantTheme {
   tenantId: string;
+  companyName: string;
   primaryColor: string;
   secondaryColor: string;
   neutralColor: string;
   fontFamily: string;
-  logoUrl?: string;
+  logoUrl?: string | undefined;
   tone: Tone;
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
-const DEFAULT_THEME: Omit<TenantTheme, "tenantId"> = {
-  primaryColor: "#1a56db",
-  secondaryColor: "#f59e0b",
-  neutralColor: "#0f172a",
+
+export const DEFAULT_THEME: Omit<TenantTheme, "tenantId"> = {
+  companyName: "Salesforce Bank",
+  primaryColor: "#0176d3",
+  secondaryColor: "#f5a623",
+  neutralColor: "#032d60",
   fontFamily: "Inter",
   tone: "professional",
 };
 
-const STORE = new Map<string, TenantTheme>();
+// ── Storage helpers ──────────────────────────────────────────────────────────
 
-export async function getTenantTheme(tenantId: string): Promise<TenantTheme> {
-  return STORE.get(tenantId) ?? { tenantId, ...DEFAULT_THEME };
+function hasKv(): boolean {
+  return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 }
 
-export async function setTenantTheme(input: Partial<TenantTheme> & { tenantId: string }): Promise<TenantTheme> {
-  const existing = STORE.get(input.tenantId);
+function kvKey(tenantId: string): string {
+  return `tenant-theme:${tenantId}`;
+}
+
+async function readFromKv(tenantId: string): Promise<TenantTheme | null> {
+  const { kv } = await import("@vercel/kv");
+  return kv.get<TenantTheme>(kvKey(tenantId));
+}
+
+async function writeToKv(theme: TenantTheme): Promise<void> {
+  const { kv } = await import("@vercel/kv");
+  await kv.set(kvKey(theme.tenantId), theme);
+}
+
+async function deleteFromKv(tenantId: string): Promise<void> {
+  const { kv } = await import("@vercel/kv");
+  await kv.del(kvKey(tenantId));
+}
+
+async function readAllFromFile(): Promise<Map<string, TenantTheme>> {
+  const { readFile } = await import("fs/promises");
+  try {
+    const raw = await readFile(join(process.cwd(), "data", "tenant-themes.json"), "utf-8");
+    const arr = JSON.parse(raw) as TenantTheme[];
+    return new Map(arr.map((t) => [t.tenantId, t]));
+  } catch {
+    return new Map();
+  }
+}
+
+async function writeAllToFile(store: Map<string, TenantTheme>): Promise<void> {
+  const { writeFile, mkdir } = await import("fs/promises");
+  const dir = join(process.cwd(), "data");
+  await mkdir(dir, { recursive: true });
+  await writeFile(
+    join(dir, "tenant-themes.json"),
+    JSON.stringify([...store.values()], null, 2) + "\n",
+    "utf-8",
+  );
+}
+
+// ── Public API ───────────────────────────────────────────────────────────────
+
+export async function getTenantTheme(tenantId: string): Promise<TenantTheme> {
+  if (hasKv()) {
+    return (await readFromKv(tenantId)) ?? { tenantId, ...DEFAULT_THEME };
+  }
+  const store = await readAllFromFile();
+  return store.get(tenantId) ?? { tenantId, ...DEFAULT_THEME };
+}
+
+export async function setTenantTheme(
+  input: Partial<TenantTheme> & { tenantId: string },
+): Promise<TenantTheme> {
+  const existing = await getTenantTheme(input.tenantId);
   const next: TenantTheme = {
     tenantId: input.tenantId,
-    primaryColor: pickHex(input.primaryColor, existing?.primaryColor ?? DEFAULT_THEME.primaryColor),
-    secondaryColor: pickHex(input.secondaryColor, existing?.secondaryColor ?? DEFAULT_THEME.secondaryColor),
-    neutralColor: pickHex(input.neutralColor, existing?.neutralColor ?? DEFAULT_THEME.neutralColor),
-    fontFamily: (input.fontFamily ?? existing?.fontFamily ?? DEFAULT_THEME.fontFamily).slice(0, 80),
-    tone: isTone(input.tone) ? input.tone : (existing?.tone ?? DEFAULT_THEME.tone),
+    companyName: (input.companyName ?? existing.companyName).slice(0, 120),
+    primaryColor: pickHex(input.primaryColor, existing.primaryColor),
+    secondaryColor: pickHex(input.secondaryColor, existing.secondaryColor),
+    neutralColor: pickHex(input.neutralColor, existing.neutralColor),
+    fontFamily: (input.fontFamily ?? existing.fontFamily).slice(0, 80),
+    tone: isTone(input.tone) ? input.tone : existing.tone,
     ...(input.logoUrl !== undefined
-      ? { logoUrl: String(input.logoUrl).slice(0, 1024) }
-      : existing?.logoUrl !== undefined
+      ? { logoUrl: String(input.logoUrl).slice(0, 2048) }
+      : existing.logoUrl !== undefined
         ? { logoUrl: existing.logoUrl }
         : {}),
   };
-  STORE.set(next.tenantId, next);
+
+  if (hasKv()) {
+    await writeToKv(next);
+  } else {
+    const store = await readAllFromFile();
+    store.set(next.tenantId, next);
+    await writeAllToFile(store);
+  }
   return next;
 }
 
 export async function deleteTenantTheme(tenantId: string): Promise<boolean> {
-  return STORE.delete(tenantId);
-}
-
-export async function listTenantThemes(): Promise<TenantTheme[]> {
-  return [...STORE.values()];
+  if (hasKv()) {
+    await deleteFromKv(tenantId);
+    return true;
+  }
+  const store = await readAllFromFile();
+  const deleted = store.delete(tenantId);
+  if (deleted) await writeAllToFile(store);
+  return deleted;
 }
 
 export function themeToCssVariables(theme: TenantTheme): string {
-  // Inline-safe; consumed via `style={{ "--brand-primary": ... }}` or
-  // serialized into a <style> block on the tenant layout.
   return [
     `--brand-primary: ${theme.primaryColor};`,
     `--brand-secondary: ${theme.secondaryColor};`,
