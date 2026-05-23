@@ -60,17 +60,29 @@ export async function getHiddenWorkbookIds(): Promise<Set<string>> {
  * Returns null when no filtering is needed (user sees all non-hidden workbooks).
  */
 export async function getVisibleWorkbookIds(userEmail: string): Promise<Set<string> | null> {
-  const { getWorkbookFilter } = await import("@/lib/portal-users");
-  const [hidden, userAllowed] = await Promise.all([
-    getHiddenWorkbookIds(),
-    getWorkbookFilter(userEmail),
-  ]);
+  if (!userEmail) return null;
+
+  let hidden: Set<string>;
+  let userAllowed: Set<string> | null;
+
+  try {
+    const { getWorkbookFilter } = await import("@/lib/portal-users");
+    [hidden, userAllowed] = await Promise.all([
+      getHiddenWorkbookIds(),
+      getWorkbookFilter(userEmail),
+    ]);
+  } catch {
+    // KV unavailable — don't restrict anything
+    return null;
+  }
 
   if (userAllowed === null && hidden.size === 0) return null; // fast path: no filtering
 
-  // We need the full workbook list to compute the intersection
-  const { getCachedWorkbooks } = await import("@/lib/tableau-rest");
-  const all = getCachedWorkbooks().map((w) => w.id);
+  // We need the full workbook list to compute the intersection.
+  // getLiveCatalog() ensures the cache is warm.
+  const { getLiveCatalog } = await import("@/lib/tableau-rest");
+  const catalog = await getLiveCatalog();
+  const all = catalog.dashboards.map((d) => d.workbookId);
 
   const visible = new Set(
     all.filter((id) => {

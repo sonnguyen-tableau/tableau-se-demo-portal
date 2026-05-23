@@ -19,6 +19,7 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
     pathname.startsWith("/api/health") ||
     pathname.startsWith("/api/admin/debug-jwt") ||
     pathname.startsWith("/api/admin/debug-kv") ||
+    pathname.startsWith("/api/admin/debug-session") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     pathname.startsWith("/assets")
