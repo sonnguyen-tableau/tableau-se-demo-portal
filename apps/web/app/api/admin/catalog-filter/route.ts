@@ -32,6 +32,14 @@ export async function PUT(req: Request): Promise<Response> {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  await setHiddenWorkbookIds(parsed.data.hiddenWorkbookIds);
+  try {
+    await setHiddenWorkbookIds(parsed.data.hiddenWorkbookIds);
+  } catch (e) {
+    console.error("[catalog-filter] setHiddenWorkbookIds failed:", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "KV write failed" },
+      { status: 500 },
+    );
+  }
   return NextResponse.json({ ok: true, count: parsed.data.hiddenWorkbookIds.length });
 }

@@ -42,11 +42,19 @@ export async function PUT(req: Request): Promise<Response> {
   }
 
   const { password, region, ...rest } = parsed.data;
-  await upsertPortalUser({
-    ...rest,
-    ...(password ? { password } : {}),
-    ...(region ? { region } : {}),
-  });
+  try {
+    await upsertPortalUser({
+      ...rest,
+      ...(password ? { password } : {}),
+      ...(region ? { region } : {}),
+    });
+  } catch (e) {
+    console.error("[users] upsertPortalUser failed:", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "KV write failed" },
+      { status: 500 },
+    );
+  }
 
   return NextResponse.json({ ok: true });
 }
