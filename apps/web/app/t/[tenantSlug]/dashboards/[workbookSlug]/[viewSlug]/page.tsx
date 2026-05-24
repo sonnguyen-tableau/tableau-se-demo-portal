@@ -11,6 +11,7 @@ import { TableauVizShell } from "@/components/embed/TableauVizShell";
 import { UnconfiguredState } from "@/components/embed/UnconfiguredState";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { VizContextProvider } from "@/components/bridge/VizContextProvider";
+import { recordView } from "@/lib/view-history";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string; workbookSlug: string; viewSlug: string }>;
@@ -31,6 +32,15 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   if (!dashboard) notFound();
 
   const siblings = catalog.dashboards.filter((d) => d.workbookSlug === workbookSlug);
+
+  // Record view server-side on every page load (fire-and-forget, never blocks render)
+  void recordView(session.user.email ?? "", {
+    workbookSlug,
+    viewSlug,
+    workbookName: dashboard.workbookName,
+    viewName: dashboard.viewName,
+    projectName: dashboard.projectName,
+  });
 
   if (!isTableauConfigured()) {
     return (

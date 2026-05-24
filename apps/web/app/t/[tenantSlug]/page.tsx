@@ -135,27 +135,41 @@ export default async function TenantHome({ params }: PageProps) {
       </div>
 
       {/* Recent views */}
-      {recentViews.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-base font-bold text-sf-neutral-9">Vừa xem gần đây</h3>
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-base font-bold text-sf-neutral-9">Vừa xem gần đây</h3>
+          {recentViews.length > 0 && (
+            <Link href={`/t/${tenantSlug}/dashboards`} className="text-sm font-medium text-sf-blue-70 hover:underline">
+              Xem tất cả →
+            </Link>
+          )}
+        </div>
+        {recentViews.length === 0 ? (
+          <div className="flex items-center gap-3 rounded-xl border border-dashed border-sf-neutral-3 bg-sf-neutral-1 px-5 py-4 text-sm text-sf-neutral-5">
+            <svg className="h-5 w-5 shrink-0 text-sf-neutral-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+            </svg>
+            Bạn chưa xem report nào — hãy mở một dashboard để bắt đầu.
           </div>
+        ) : (
           <div className="flex gap-3 overflow-x-auto pb-1">
-            {recentViews.slice(0, 6).map((v) => (
+            {recentViews.slice(0, 8).map((v) => (
               <Link
                 key={`${v.workbookSlug}/${v.viewSlug}`}
                 href={`/t/${tenantSlug}/dashboards/${v.workbookSlug}/${v.viewSlug}`}
-                className="group flex min-w-[220px] max-w-[260px] shrink-0 flex-col rounded-xl border border-sf-neutral-3 bg-white p-4 shadow-sf-sm transition-all hover:border-sf-blue-70 hover:shadow-sf-md"
+                className="group flex min-w-[200px] max-w-[240px] shrink-0 flex-col rounded-xl border border-sf-neutral-3 bg-white p-4 shadow-sf-sm transition-all hover:border-sf-blue-70 hover:shadow-sf-md"
               >
                 <div className="mb-2 flex items-center justify-between">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sf-blue-10 text-base">
-                    🕐
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sf-blue-10">
+                    <svg className="h-4 w-4 text-sf-blue-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+                    </svg>
                   </div>
                   <svg className="h-4 w-4 text-sf-neutral-4 transition group-hover:text-sf-blue-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
-                <p className="font-semibold text-sf-neutral-9 leading-tight line-clamp-2">{v.viewName}</p>
+                <p className="font-semibold text-sf-neutral-9 leading-tight line-clamp-2 text-sm">{v.viewName}</p>
                 <p className="mt-1 text-xs text-sf-neutral-5 truncate">{v.workbookName}</p>
                 <p className="mt-auto pt-2 text-[11px] text-sf-neutral-4">
                   {new Date(v.viewedAt).toLocaleDateString("vi-VN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
@@ -163,8 +177,8 @@ export default async function TenantHome({ params }: PageProps) {
               </Link>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Popular / Featured dashboards */}
       <section>
