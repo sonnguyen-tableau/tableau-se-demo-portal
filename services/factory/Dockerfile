@@ -29,4 +29,4 @@ EXPOSE 8000
 
 # Railway overrides PORT via env var; fall back to 8000 for local dev
 ENV PORT=8000
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port $PORT"]
+CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"]
