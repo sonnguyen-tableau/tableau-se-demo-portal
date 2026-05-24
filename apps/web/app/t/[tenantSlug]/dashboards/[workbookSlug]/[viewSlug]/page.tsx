@@ -128,7 +128,18 @@ export default async function ViewEmbedPage({ params }: PageProps) {
         <div className="flex flex-1 gap-3 min-h-0" style={{ minHeight: "500px" }}>
           {/* Tableau embed — takes 2/3 of width, full height */}
           <div className="flex-[2_1_0%] min-w-0 min-h-0">
-            <TableauVizShell src={src} initialToken={token} height="100%" />
+            <TableauVizShell
+              src={src}
+              initialToken={token}
+              height="100%"
+              viewMeta={{
+                workbookSlug,
+                viewSlug,
+                workbookName: dashboard.workbookName,
+                viewName: dashboard.viewName,
+                projectName: dashboard.projectName,
+              }}
+            />
           </div>
           {/* Chat panel — fixed ~380px wide */}
           <div className="w-[360px] shrink-0 min-h-0">

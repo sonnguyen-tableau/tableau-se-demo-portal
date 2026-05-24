@@ -7,6 +7,13 @@ interface Props {
   src: string;
   initialToken: string;
   height?: string;
+  viewMeta?: {
+    workbookSlug: string;
+    viewSlug: string;
+    workbookName: string;
+    viewName: string;
+    projectName: string;
+  };
 }
 
 type AnyRecord = Record<string, unknown>;
@@ -55,7 +62,7 @@ function readMarkRows(marksRoot: AnyRecord | null, cap: number): Array<Record<st
   return out;
 }
 
-export function TableauVizShell({ src, initialToken, height = "700px" }: Props): ReactElement {
+export function TableauVizShell({ src, initialToken, height = "700px", viewMeta }: Props): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const vizRef = useRef<AnyRecord | null>(null);
   const { update, snapshot, registerVizExecutor } = useVizContext();
@@ -143,6 +150,15 @@ export function TableauVizShell({ src, initialToken, height = "700px" }: Props):
             activeSheet: String((wb["activeSheet"] as AnyRecord | undefined)?.["name"] ?? ""),
             ready: true,
           });
+        }
+        // Record this view in history (fire-and-forget)
+        if (viewMeta) {
+          void fetch("/api/views/record", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(viewMeta),
+            credentials: "include",
+          }).catch(() => {});
         }
       });
 

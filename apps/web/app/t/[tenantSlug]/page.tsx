@@ -3,64 +3,49 @@ import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { getImpressionStatus } from "@/lib/billing";
 import { getLiveCatalog } from "@/lib/tableau-rest";
+import { getRecentViews, getPopularViews } from "@/lib/view-history";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
-}
-
-function projectIcon(name: string): string {
-  const n = name.toLowerCase();
-  if (n.includes("banking") || n.includes("ngân hàng") || n.includes("financial")) return "🏦";
-  if (n.includes("retail") || n.includes("bán lẻ")) return "🛒";
-  if (n.includes("sales") || n.includes("doanh thu")) return "📈";
-  if (n.includes("risk") || n.includes("rủi ro")) return "⚠️";
-  if (n.includes("operation") || n.includes("vận hành")) return "⚙️";
-  if (n.includes("digital")) return "💻";
-  if (n.includes("energy") || n.includes("evn")) return "⚡";
-  if (n.includes("gaming") || n.includes("game")) return "🎮";
-  if (n.includes("education") || n.includes("giáo dục")) return "🎓";
-  if (n.includes("health") || n.includes("y tế")) return "🏥";
-  if (n.includes("manufactur") || n.includes("sản xuất")) return "🏭";
-  if (n.includes("ride") || n.includes("transport") || n.includes("vận chuyển")) return "🚗";
-  if (n.includes("sample")) return "📋";
-  if (n.includes("demo")) return "🔬";
-  return "📁";
 }
 
 export default async function TenantHome({ params }: PageProps) {
   const session = await auth();
   const ctx = tenantFromSession(session);
   const { tenantSlug } = await params;
+  const email = session?.user?.email ?? "";
 
-  const [impressions, catalog] = await Promise.all([
+  const [impressions, catalog, recentViews, popularRaw] = await Promise.all([
     ctx ? getImpressionStatus(ctx.tenantId) : Promise.resolve(null),
     getLiveCatalog(),
+    getRecentViews(email),
+    getPopularViews(6),
   ]);
 
-  // Group dashboards by project for the folder preview
-  const projectDashboardCount = new Map<string, number>();
-  for (const d of catalog.dashboards) {
-    projectDashboardCount.set(d.projectId, (projectDashboardCount.get(d.projectId) ?? 0) + 1);
-  }
+  // Enrich popular views with dashboard metadata from catalog
+  const dashboardIndex = new Map(
+    catalog.dashboards.map((d) => [`${d.workbookSlug}/${d.viewSlug}`, d]),
+  );
 
-  const projectList = catalog.projects
-    .filter((p) => (projectDashboardCount.get(p.id) ?? 0) > 0)
-    .sort((a, b) => a.name.localeCompare(b.name, "vi"))
-    .slice(0, 4);
+  const popular = popularRaw
+    .map((p) => {
+      const d = dashboardIndex.get(`${p.workbookSlug}/${p.viewSlug}`);
+      if (!d) return null;
+      return { ...d, count: p.count };
+    })
+    .filter(Boolean) as Array<(typeof catalog.dashboards)[number] & { count: number }>;
 
-  // One entry per workbook for the featured section
-  const featured = Array.from(
-    new Map(catalog.dashboards.map((d) => [d.workbookSlug, d])).values()
-  ).slice(0, 4);
+  // Fallback for popular: use first 6 workbooks from catalog when no view history yet
+  const popularFallback = popular.length === 0
+    ? Array.from(new Map(catalog.dashboards.map((d) => [d.workbookSlug, d])).values()).slice(0, 6)
+    : popular;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-7">
       {/* Welcome banner */}
       <div className="relative overflow-hidden rounded-xl bg-sf-blue-90 px-7 py-6 text-white shadow-sf-lg">
-        {/* Decorative circles */}
         <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-sf-blue-80/50" />
         <div className="pointer-events-none absolute -bottom-6 right-24 h-24 w-24 rounded-full bg-sf-blue-70/30" />
-
         <div className="relative">
           <p className="text-xs font-semibold uppercase tracking-widest text-blue-300">
             {ctx?.tenantName ?? tenantSlug}
@@ -69,14 +54,12 @@ export default async function TenantHome({ params }: PageProps) {
           <p className="mt-1.5 text-sm text-blue-200">
             Khám phá dashboards hoặc hỏi AI Agent để nhận phân tích tức thì.
           </p>
-
           {impressions && (
             <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               {impressions.used} / {impressions.cap} lượt xem hôm nay
             </div>
           )}
-
           <div className="mt-5 flex gap-3">
             <Link
               href={`/t/${tenantSlug}/dashboards`}
@@ -98,9 +81,9 @@ export default async function TenantHome({ params }: PageProps) {
       <div className="grid gap-4 sm:grid-cols-3">
         {[
           {
-            label: "Dự án",
-            value: projectList.length || catalog.projects.length,
-            sub: `${catalog.dashboards.length} dashboards`,
+            label: "Tổng workbooks",
+            value: new Set(catalog.dashboards.map((d) => d.workbookId)).size,
+            sub: `${catalog.dashboards.length} views`,
             icon: (
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7zm10-2h4a2 2 0 012 2v10a2 2 0 01-2 2h-4a2 2 0 01-2-2V7a2 2 0 012-2z" />
@@ -151,69 +134,78 @@ export default async function TenantHome({ params }: PageProps) {
         ))}
       </div>
 
-      {/* Project folders preview */}
-      {projectList.length > 0 && (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-base font-bold text-sf-neutral-9">Dự án của bạn</h3>
-            <Link href={`/t/${tenantSlug}/dashboards`} className="text-sm font-medium text-sf-blue-70 hover:underline">
-              Xem tất cả →
-            </Link>
+      {/* Recent views */}
+      {recentViews.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-base font-bold text-sf-neutral-9">Vừa xem gần đây</h3>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {projectList.map((project) => (
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {recentViews.slice(0, 6).map((v) => (
               <Link
-                key={project.id}
-                href={`/t/${tenantSlug}/dashboards`}
-                className="group flex items-center gap-4 rounded-xl border border-sf-neutral-3 bg-white p-4 shadow-sf-sm transition-all hover:border-sf-blue-70 hover:shadow-sf-md"
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sf-blue-10 text-2xl">
-                  {projectIcon(project.name)}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-sf-neutral-9 leading-tight">{project.name}</p>
-                  <p className="text-xs text-sf-neutral-6 mt-0.5">
-                    {projectDashboardCount.get(project.id) ?? 0} dashboards
-                  </p>
-                </div>
-                <svg className="ml-auto h-4 w-4 shrink-0 text-sf-neutral-4 transition group-hover:text-sf-blue-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Featured dashboards */}
-      {featured.length > 0 && (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-base font-bold text-sf-neutral-9">Dashboard nổi bật</h3>
-            <Link href={`/t/${tenantSlug}/dashboards`} className="text-sm font-medium text-sf-blue-70 hover:underline">
-              Xem tất cả →
-            </Link>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {featured.map((d) => (
-              <Link
-                key={d.workbookSlug}
-                href={`/t/${tenantSlug}/dashboards/${d.workbookSlug}`}
-                className="group rounded-xl border border-sf-neutral-3 bg-white p-5 shadow-sf-sm transition-all hover:border-sf-blue-70 hover:shadow-sf-md"
+                key={`${v.workbookSlug}/${v.viewSlug}`}
+                href={`/t/${tenantSlug}/dashboards/${v.workbookSlug}/${v.viewSlug}`}
+                className="group flex min-w-[220px] max-w-[260px] shrink-0 flex-col rounded-xl border border-sf-neutral-3 bg-white p-4 shadow-sf-sm transition-all hover:border-sf-blue-70 hover:shadow-sf-md"
               >
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-sf-neutral-6">{d.projectName}</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sf-blue-10 text-base">
+                    🕐
+                  </div>
                   <svg className="h-4 w-4 text-sf-neutral-4 transition group-hover:text-sf-blue-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
-                <h4 className="font-semibold text-sf-neutral-9">{d.name}</h4>
-                <p className="mt-1 text-sm text-sf-neutral-6">{d.workbookName}</p>
+                <p className="font-semibold text-sf-neutral-9 leading-tight line-clamp-2">{v.viewName}</p>
+                <p className="mt-1 text-xs text-sf-neutral-5 truncate">{v.workbookName}</p>
+                <p className="mt-auto pt-2 text-[11px] text-sf-neutral-4">
+                  {new Date(v.viewedAt).toLocaleDateString("vi-VN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                </p>
               </Link>
             ))}
           </div>
-        </div>
+        </section>
       )}
+
+      {/* Popular / Featured dashboards */}
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-base font-bold text-sf-neutral-9">
+            {popular.length > 0 ? "Dashboard xem nhiều nhất" : "Dashboard nổi bật"}
+          </h3>
+          <Link href={`/t/${tenantSlug}/dashboards`} className="text-sm font-medium text-sf-blue-70 hover:underline">
+            Xem tất cả →
+          </Link>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {popularFallback.map((d) => (
+            <Link
+              key={`${d.workbookSlug}/${d.viewSlug}`}
+              href={`/t/${tenantSlug}/dashboards/${d.workbookSlug}/${d.viewSlug}`}
+              className="group rounded-xl border border-sf-neutral-3 bg-white p-5 shadow-sf-sm transition-all hover:border-sf-blue-70 hover:shadow-sf-md"
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-medium text-sf-neutral-6">{d.projectName}</span>
+                <div className="flex items-center gap-1.5">
+                  {"count" in d && (
+                    <span className="flex items-center gap-1 rounded-full bg-sf-blue-10 px-2 py-0.5 text-[11px] font-semibold text-sf-blue-70">
+                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      {(d as typeof d & { count: number }).count}
+                    </span>
+                  )}
+                  <svg className="h-4 w-4 text-sf-neutral-4 transition group-hover:text-sf-blue-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+              <h4 className="font-semibold text-sf-neutral-9 leading-snug">{d.viewName}</h4>
+              <p className="mt-1 text-sm text-sf-neutral-5">{d.workbookName}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
