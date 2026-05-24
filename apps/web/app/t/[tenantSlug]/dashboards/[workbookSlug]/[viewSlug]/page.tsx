@@ -66,6 +66,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
         tenantId: ctx.tenantId,
         ...(ctx.region ? { region: ctx.region } : {}),
         ...(ctx.groups.length > 0 ? { groups: ctx.groups } : {}),
+        ...(env.TABLEAU_ODA ? { onDemandAccess: true } : {}),
       },
     );
   } catch (e) {

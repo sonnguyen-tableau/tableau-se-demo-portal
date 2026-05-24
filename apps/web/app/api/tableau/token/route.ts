@@ -91,6 +91,7 @@ export async function POST(req: Request): Promise<Response> {
       ...(session.user.groups && session.user.groups.length > 0
         ? { groups: session.user.groups }
         : {}),
+      ...(env.TABLEAU_ODA ? { onDemandAccess: true } : {}),
     },
   );
 

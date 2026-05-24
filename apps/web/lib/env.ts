@@ -20,6 +20,11 @@ const schema = z.object({
   TABLEAU_CONNECTED_APP_CLIENT_ID: z.string().min(1),
   TABLEAU_CONNECTED_APP_SECRET_ID: z.string().min(1),
   TABLEAU_CONNECTED_APP_SECRET_VALUE: z.string().min(16),
+  /** Set to "true" to include the ODA claim — requires Connected App to have On-Demand Access enabled. */
+  TABLEAU_ODA: z
+    .string()
+    .transform((v) => v === "true" || v === "1")
+    .default("false"),
 
   // Service-account (used by MCP sidecar; not required in Phase 1)
   TABLEAU_PAT_NAME: z.string().optional(),
