@@ -7,6 +7,7 @@ import { getTenantTheme, themeToCssVariables } from "@/lib/tenant-theme";
 import { getLiveCatalog } from "@/lib/tableau-rest";
 import { SalesforceBankIcon } from "@/components/SalesforceBankLogo";
 import { ProjectTree } from "@/components/nav/ProjectTree";
+import { SidebarProvider, SidebarWrapper, SidebarToggle } from "@/components/layout/SidebarShell";
 
 interface LayoutProps {
   children: ReactNode;
@@ -42,12 +43,13 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
   } as const;
 
   return (
+    <SidebarProvider>
     <div
       className="flex h-dvh overflow-hidden bg-sf-neutral-2"
       style={{ ...(themeToInlineStyle(theme.cssText)) }}
     >
       {/* ── Sidebar ────────────────────────────────────────────────────────── */}
-      <aside className="hidden w-64 shrink-0 flex-col bg-sf-blue-90 lg:flex h-full overflow-hidden">
+      <SidebarWrapper>
         {/* Brand header */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
           {theme.logoUrl ? (
@@ -141,10 +143,16 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
             </button>
           </form>
         </div>
-      </aside>
+      </SidebarWrapper>
 
       {/* ── Main ──────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
+        {/* Desktop top bar — always visible, has sidebar toggle */}
+        <header className="hidden lg:flex items-center gap-2 border-b border-sf-neutral-3 bg-white px-4 py-2 shrink-0">
+          <SidebarToggle />
+          <span className="text-xs text-sf-neutral-5 truncate">{ctx?.tenantName ?? tenantSlug}</span>
+        </header>
+
         {/* Mobile top bar */}
         <header className="flex items-center justify-between border-b border-sf-neutral-3 bg-white px-5 py-3 lg:hidden shrink-0">
           <div className="flex items-center gap-2">
@@ -159,6 +167,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
         </main>
       </div>
     </div>
+    </SidebarProvider>
   );
 }
 

@@ -12,6 +12,7 @@ import { UnconfiguredState } from "@/components/embed/UnconfiguredState";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { VizContextProvider } from "@/components/bridge/VizContextProvider";
 import { recordView } from "@/lib/view-history";
+import { ChatPanelProvider, ChatPanelWrapper, ChatPanelToggle } from "@/components/layout/ChatPanelToggle";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string; workbookSlug: string; viewSlug: string }>;
@@ -89,11 +90,12 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   const src = tableauViewUrl(dashboard.viewPath);
 
   return (
+    <ChatPanelProvider>
     <div className="flex flex-col gap-2 flex-1 min-h-0">
-      {/* Top bar: breadcrumb + view tabs in one compact row */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 shrink-0">
+      {/* Top bar: breadcrumb + view tabs + chat toggle */}
+      <div className="flex items-center gap-x-3 gap-y-1.5 shrink-0 min-w-0">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1 text-xs text-sf-neutral-5 min-w-0">
+        <nav className="flex items-center gap-1 text-xs text-sf-neutral-5 min-w-0 flex-1">
           <Link href={`/t/${tenantSlug}/dashboards`} className="hover:text-sf-neutral-9 transition-colors shrink-0">
             Dashboards
           </Link>
@@ -132,13 +134,16 @@ export default async function ViewEmbedPage({ params }: PageProps) {
             ))}
           </div>
         )}
+
+        {/* AI panel toggle */}
+        <ChatPanelToggle />
       </div>
 
       {/* Main content: viz + chat side by side, fills remaining space */}
       <VizContextProvider>
         <div className="flex flex-1 gap-3 min-h-0" style={{ minHeight: "500px" }}>
-          {/* Tableau embed — takes 2/3 of width, full height */}
-          <div className="flex-[2_1_0%] min-w-0 min-h-0">
+          {/* Tableau embed — fills remaining width */}
+          <div className="flex-1 min-w-0 min-h-0">
             <TableauVizShell
               src={src}
               initialToken={token}
@@ -152,13 +157,14 @@ export default async function ViewEmbedPage({ params }: PageProps) {
               }}
             />
           </div>
-          {/* Chat panel — fixed ~380px wide */}
-          <div className="w-[360px] shrink-0 min-h-0">
+          {/* Chat panel — collapsible */}
+          <ChatPanelWrapper>
             <ChatPanel />
-          </div>
+          </ChatPanelWrapper>
         </div>
       </VizContextProvider>
     </div>
+    </ChatPanelProvider>
   );
 }
 
