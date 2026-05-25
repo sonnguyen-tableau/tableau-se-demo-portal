@@ -76,17 +76,36 @@ export function buildSystemPrompt(opts: BuildOpts): string {
     );
   }
 
-  parts.push(
-    `Available MCP tools: ${toolNames.join(", ") || "(none — answer from context only)"}.\n` +
-      `Workflow rules:\n` +
-      `1. ALWAYS call get-datasource-metadata before query-datasource on a new data source — this prevents field-name hallucinations.\n` +
-      `2. When the user asks about a view or dashboard they are looking at, call get-view-image with the correct view ID to fetch a screenshot — then describe what you see in the chart.\n` +
-      `3. When the user asks for data, trends, or comparisons, call query-datasource and the result will be rendered as a table for the user automatically.\n` +
-      `4. Prefer aggregated queries over raw rows. Row-level data is governed by Tableau's data policies regardless of what you request.\n` +
-      `5. If the user asks "why" or "what changed", call query-datasource with appropriate group-bys to investigate, then summarize findings.\n` +
-      `6. When a question is ambiguous, ask a brief clarifying question rather than guessing.\n` +
-      `7. Never reveal another tenant's data. Tableau's row-level security enforces this server-side; you also must not speculate about other tenants.`,
-  );
+  const hasMcpDataTools = toolNames.some((n) => !n.startsWith("viz_"));
+  const vizOnlyTools = toolNames.filter((n) => n.startsWith("viz_"));
+  const mcpDataTools = toolNames.filter((n) => !n.startsWith("viz_"));
+
+  if (hasMcpDataTools) {
+    parts.push(
+      `Available MCP tools: ${mcpDataTools.join(", ")}.\n` +
+        `Dashboard control tools: ${vizOnlyTools.join(", ")}.\n` +
+        `Workflow rules:\n` +
+        `1. ALWAYS call get-datasource-metadata before query-datasource on a new data source — this prevents field-name hallucinations.\n` +
+        `2. When the user asks about a view or dashboard they are looking at, call get-view-image with the correct view ID to fetch a screenshot — then describe what you see in the chart.\n` +
+        `3. When the user asks for data, trends, or comparisons, call query-datasource and the result will be rendered as a table for the user automatically.\n` +
+        `4. Prefer aggregated queries over raw rows. Row-level data is governed by Tableau's data policies regardless of what you request.\n` +
+        `5. If the user asks "why" or "what changed", call query-datasource with appropriate group-bys to investigate, then summarize findings.\n` +
+        `6. When a question is ambiguous, ask a brief clarifying question rather than guessing.\n` +
+        `7. Never reveal another tenant's data. Tableau's row-level security enforces this server-side; you also must not speculate about other tenants.`,
+    );
+  } else {
+    parts.push(
+      `IMPORTANT: You do NOT have access to Tableau data query tools right now (Tableau MCP is not connected).\n` +
+        `Dashboard control tools available: ${vizOnlyTools.length > 0 ? vizOnlyTools.join(", ") : "(none)"}.\n` +
+        `These tools let you apply filters, switch tabs, or take a screenshot of the visible dashboard — but they cannot fetch raw data or run queries.\n` +
+        `Rules:\n` +
+        `1. Do NOT promise to "query data", "fetch numbers", or "run an analysis" — you cannot do this without MCP tools.\n` +
+        `2. You CAN take a screenshot with viz_applyFilter/viz_switchTab to help the user navigate the dashboard.\n` +
+        `3. Answer only from what the user tells you or what is visible in the dashboard context above.\n` +
+        `4. If the user asks for a specific number or trend, honestly say you cannot query the data directly, and suggest they look at the dashboard or ask an admin to enable the Tableau MCP integration.\n` +
+        `5. When a question is ambiguous, ask a brief clarifying question.`,
+    );
+  }
 
   parts.push(
     `Output style: concise prose with short bullet lists for breakdowns. ` +
