@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
-import { getTenantTheme, setTenantTheme } from "@/lib/tenant-theme";
+import { DEFAULT_THEME, deleteTenantTheme, getTenantTheme, setTenantTheme } from "@/lib/tenant-theme";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,4 +46,15 @@ export async function PUT(req: Request): Promise<Response> {
     ...(logoUrl !== undefined ? { logoUrl } : {}),
   });
   return NextResponse.json(theme);
+}
+
+export async function DELETE(req: Request): Promise<Response> {
+  const session = await auth();
+  const ctx = tenantFromSession(session);
+  if (!ctx?.isInternal) return new NextResponse("Forbidden", { status: 403 });
+
+  const { searchParams } = new URL(req.url);
+  const tenantId = searchParams.get("tenantId") ?? ctx.tenantId;
+  await deleteTenantTheme(tenantId);
+  return NextResponse.json({ tenantId, ...DEFAULT_THEME });
 }

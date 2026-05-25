@@ -18,7 +18,8 @@ interface Props {
 export function ThemeEditor({ initial, tenantId }: Props) {
   const [form, setForm] = useState<TenantTheme>(initial);
   const [saving, startSave] = useTransition();
-  const [status, setStatus] = useState<"idle" | "ok" | "error">("idle");
+  const [resetting, startReset] = useTransition();
+  const [status, setStatus] = useState<"idle" | "ok" | "error" | "reset-ok">("idle");
 
   function set<K extends keyof TenantTheme>(key: K, value: TenantTheme[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -44,6 +45,28 @@ export function ThemeEditor({ initial, tenantId }: Props) {
     });
   }
 
+  function resetToDefault() {
+    const ok = window.confirm(
+      "Khôi phục về Salesforce Bank mặc định?\n\nTất cả tuỳ chỉnh logo, màu sắc và font sẽ bị xoá.",
+    );
+    if (!ok) return;
+    startReset(async () => {
+      try {
+        const res = await fetch("/api/admin/theme", { method: "DELETE" });
+        if (!res.ok) {
+          setStatus("error");
+          return;
+        }
+        const fresh = (await res.json()) as TenantTheme;
+        setForm(fresh);
+        setStatus("reset-ok");
+        window.location.reload();
+      } catch {
+        setStatus("error");
+      }
+    });
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -56,11 +79,23 @@ export function ThemeEditor({ initial, tenantId }: Props) {
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {status === "ok" && <span className="text-sm text-emerald-600 font-medium">✓ Đã lưu</span>}
+          {status === "reset-ok" && <span className="text-sm text-emerald-600 font-medium">✓ Đã khôi phục</span>}
           {status === "error" && <span className="text-sm text-red-600 font-medium">Lỗi khi lưu</span>}
           <button
+            onClick={resetToDefault}
+            disabled={resetting || saving}
+            title="Khôi phục về Salesforce Bank mặc định"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-sf-neutral-3 bg-white px-3.5 py-2 text-sm font-semibold text-sf-neutral-7 transition-all duration-base ease-smooth hover:border-sf-neutral-4 hover:bg-sf-neutral-2 hover:text-sf-neutral-9 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 4v5h5M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+            </svg>
+            {resetting ? "Đang khôi phục…" : "Trở về mặc định"}
+          </button>
+          <button
             onClick={save}
-            disabled={saving}
-            className="rounded-lg bg-sf-blue-70 px-4 py-2 text-sm font-semibold text-white shadow-sf-sm transition hover:bg-sf-blue-80 disabled:opacity-50"
+            disabled={saving || resetting}
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-brand to-sf-blue-80 px-4 py-2 text-sm font-semibold text-white shadow-elev-1 transition-all duration-base ease-smooth hover:shadow-glow-brand active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? "Đang lưu…" : "Lưu thay đổi"}
           </button>
