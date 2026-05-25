@@ -43,7 +43,7 @@ export function AgentPage({ tenantName }: { tenantName: string }) {
   };
 
   return (
-    <div className="flex h-full flex-col bg-sf-blue-90 text-white">
+    <div className="flex h-full flex-col bg-brand-neutral text-white">
       {/* Top bar */}
       <header className="flex items-center justify-between border-b border-white/10 px-6 py-3">
         <div className="flex items-center gap-3">
@@ -121,7 +121,7 @@ export function AgentPage({ tenantName }: { tenantName: string }) {
       </div>
 
       {/* Input bar — floats at bottom */}
-      <div className="border-t border-white/10 bg-sf-blue-90 px-4 py-4">
+      <div className="border-t border-white/10 bg-brand-neutral px-4 py-4">
         <form
           onSubmit={onSubmit}
           className="mx-auto flex max-w-3xl items-end gap-3 rounded-2xl border border-white/15 bg-white/8 px-4 py-3 backdrop-blur-sm focus-within:border-sf-blue-60/60 transition-colors"

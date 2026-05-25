@@ -28,7 +28,7 @@ export function SidebarWrapper({ children }: { children: ReactNode }) {
   const { open } = useSidebar();
   return (
     <aside
-      className={`hidden lg:flex flex-col bg-sf-blue-90 h-full overflow-hidden shrink-0 transition-[width] duration-200 ease-in-out ${
+      className={`hidden lg:flex flex-col bg-brand-neutral h-full overflow-hidden shrink-0 transition-[width] duration-200 ease-in-out ${
         open ? "w-64" : "w-0"
       }`}
     >

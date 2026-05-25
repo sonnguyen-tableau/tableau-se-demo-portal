@@ -48,7 +48,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
     <ChatPanelProvider>
     <div
       className="flex h-dvh overflow-hidden bg-sf-neutral-2"
-      style={{ ...(themeToInlineStyle(theme.cssText)) }}
+      style={{ ...themeToInlineStyle(theme.cssText), fontFamily: "var(--font-sans)" }}
     >
       {/* ── Sidebar ────────────────────────────────────────────────────────── */}
       <SidebarWrapper>

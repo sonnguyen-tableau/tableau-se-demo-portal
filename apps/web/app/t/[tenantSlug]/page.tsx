@@ -43,7 +43,7 @@ export default async function TenantHome({ params }: PageProps) {
   return (
     <div className="space-y-7">
       {/* Welcome banner */}
-      <div className="relative overflow-hidden rounded-xl bg-sf-blue-90 px-7 py-6 text-white shadow-sf-lg">
+      <div className="relative overflow-hidden rounded-xl bg-brand-neutral px-7 py-6 text-white shadow-sf-lg">
         <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-sf-blue-80/50" />
         <div className="pointer-events-none absolute -bottom-6 right-24 h-24 w-24 rounded-full bg-sf-blue-70/30" />
         <div className="relative">
