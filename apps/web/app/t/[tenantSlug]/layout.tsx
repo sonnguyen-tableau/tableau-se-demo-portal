@@ -8,6 +8,7 @@ import { getLiveCatalog } from "@/lib/tableau-rest";
 import { SalesforceBankIcon } from "@/components/SalesforceBankLogo";
 import { ProjectTree } from "@/components/nav/ProjectTree";
 import { SidebarProvider, SidebarWrapper, SidebarToggle } from "@/components/layout/SidebarShell";
+import { ChatPanelProvider } from "@/components/layout/ChatPanelToggle";
 
 interface LayoutProps {
   children: ReactNode;
@@ -44,6 +45,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
 
   return (
     <SidebarProvider>
+    <ChatPanelProvider>
     <div
       className="flex h-dvh overflow-hidden bg-sf-neutral-2"
       style={{ ...(themeToInlineStyle(theme.cssText)) }}
@@ -167,6 +169,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
         </main>
       </div>
     </div>
+    </ChatPanelProvider>
     </SidebarProvider>
   );
 }

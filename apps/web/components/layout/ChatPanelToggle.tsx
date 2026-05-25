@@ -22,8 +22,8 @@ export function ChatPanelWrapper({ children }: { children: ReactNode }) {
   const { open } = useChatPanel();
   return (
     <div
-      className={`shrink-0 min-h-0 transition-[width] duration-200 ease-in-out overflow-hidden ${
-        open ? "w-[360px]" : "w-0"
+      className={`shrink-0 min-h-0 transition-[width,padding] duration-200 ease-in-out overflow-hidden ${
+        open ? "w-[360px] pl-3" : "w-0 pl-0"
       }`}
     >
       <div className="w-[360px] h-full">

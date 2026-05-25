@@ -12,7 +12,7 @@ import { UnconfiguredState } from "@/components/embed/UnconfiguredState";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { VizContextProvider } from "@/components/bridge/VizContextProvider";
 import { recordView } from "@/lib/view-history";
-import { ChatPanelProvider, ChatPanelWrapper, ChatPanelToggle } from "@/components/layout/ChatPanelToggle";
+import { ChatPanelWrapper, ChatPanelToggle } from "@/components/layout/ChatPanelToggle";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string; workbookSlug: string; viewSlug: string }>;
@@ -90,7 +90,6 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   const src = tableauViewUrl(dashboard.viewPath);
 
   return (
-    <ChatPanelProvider>
     <div className="flex flex-col gap-2 flex-1 min-h-0">
       {/* Top bar: breadcrumb + view tabs + chat toggle */}
       <div className="flex items-center gap-x-3 gap-y-1.5 shrink-0 min-w-0">
@@ -141,7 +140,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
 
       {/* Main content: viz + chat side by side, fills remaining space */}
       <VizContextProvider>
-        <div className="flex flex-1 gap-3 min-h-0" style={{ minHeight: "500px" }}>
+        <div className="flex flex-1 min-h-0" style={{ minHeight: "500px" }}>
           {/* Tableau embed — fills remaining width */}
           <div className="flex-1 min-w-0 min-h-0">
             <TableauVizShell
@@ -164,7 +163,6 @@ export default async function ViewEmbedPage({ params }: PageProps) {
         </div>
       </VizContextProvider>
     </div>
-    </ChatPanelProvider>
   );
 }
 
