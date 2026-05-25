@@ -127,48 +127,84 @@ export function ChatPanel(): ReactElement {
     void send(text);
   };
 
+  const SUGGESTIONS = [
+    "Những danh mục bán chạy nhất quý vừa rồi?",
+    "Tại sao doanh thu giảm vào tháng 3?",
+    "Tóm tắt view này trong 3 ý chính.",
+  ];
+
   return (
-    <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      <header className="border-b border-[hsl(var(--border))] px-4 py-3">
-        <h3 className="text-sm font-semibold">Chat phân tích AI</h3>
-        <p className="mt-0.5 text-xs text-[hsl(var(--muted-foreground))]">
-          {tools === null
-            ? "Đang kết nối tới agent…"
-            : tools.length === 0
-              ? "Chế độ chung — không có công cụ Tableau MCP."
-              : `${tools.length} công cụ Tableau MCP sẵn sàng.`}
-        </p>
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-sf-neutral-3 bg-white shadow-elev-1">
+      <header className="flex items-center gap-2.5 border-b border-sf-neutral-3 bg-gradient-to-b from-sf-neutral-2/60 to-white px-4 py-3">
+        <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sf-blue-60 to-sf-blue-40 shadow-elev-1">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.091 3.091z" stroke="white" strokeWidth="1.75" strokeLinejoin="round" />
+          </svg>
+          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-white" aria-hidden="true" />
+        </span>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-body-sm font-semibold text-sf-neutral-9 leading-tight">AI Analytics</h3>
+          <p className="text-meta text-sf-neutral-6 truncate">
+            {tools === null
+              ? "Đang kết nối…"
+              : tools.length === 0
+                ? "Chế độ chung — không có công cụ Tableau MCP"
+                : `${tools.length} công cụ Tableau sẵn sàng`}
+          </p>
+        </div>
       </header>
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm">
+      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4 text-body-sm">
         {messages.length === 0 ? (
-          <div className="space-y-2 text-[hsl(var(--muted-foreground))]">
-            <p>Đặt câu hỏi về dashboard của bạn, ví dụ:</p>
-            <ul className="list-disc space-y-1 pl-5">
-              <li>Những danh mục bán chạy nhất quý vừa rồi là gì?</li>
-              <li>Tại sao doanh thu giảm vào tháng 3?</li>
-              <li>Tóm tắt view này trong 3 ý chính.</li>
-            </ul>
+          <div className="space-y-3">
+            <p className="text-body-sm text-sf-neutral-6">Đặt câu hỏi về dashboard của bạn:</p>
+            <div className="space-y-1.5">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => void send(s)}
+                  className="group flex w-full items-center justify-between gap-2 rounded-lg border border-sf-neutral-3 bg-white px-3 py-2 text-left text-caption text-sf-neutral-7 transition-all duration-base ease-smooth hover:-translate-y-px hover:border-brand/40 hover:bg-brand/5 hover:text-sf-neutral-9 hover:shadow-elev-1"
+                >
+                  <span className="truncate">{s}</span>
+                  <svg className="h-3 w-3 shrink-0 text-sf-neutral-4 transition-all duration-base group-hover:translate-x-0.5 group-hover:text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           messages.map((m, i) => <MessageView key={i} message={m} />)
         )}
         <div ref={endRef} />
       </div>
-      <form onSubmit={onSubmit} className="flex gap-2 border-t border-[hsl(var(--border))] p-3">
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={busy ? "Đang xử lý…" : "Hỏi AI agent"}
-          disabled={busy}
-          className="flex-1 rounded-md border border-[hsl(var(--border))] px-3 py-2 outline-none focus:border-brand disabled:opacity-50"
-        />
-        <button
-          type="submit"
-          disabled={busy || draft.trim().length === 0}
-          className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
-          Gửi
-        </button>
+      <form onSubmit={onSubmit} className="border-t border-sf-neutral-3 bg-white p-3">
+        <div className="flex items-center gap-2 rounded-xl border border-sf-neutral-3 bg-sf-neutral-2/60 px-2.5 py-1.5 transition-colors duration-base ease-smooth focus-within:border-brand/50 focus-within:bg-white focus-within:shadow-elev-1">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={busy ? "Đang xử lý…" : "Hỏi AI agent…"}
+            disabled={busy}
+            className="flex-1 bg-transparent px-1.5 py-1.5 text-body-sm text-sf-neutral-9 outline-none placeholder:text-sf-neutral-5 disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            disabled={busy || draft.trim().length === 0}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sf-blue-60 to-sf-blue-70 text-white shadow-elev-1 transition-all duration-base ease-smooth hover:shadow-glow-brand active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+            aria-label="Gửi"
+          >
+            {busy ? (
+              <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            ) : (
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );
@@ -177,36 +213,47 @@ export function ChatPanel(): ReactElement {
 function MessageView({ message }: { message: Message }): ReactElement {
   if (message.role === "user") {
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-lg bg-brand px-3 py-2 text-white">
+      <div className="flex justify-end animate-slide-up">
+        <div className="max-w-[85%] rounded-2xl rounded-br-md bg-gradient-to-br from-sf-blue-60 to-sf-blue-70 px-3.5 py-2 text-body-sm text-white shadow-elev-1">
           {message.content}
         </div>
       </div>
     );
   }
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 animate-slide-up">
       {message.toolEvents?.map((t) => (
         <div
           key={t.id}
           className={
-            "rounded-md border px-2 py-1 text-xs " +
+            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-meta font-medium ring-1 " +
             (t.status === "running"
-              ? "border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))]"
+              ? "bg-sf-neutral-2 text-sf-neutral-6 ring-sf-neutral-3"
               : t.status === "ok"
-                ? "border-green-200 bg-green-50 text-green-800"
-                : "border-red-200 bg-red-50 text-red-800")
+                ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                : "bg-red-50 text-red-700 ring-red-200")
           }
         >
+          {t.status === "running" ? (
+            <svg className="h-2.5 w-2.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          ) : t.status === "ok" ? (
+            <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" stroke="currentColor" d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <span aria-hidden="true">×</span>
+          )}
           <span className="font-mono">{t.name}</span>
-          {t.status === "running" ? " — đang xử lý…" : t.preview ? ` — ${t.preview}` : ""}
         </div>
       ))}
       {message.richBlocks?.map((block, i) => (
         <RichBlockView key={i} block={block} />
       ))}
       {message.content ? (
-        <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+        <div className="whitespace-pre-wrap text-body-sm leading-relaxed text-sf-neutral-8">{message.content}</div>
       ) : null}
     </div>
   );

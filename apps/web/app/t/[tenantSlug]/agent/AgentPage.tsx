@@ -3,13 +3,12 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useChatAgent, type ChatMessage, type RichBlock } from "@/hooks/useChatAgent";
 import { VegaChart } from "@/components/chart/VegaChart";
-import { SalesforceBankIcon } from "@/components/SalesforceBankLogo";
 
-const SUGGESTIONS = [
-  "Tóm tắt tình hình doanh thu ngân hàng tháng này",
-  "Danh mục cho vay nào đang tăng trưởng mạnh nhất?",
-  "So sánh hiệu suất các chi nhánh theo khu vực",
-  "Phân tích xu hướng thu nhập lãi thuần 6 tháng qua",
+const SUGGESTIONS: { title: string; subtitle: string; emoji: string }[] = [
+  { title: "Tóm tắt doanh thu tháng này", subtitle: "Tổng quan KPI và xu hướng chính", emoji: "📊" },
+  { title: "Danh mục tăng trưởng mạnh nhất", subtitle: "So sánh top 5 theo tốc độ tăng", emoji: "🚀" },
+  { title: "Hiệu suất các chi nhánh", subtitle: "Xếp hạng theo khu vực", emoji: "🏢" },
+  { title: "Xu hướng thu nhập lãi 6 tháng", subtitle: "Phân tích biến động và mùa vụ", emoji: "📈" },
 ];
 
 export function AgentPage({ tenantName }: { tenantName: string }) {
@@ -43,73 +42,101 @@ export function AgentPage({ tenantName }: { tenantName: string }) {
   };
 
   return (
-    <div className="flex h-full flex-col bg-brand-neutral text-white">
-      {/* Top bar */}
-      <header className="flex items-center justify-between border-b border-white/10 px-6 py-3">
+    <div
+      className="relative flex h-full flex-col overflow-hidden text-white"
+      style={{
+        background:
+          "linear-gradient(180deg, var(--brand-neutral) 0%, color-mix(in oklab, var(--brand-neutral) 88%, #000 12%) 100%)",
+      }}
+    >
+      {/* Ambient mesh */}
+      <div className="pointer-events-none absolute inset-0 opacity-50 bg-mesh-brand mix-blend-screen" aria-hidden="true" />
+      <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-brand/20 blur-3xl" aria-hidden="true" />
+
+      {/* ── Top bar ──────────────────────────────────────────────── */}
+      <header className="relative flex items-center justify-between border-b border-white/[0.06] px-6 py-3 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <SalesforceBankIcon size={28} />
-          <div>
-            <span className="text-sm font-semibold text-white">AI Analytics Agent</span>
-            <span className="ml-2 text-xs text-slate-400">{tenantName}</span>
+          <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sf-blue-60 to-sf-blue-40 shadow-elev-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.091 3.091z" stroke="white" strokeWidth="1.75" strokeLinejoin="round" />
+            </svg>
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-[var(--brand-neutral)]" aria-hidden="true" />
+          </span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-body-sm font-semibold text-white">AI Analytics Agent</span>
+            <span className="text-meta text-white/55">{tenantName}</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {tools !== null && (
-            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-400">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-meta font-medium ${
+                tools.length > 0
+                  ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                  : "border-white/[0.10] bg-white/[0.04] text-white/55"
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${tools.length > 0 ? "bg-emerald-400" : "bg-white/30"}`} aria-hidden="true" />
               {tools.length > 0 ? `${tools.length} Tableau tools` : "General mode"}
             </span>
           )}
           {hasMessages && (
             <button
               onClick={clear}
-              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-400 hover:border-white/20 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.10] bg-white/[0.04] px-3 py-1.5 text-meta font-medium text-white/70 transition-all duration-base ease-smooth hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
             >
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
               Cuộc hội thoại mới
             </button>
           )}
         </div>
       </header>
 
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto">
+      {/* ── Messages area ───────────────────────────────────────── */}
+      <div className="relative flex-1 overflow-y-auto">
         {!hasMessages ? (
-          /* Hero / empty state */
           <div className="flex h-full flex-col items-center justify-center px-6 pb-24 pt-8">
             {/* Glowing orb */}
             <div className="relative mb-8">
-              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 opacity-90 blur-sm absolute inset-0" />
-              <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-2xl shadow-blue-500/40">
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="1.5" strokeLinejoin="round" fill="white" fillOpacity="0.2"/>
-                  <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <div className="absolute inset-0 h-24 w-24 animate-pulse-ring rounded-full" />
+              <div className="absolute inset-0 h-24 w-24 rounded-full bg-gradient-to-br from-sf-blue-60 to-sf-blue-40 opacity-60 blur-xl" />
+              <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-sf-blue-60 to-sf-blue-40 shadow-[0_24px_60px_-12px_rgba(27,150,255,0.55)] ring-1 ring-white/15">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.091 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
                 </svg>
               </div>
             </div>
 
-            <h1 className="mb-2 text-3xl font-bold tracking-tight text-white">
-              Xin chào, tôi là AI Agent
+            <h1 className="mb-3 text-display font-bold leading-none tracking-tight">
+              <span className="bg-gradient-to-r from-white via-white to-sf-blue-40 bg-clip-text text-transparent">Xin chào</span>
             </h1>
-            <p className="mb-10 max-w-md text-center text-base text-slate-400">
-              Trợ lý phân tích dữ liệu của <span className="text-white font-medium">{tenantName}</span>. Hỏi tôi bất cứ điều gì về dữ liệu của bạn.
+            <p className="mb-10 max-w-lg text-center text-body-lg text-white/60">
+              Trợ lý phân tích dữ liệu của <span className="font-semibold text-white">{tenantName}</span>. Hỏi tôi bất cứ điều gì về dữ liệu của bạn.
             </p>
 
-            {/* Suggestion chips */}
-            <div className="grid max-w-2xl gap-2 sm:grid-cols-2">
+            {/* Suggestion cards */}
+            <div className="grid w-full max-w-2xl gap-2 sm:grid-cols-2">
               {SUGGESTIONS.map((s) => (
                 <button
-                  key={s}
-                  onClick={() => submit(s)}
-                  className="group rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-slate-300 backdrop-blur-sm transition-all hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-white"
+                  key={s.title}
+                  onClick={() => submit(s.title)}
+                  className="group relative flex items-start gap-3 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-left backdrop-blur-sm transition-all duration-base ease-smooth hover:-translate-y-px hover:border-sf-blue-40/40 hover:bg-white/[0.08]"
                 >
-                  <span className="mr-2 text-blue-400 group-hover:text-blue-300">→</span>
-                  {s}
+                  <span className="text-body-lg leading-none">{s.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-body-sm font-semibold text-white">{s.title}</div>
+                    <div className="mt-0.5 text-caption text-white/50">{s.subtitle}</div>
+                  </div>
+                  <svg className="h-4 w-4 shrink-0 text-white/30 transition-all duration-base group-hover:translate-x-0.5 group-hover:text-sf-blue-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               ))}
             </div>
           </div>
         ) : (
-          /* Messages */
           <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
             {messages.map((msg, i) => (
               <MessageBubble key={i} message={msg} />
@@ -120,11 +147,11 @@ export function AgentPage({ tenantName }: { tenantName: string }) {
         )}
       </div>
 
-      {/* Input bar — floats at bottom */}
-      <div className="border-t border-white/10 bg-brand-neutral px-4 py-4">
+      {/* ── Input bar ────────────────────────────────────────────── */}
+      <div className="relative border-t border-white/[0.06] px-4 py-4 backdrop-blur-sm">
         <form
           onSubmit={onSubmit}
-          className="mx-auto flex max-w-3xl items-end gap-3 rounded-2xl border border-white/15 bg-white/8 px-4 py-3 backdrop-blur-sm focus-within:border-sf-blue-60/60 transition-colors"
+          className="mx-auto flex max-w-3xl items-end gap-3 rounded-2xl border border-white/[0.10] bg-white/[0.06] px-4 py-3 shadow-elev-2 backdrop-blur-md transition-colors duration-base ease-smooth focus-within:border-sf-blue-40/50 focus-within:bg-white/[0.08]"
         >
           <textarea
             ref={inputRef}
@@ -138,27 +165,27 @@ export function AgentPage({ tenantName }: { tenantName: string }) {
             placeholder={busy ? "Đang xử lý…" : "Hỏi AI agent về dữ liệu của bạn…"}
             disabled={busy}
             rows={1}
-            className="flex-1 resize-none bg-transparent text-sm text-white placeholder-slate-500 outline-none disabled:opacity-50"
+            className="flex-1 resize-none bg-transparent text-body text-white placeholder-white/40 outline-none disabled:opacity-50"
             style={{ maxHeight: "160px" }}
           />
           <button
             type="submit"
             disabled={busy || draft.trim().length === 0}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sf-blue-60 text-white transition-all hover:bg-sf-blue-70 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sf-blue-60 to-sf-blue-40 text-white shadow-elev-1 transition-all duration-base ease-smooth hover:shadow-glow-brand active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
             {busy ? (
-              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
             ) : (
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
               </svg>
             )}
           </button>
         </form>
-        <p className="mt-2 text-center text-[11px] text-slate-600">
+        <p className="mt-2 text-center text-meta text-white/40">
           Enter để gửi · Shift+Enter xuống dòng
         </p>
       </div>
@@ -166,18 +193,24 @@ export function AgentPage({ tenantName }: { tenantName: string }) {
   );
 }
 
+function AgentAvatar() {
+  return (
+    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sf-blue-60 to-sf-blue-40 shadow-[0_4px_16px_-4px_rgba(27,150,255,0.5)] ring-1 ring-white/10">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.091 3.091z" stroke="white" strokeWidth="1.75" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+}
+
 function TypingIndicator() {
   return (
-    <div className="flex items-start gap-3">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
-        </svg>
-      </div>
-      <div className="flex items-center gap-1.5 rounded-2xl bg-white/8 px-4 py-3">
-        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
-        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
-        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
+    <div className="flex items-start gap-3 animate-fade-in">
+      <AgentAvatar />
+      <div className="flex items-center gap-1.5 rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/[0.06]">
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/50 [animation-delay:-0.3s]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/50 [animation-delay:-0.15s]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/50" />
       </div>
     </div>
   );
@@ -186,8 +219,8 @@ function TypingIndicator() {
 function MessageBubble({ message }: { message: ChatMessage }) {
   if (message.role === "user") {
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[75%] rounded-2xl rounded-br-sm bg-blue-600 px-4 py-3 text-sm text-white shadow-lg">
+      <div className="flex justify-end animate-slide-up">
+        <div className="max-w-[75%] rounded-2xl rounded-br-md bg-gradient-to-br from-sf-blue-60 to-sf-blue-70 px-4 py-3 text-body text-white shadow-elev-2">
           {message.content}
         </div>
       </div>
@@ -195,52 +228,48 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   }
 
   return (
-    <div className="flex items-start gap-3">
-      {/* Agent avatar */}
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 mt-0.5">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
-        </svg>
-      </div>
+    <div className="flex items-start gap-3 animate-slide-up">
+      <AgentAvatar />
 
       <div className="flex-1 min-w-0 space-y-3">
-        {/* Tool call pills */}
         {message.toolEvents && message.toolEvents.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {message.toolEvents.map((t) => (
               <span
                 key={t.id}
                 className={
-                  "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium " +
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-meta font-medium ring-1 " +
                   (t.status === "running"
-                    ? "border border-white/10 bg-white/5 text-slate-400"
+                    ? "bg-white/[0.04] text-white/55 ring-white/[0.08]"
                     : t.status === "ok"
-                      ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                      : "border border-red-500/30 bg-red-500/10 text-red-400")
+                      ? "bg-emerald-400/10 text-emerald-300 ring-emerald-400/30"
+                      : "bg-red-400/10 text-red-300 ring-red-400/30")
                 }
               >
                 {t.status === "running" && (
-                  <svg className="h-2.5 w-2.5 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  <svg className="h-2.5 w-2.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
                 )}
-                {t.status === "ok" && <span>✓</span>}
-                {t.status === "error" && <span>✗</span>}
+                {t.status === "ok" && (
+                  <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" stroke="currentColor" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {t.status === "error" && <span aria-hidden="true">×</span>}
                 <span className="font-mono">{t.name}</span>
               </span>
             ))}
           </div>
         )}
 
-        {/* Rich blocks: images and tables */}
         {message.richBlocks?.map((block, i) => (
           <RichBlockView key={i} block={block} />
         ))}
 
-        {/* Text */}
         {message.content && (
-          <div className="text-sm leading-relaxed text-slate-200 whitespace-pre-wrap">
+          <div className="text-body leading-relaxed text-white/85 whitespace-pre-wrap">
             {message.content}
           </div>
         )}
@@ -254,7 +283,7 @@ const MAX_VISIBLE_ROWS = 50;
 function RichBlockView({ block }: { block: RichBlock }) {
   if (block.kind === "image") {
     return (
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+      <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/30 shadow-elev-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={`data:${block.mimeType};base64,${block.data}`}
@@ -274,12 +303,12 @@ function RichBlockView({ block }: { block: RichBlock }) {
   const truncated = block.rows.length > MAX_VISIBLE_ROWS;
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/10 bg-white/4 backdrop-blur-sm">
-      <table className="w-full text-xs">
+    <div className="overflow-x-auto rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm">
+      <table className="w-full text-caption">
         <thead>
-          <tr className="border-b border-white/10">
+          <tr className="border-b border-white/[0.08]">
             {block.columns.map((col) => (
-              <th key={col} className="px-3 py-2.5 text-left font-semibold text-slate-300 whitespace-nowrap">
+              <th key={col} className="px-3 py-2.5 text-left font-semibold text-white/75 whitespace-nowrap">
                 {col}
               </th>
             ))}
@@ -287,9 +316,9 @@ function RichBlockView({ block }: { block: RichBlock }) {
         </thead>
         <tbody>
           {visibleRows.map((row, ri) => (
-            <tr key={ri} className="border-b border-white/5 hover:bg-white/4 transition-colors">
+            <tr key={ri} className="border-b border-white/[0.04] transition-colors hover:bg-white/[0.04]">
               {row.map((cell, ci) => (
-                <td key={ci} className="px-3 py-2 text-slate-300 whitespace-nowrap">
+                <td key={ci} className="px-3 py-2 text-white/70 whitespace-nowrap tabular-nums">
                   {cell}
                 </td>
               ))}
@@ -298,7 +327,7 @@ function RichBlockView({ block }: { block: RichBlock }) {
         </tbody>
       </table>
       {truncated && (
-        <p className="border-t border-white/8 px-3 py-2 text-xs text-slate-500">
+        <p className="border-t border-white/[0.06] px-3 py-2 text-meta text-white/45">
           Hiển thị {MAX_VISIBLE_ROWS} / {block.rows.length} dòng
         </p>
       )}

@@ -28,12 +28,16 @@ export function SidebarWrapper({ children }: { children: ReactNode }) {
   const { open } = useSidebar();
   return (
     <aside
-      className={`hidden lg:flex flex-col bg-brand-neutral h-full overflow-hidden shrink-0 transition-[width] duration-200 ease-in-out ${
-        open ? "w-64" : "w-0"
+      className={`hidden lg:flex flex-col h-full overflow-hidden shrink-0 transition-[width] duration-base ease-smooth ${
+        open ? "w-[260px]" : "w-0"
       }`}
+      style={{
+        background:
+          "linear-gradient(180deg, var(--brand-neutral) 0%, color-mix(in oklab, var(--brand-neutral) 92%, #000 8%) 100%)",
+      }}
     >
       {/* Inner div keeps content at fixed width so it doesn't reflow */}
-      <div className="w-64 flex flex-col h-full overflow-hidden">
+      <div className="w-[260px] flex flex-col h-full overflow-hidden border-r border-white/[0.06]">
         {children}
       </div>
     </aside>
@@ -48,13 +52,14 @@ export function SidebarToggle() {
     <button
       onClick={toggle}
       title={open ? "Thu gọn menu" : "Mở rộng menu"}
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sf-neutral-5 transition-colors hover:bg-sf-neutral-2 hover:text-sf-neutral-9"
+      aria-label={open ? "Thu gọn menu" : "Mở rộng menu"}
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sf-neutral-6 transition-all duration-base ease-smooth hover:bg-sf-neutral-2 hover:text-sf-neutral-9 active:scale-95"
     >
-      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
         {open ? (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5h11M4 12h16M9 19h11M4 5l-1 7 1 7" />
         ) : (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 5h16M4 12h16M4 19h16" />
         )}
       </svg>
     </button>

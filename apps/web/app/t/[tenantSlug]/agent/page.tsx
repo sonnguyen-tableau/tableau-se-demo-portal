@@ -15,9 +15,8 @@ export default async function AgentPageServer({ params }: PageProps) {
   const { tenantSlug: _slug } = await params;
 
   return (
-    // Negative margin breaks out of the p-6 wrapper in the tenant layout.
-    // height fills viewport minus the lg sidebar (no top bar on desktop).
-    <div className="-m-6" style={{ height: "calc(100vh - 57px)" }}>
+    // Negative margin breaks out of the layout's content padding (p-5 lg:p-7).
+    <div className="-m-5 lg:-m-7 flex-1 min-h-0">
       <AgentPage tenantName={ctx.tenantName} />
     </div>
   );

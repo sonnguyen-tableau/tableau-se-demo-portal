@@ -90,12 +90,12 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   const src = tableauViewUrl(dashboard.viewPath);
 
   return (
-    <div className="flex flex-col gap-2 flex-1 min-h-0">
+    <div className="flex flex-col gap-3 flex-1 min-h-0">
       {/* Top bar: breadcrumb + view tabs + chat toggle */}
-      <div className="flex items-center gap-x-3 gap-y-1.5 shrink-0 min-w-0">
+      <div className="flex items-center gap-x-3 gap-y-2 shrink-0 min-w-0 flex-wrap">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1 text-xs text-sf-neutral-5 min-w-0 flex-1">
-          <Link href={`/t/${tenantSlug}/dashboards`} className="hover:text-sf-neutral-9 transition-colors shrink-0">
+        <nav className="flex items-center gap-1 text-caption text-sf-neutral-5 min-w-0 flex-1">
+          <Link href={`/t/${tenantSlug}/dashboards`} className="shrink-0 transition-colors hover:text-sf-neutral-9">
             Dashboards
           </Link>
           <ChevronIcon />
@@ -103,29 +103,29 @@ export default async function ViewEmbedPage({ params }: PageProps) {
             <>
               <Link
                 href={`/t/${tenantSlug}/dashboards/${workbookSlug}`}
-                className="hover:text-sf-neutral-9 transition-colors truncate max-w-[160px]"
+                className="truncate max-w-[180px] transition-colors hover:text-sf-neutral-9"
               >
                 {dashboard.workbookName}
               </Link>
               <ChevronIcon />
-              <span className="font-medium text-sf-neutral-9 truncate max-w-[200px]">{dashboard.viewName}</span>
+              <span className="truncate max-w-[220px] font-semibold text-sf-neutral-9">{dashboard.viewName}</span>
             </>
           ) : (
-            <span className="font-medium text-sf-neutral-9 truncate max-w-[300px]">{dashboard.workbookName}</span>
+            <span className="truncate max-w-[320px] font-semibold text-sf-neutral-9">{dashboard.workbookName}</span>
           )}
         </nav>
 
-        {/* View tabs */}
+        {/* View tabs — segmented control */}
         {siblings.length > 1 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap items-center gap-1 rounded-lg border border-sf-neutral-3 bg-white p-1 shadow-elev-0">
             {siblings.map((s) => (
               <Link
                 key={s.viewSlug}
                 href={`/t/${tenantSlug}/dashboards/${workbookSlug}/${s.viewSlug}`}
-                className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1 text-caption font-medium transition-all duration-base ease-smooth ${
                   s.viewSlug === viewSlug
-                    ? "bg-sf-blue-70 text-white"
-                    : "border border-sf-neutral-3 bg-white text-sf-neutral-7 hover:border-sf-blue-70 hover:text-sf-blue-70"
+                    ? "bg-brand text-white shadow-elev-1"
+                    : "text-sf-neutral-7 hover:bg-sf-neutral-2 hover:text-sf-neutral-9"
                 }`}
               >
                 {s.viewName}
