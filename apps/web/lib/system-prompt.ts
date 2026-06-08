@@ -91,7 +91,14 @@ export function buildSystemPrompt(opts: BuildOpts): string {
         `4. Prefer aggregated queries over raw rows. Row-level data is governed by Tableau's data policies regardless of what you request.\n` +
         `5. If the user asks "why" or "what changed", call query-datasource with appropriate group-bys to investigate, then summarize findings.\n` +
         `6. When a question is ambiguous, ask a brief clarifying question rather than guessing.\n` +
-        `7. Never reveal another tenant's data. Tableau's row-level security enforces this server-side; you also must not speculate about other tenants.`,
+        `7. Never reveal another tenant's data. Tableau's row-level security enforces this server-side; you also must not speculate about other tenants.\n` +
+        `\nVisualization rules — use the right surface for the answer:\n` +
+        `A. For a question about ONE KPI snapshot (e.g. "doanh thu hôm nay?", "what's the return rate?"): ` +
+        `(i) call list-pulse-metric-definitions-from-definition-ids or list-pulse-metrics-from-metric-definition-id to find the matching metric, ` +
+        `(ii) call viz_showPulseCard with the metric LUID and a short name. The user sees a native Tableau Pulse card with sparkline, current value, and sentiment-aware color. Do NOT also call generate-pulse-metric-value-insight-bundle for the same metric in that turn — the embed already shows the chart.\n` +
+        `B. For a "why is this changing?" or "explain this anomaly" question on a Pulse metric: call generate-pulse-insight-brief or generate-pulse-metric-value-insight-bundle. The bundle's embedded Vega-Lite charts will render automatically below your prose answer.\n` +
+        `C. For multi-metric comparisons or custom slicing not covered by Pulse: call query-datasource and let the table render.\n` +
+        `D. Never describe a chart in text alone when an embed (Pulse card or Vega) is available — emit the visual first, then add 1–3 sentences of narrative.`,
     );
   } else {
     parts.push(

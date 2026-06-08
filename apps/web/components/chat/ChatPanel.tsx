@@ -7,6 +7,7 @@ import {
   type VizAction,
 } from "@/components/bridge/VizContextProvider";
 import { VegaChart } from "@/components/chart/VegaChart";
+import { TableauPulseCard } from "@/components/embed/TableauPulseCard";
 
 type RawEvent =
   | { type: "open"; tools: string[] }
@@ -17,6 +18,7 @@ type RawEvent =
   | { type: "tool_image"; id: string; mimeType: string; data: string }
   | { type: "tool_table"; id: string; columns: string[]; rows: string[][] }
   | { type: "tool_vegaspec"; id: string; spec: Record<string, unknown>; title?: string }
+  | { type: "pulse_card"; id: string; metricId: string; name: string }
   | { type: "viz_action"; id: string; name: string; input: Record<string, unknown> }
   | { type: "error"; message: string }
   | { type: "done"; usage?: { input_tokens?: number; output_tokens?: number } };
@@ -24,7 +26,14 @@ type RawEvent =
 type RichBlock =
   | { kind: "image"; mimeType: string; data: string }
   | { kind: "table"; columns: string[]; rows: string[][] }
-  | { kind: "vegaspec"; spec: Record<string, unknown>; title?: string | undefined };
+  | { kind: "vegaspec"; spec: Record<string, unknown>; title?: string | undefined }
+  | { kind: "pulse"; metricId: string; name: string };
+
+interface PulseEmbedConfig {
+  token: string;
+  siteUrl: string;
+  siteName: string;
+}
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -39,7 +48,42 @@ export function ChatPanel(): ReactElement {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [tools, setTools] = useState<string[] | null>(null);
+  const [pulseConfig, setPulseConfig] = useState<PulseEmbedConfig | null>(null);
+  const pulseConfigRef = useRef<Promise<PulseEmbedConfig | null> | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+
+  // Fetch the Pulse JWT + site URL lazily, the first time the agent emits a
+  // pulse_card event. Cached in a ref so concurrent events share one request.
+  const ensurePulseConfig = useCallback((): Promise<PulseEmbedConfig | null> => {
+    if (pulseConfigRef.current) return pulseConfigRef.current;
+    pulseConfigRef.current = (async () => {
+      try {
+        const res = await fetch("/api/tableau/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scopes: ["tableau:insights:embed"] }),
+          credentials: "include",
+        });
+        if (!res.ok) return null;
+        const json = (await res.json()) as {
+          token?: string;
+          siteUrl?: string;
+          siteName?: string;
+        };
+        if (!json.token || !json.siteUrl || !json.siteName) return null;
+        const cfg: PulseEmbedConfig = {
+          token: json.token,
+          siteUrl: json.siteUrl,
+          siteName: json.siteName,
+        };
+        setPulseConfig(cfg);
+        return cfg;
+      } catch {
+        return null;
+      }
+    })();
+    return pulseConfigRef.current;
+  }, []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -97,6 +141,11 @@ export function ChatPanel(): ReactElement {
           if (event.type === "open") setTools(event.tools);
           if (event.type === "viz_action") {
             void applyVizAction(toVizAction(event.name, event.input));
+          }
+          if (event.type === "pulse_card") {
+            // Kick off the JWT fetch so the card has a token by the time
+            // the embed component mounts.
+            void ensurePulseConfig();
           }
         }
       }
@@ -174,7 +223,7 @@ export function ChatPanel(): ReactElement {
             </div>
           </div>
         ) : (
-          messages.map((m, i) => <MessageView key={i} message={m} />)
+          messages.map((m, i) => <MessageView key={i} message={m} pulseConfig={pulseConfig} />)
         )}
         <div ref={endRef} />
       </div>
@@ -210,7 +259,13 @@ export function ChatPanel(): ReactElement {
   );
 }
 
-function MessageView({ message }: { message: Message }): ReactElement {
+function MessageView({
+  message,
+  pulseConfig,
+}: {
+  message: Message;
+  pulseConfig: PulseEmbedConfig | null;
+}): ReactElement {
   if (message.role === "user") {
     return (
       <div className="flex justify-end animate-slide-up">
@@ -250,7 +305,7 @@ function MessageView({ message }: { message: Message }): ReactElement {
         </div>
       ))}
       {message.richBlocks?.map((block, i) => (
-        <RichBlockView key={i} block={block} />
+        <RichBlockView key={i} block={block} pulseConfig={pulseConfig} />
       ))}
       {message.content ? (
         <div className="whitespace-pre-wrap text-body-sm leading-relaxed text-sf-neutral-8">{message.content}</div>
@@ -261,7 +316,31 @@ function MessageView({ message }: { message: Message }): ReactElement {
 
 const MAX_VISIBLE_ROWS = 50;
 
-function RichBlockView({ block }: { block: RichBlock }): ReactElement {
+function RichBlockView({
+  block,
+  pulseConfig,
+}: {
+  block: RichBlock;
+  pulseConfig: PulseEmbedConfig | null;
+}): ReactElement {
+  if (block.kind === "pulse") {
+    if (!pulseConfig) {
+      return (
+        <div className="rounded-lg border border-sf-neutral-3 bg-sf-neutral-2/40 px-3 py-2 text-meta text-sf-neutral-6">
+          Đang tải Pulse card cho <span className="font-medium">{block.name}</span>…
+        </div>
+      );
+    }
+    const src = `${pulseConfig.siteUrl}/pulse/site/${pulseConfig.siteName}/metrics/${block.metricId}`;
+    return (
+      <TableauPulseCard
+        src={src}
+        token={pulseConfig.token}
+        name={block.name}
+        height="280px"
+      />
+    );
+  }
   if (block.kind === "image") {
     return (
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -366,6 +445,15 @@ function applyEvent(messages: Message[], event: RawEvent): Message[] {
         ...(event.title !== undefined
           ? [{ kind: "vegaspec" as const, spec: event.spec, title: event.title }]
           : [{ kind: "vegaspec" as const, spec: event.spec }]),
+      ],
+    }));
+  }
+  if (event.type === "pulse_card") {
+    return mutateLastAssistant(messages, (m) => ({
+      ...m,
+      richBlocks: [
+        ...(m.richBlocks ?? []),
+        { kind: "pulse", metricId: event.metricId, name: event.name },
       ],
     }));
   }

@@ -74,6 +74,25 @@ export const VIZ_TOOLS: readonly McpToolDescriptor[] = [
       properties: { name: { type: "string" }, value: { type: "string" } },
     },
   },
+  {
+    name: "viz_showPulseCard",
+    description:
+      "Embed a native Tableau Pulse metric card directly in the chat with a sparkline, current value, and trend. Use when the user asks for a single KPI snapshot (e.g. 'Doanh thu hôm nay?', 'Show me return rate'). Prefer this over text when the metric exists in Pulse — it gives the user the canonical Tableau visualization with built-in anomaly detection. Pass the metric_id (the LUID, NOT the metric definition id) returned by list-pulse-metrics-from-metric-definition-id.",
+    input_schema: {
+      type: "object",
+      required: ["metric_id", "name"],
+      properties: {
+        metric_id: {
+          type: "string",
+          description: "The Pulse metric LUID. Get it from list-pulse-metrics-from-metric-definition-id.",
+        },
+        name: {
+          type: "string",
+          description: "Human-readable metric name to show as the card header (e.g. 'Revenue', 'Return Rate').",
+        },
+      },
+    },
+  },
 ] as const;
 
 export function isVizToolName(name: string): boolean {

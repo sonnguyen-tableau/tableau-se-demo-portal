@@ -16,6 +16,7 @@ export type AgentEvent =
   | { type: "tool_image"; id: string; mimeType: string; data: string }
   | { type: "tool_table"; id: string; columns: string[]; rows: string[][] }
   | { type: "tool_vegaspec"; id: string; spec: Record<string, unknown>; title?: string | undefined }
+  | { type: "pulse_card"; id: string; metricId: string; name: string }
   | { type: "viz_action"; id: string; name: string; input: Record<string, unknown> }
   | { type: "error"; message: string }
   | { type: "done"; usage?: { input_tokens?: number; output_tokens?: number } };
@@ -150,6 +151,33 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
 
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
     for (const call of toolCalls) {
+      if (call.name === "viz_showPulseCard") {
+        // Pulse card embed: emit a dedicated event so the chat panel renders
+        // a native <tableau-pulse> component (not a filter/mark dispatch).
+        const metricId = String(call.input.metric_id ?? "").trim();
+        const cardName = String(call.input.name ?? "").trim() || "Metric";
+        if (!metricId) {
+          const msg = "viz_showPulseCard requires a non-empty metric_id.";
+          yield { type: "tool_result", id: call.id, ok: false, preview: msg };
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: call.id,
+            is_error: true,
+            content: [{ type: "text", text: msg }],
+          });
+          continue;
+        }
+        yield { type: "pulse_card", id: call.id, metricId, name: cardName };
+        const preview = `Embedded Pulse card for ${cardName}.`;
+        yield { type: "tool_result", id: call.id, ok: true, preview };
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: call.id,
+          is_error: false,
+          content: [{ type: "text", text: preview }],
+        });
+        continue;
+      }
       if (isVizToolName(call.name)) {
         // Client-side viz action: emit a request event and synthesize a
         // "queued" result back to Claude. The actual viz update happens in
