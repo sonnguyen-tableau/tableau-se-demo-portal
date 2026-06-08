@@ -30,12 +30,12 @@ export interface ResolvedSite {
 /** Env-var fallback — used when no siteId is set on the tenant. */
 function fromEnv(): ResolvedSite {
   return {
-    tableauSite: env.TABLEAU_SITE,
-    tableauSiteName: env.TABLEAU_SITE_NAME,
-    tableauSiteVersion: env.TABLEAU_SITE_VERSION,
-    connectedAppClientId: env.TABLEAU_CONNECTED_APP_CLIENT_ID,
-    connectedAppSecretId: env.TABLEAU_CONNECTED_APP_SECRET_ID,
-    connectedAppSecretValue: env.TABLEAU_CONNECTED_APP_SECRET_VALUE,
+    tableauSite: env.TABLEAU_SITE ?? "",
+    tableauSiteName: env.TABLEAU_SITE_NAME ?? "",
+    tableauSiteVersion: env.TABLEAU_SITE_VERSION ?? "2026.1",
+    connectedAppClientId: env.TABLEAU_CONNECTED_APP_CLIENT_ID ?? "",
+    connectedAppSecretId: env.TABLEAU_CONNECTED_APP_SECRET_ID ?? "",
+    connectedAppSecretValue: env.TABLEAU_CONNECTED_APP_SECRET_VALUE ?? "",
     mcpUrl: env.TABLEAU_MCP_URL,
     factoryUrl: env.FACTORY_URL,
     fromRegistry: false,

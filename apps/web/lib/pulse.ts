@@ -27,14 +27,15 @@ export function getPulseConfig(tenantId: string): TenantPulseConfig | null {
 }
 
 export function pulseSrc(metric: PulseMetric, opts: { siteId?: string } = {}): string {
+  const site = env.TABLEAU_SITE ?? "";
   const origin = (() => {
     try {
-      const u = new URL(env.TABLEAU_SITE);
+      const u = new URL(site);
       return `${u.protocol}//${u.host}`;
     } catch {
-      return env.TABLEAU_SITE;
+      return site;
     }
   })();
-  const siteId = opts.siteId ?? env.TABLEAU_SITE_NAME;
+  const siteId = opts.siteId ?? env.TABLEAU_SITE_NAME ?? "";
   return `${origin}/pulse/site/${siteId}/metrics/${metric.metricId}`;
 }

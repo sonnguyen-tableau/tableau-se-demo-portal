@@ -12,9 +12,9 @@ export async function GET(): Promise<Response> {
 
   const token = await mintTableauJwt(
     {
-      clientId: env.TABLEAU_CONNECTED_APP_CLIENT_ID,
-      secretId: env.TABLEAU_CONNECTED_APP_SECRET_ID,
-      secretValue: env.TABLEAU_CONNECTED_APP_SECRET_VALUE,
+      clientId: env.TABLEAU_CONNECTED_APP_CLIENT_ID ?? "",
+      secretId: env.TABLEAU_CONNECTED_APP_SECRET_ID ?? "",
+      secretValue: env.TABLEAU_CONNECTED_APP_SECRET_VALUE ?? "",
     },
     {
       sub: session.user.email ?? "",

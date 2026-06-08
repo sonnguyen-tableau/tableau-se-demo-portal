@@ -86,23 +86,11 @@ const _inFlightBySite = new Map<string, Promise<LiveCatalog>>();
 export async function getLiveCatalog(tenantId?: string): Promise<LiveCatalog> {
   const now = Date.now();
 
-  // Resolve which site to use
-  let site: ResolvedSite;
-  if (tenantId) {
-    site = await getSiteForTenant(tenantId);
-  } else {
-    site = {
-      tableauSite: env.TABLEAU_SITE,
-      tableauSiteName: env.TABLEAU_SITE_NAME,
-      tableauSiteVersion: env.TABLEAU_SITE_VERSION,
-      connectedAppClientId: env.TABLEAU_CONNECTED_APP_CLIENT_ID,
-      connectedAppSecretId: env.TABLEAU_CONNECTED_APP_SECRET_ID,
-      connectedAppSecretValue: env.TABLEAU_CONNECTED_APP_SECRET_VALUE,
-      mcpUrl: env.TABLEAU_MCP_URL,
-      factoryUrl: env.FACTORY_URL,
-      fromRegistry: false,
-    };
-  }
+  // Resolve which site to use — always go through getSiteForTenant so the
+  // env-var fallback is applied in one place (fromEnv() in tenant-site.ts).
+  const site: ResolvedSite = tenantId
+    ? await getSiteForTenant(tenantId)
+    : await getSiteForTenant("");
 
   const cacheKey = site.tableauSiteName;
 

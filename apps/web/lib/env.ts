@@ -13,13 +13,15 @@ const schema = z.object({
     .optional()
     .describe("JSON array of dev users — only honored when PORTAL_ENV=dev"),
 
-  // Tableau Cloud
-  TABLEAU_SITE: z.string().url(),
-  TABLEAU_SITE_NAME: z.string().min(1),
-  TABLEAU_SITE_VERSION: z.string().regex(/^\d{4}\.\d+$/, "Format: YYYY.minor (e.g. 2026.1)"),
-  TABLEAU_CONNECTED_APP_CLIENT_ID: z.string().min(1),
-  TABLEAU_CONNECTED_APP_SECRET_ID: z.string().min(1),
-  TABLEAU_CONNECTED_APP_SECRET_VALUE: z.string().min(16),
+  // Tableau Cloud — all optional when per-site SiteConfig registry is used.
+  // For single-site deployments without /admin/sites, set these as the fallback.
+  // No strict format validation here — isTableauConfigured() guards at runtime.
+  TABLEAU_SITE: z.string().optional(),
+  TABLEAU_SITE_NAME: z.string().optional(),
+  TABLEAU_SITE_VERSION: z.string().optional(),
+  TABLEAU_CONNECTED_APP_CLIENT_ID: z.string().optional(),
+  TABLEAU_CONNECTED_APP_SECRET_ID: z.string().optional(),
+  TABLEAU_CONNECTED_APP_SECRET_VALUE: z.string().optional(),
   /** Set to "true" to include the ODA claim — requires Connected App to have On-Demand Access enabled. */
   TABLEAU_ODA: z
     .string()

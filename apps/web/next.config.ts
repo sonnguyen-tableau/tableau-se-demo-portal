@@ -5,6 +5,20 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   typedRoutes: true,
   transpilePackages: ["@portal/tableau-jwt", "@portal/mcp-tools"],
+  webpack(config, { isServer }) {
+    if (!isServer) {
+      // vega-canvas (pulled in by vega-embed) tries to resolve the native
+      // `canvas` package and Node's `fs/promises` for server-side rendering.
+      // Neither exists in the browser bundle — stub them so the build passes.
+      config.resolve.fallback = {
+        ...(config.resolve.fallback as Record<string, unknown> | undefined),
+        canvas: false,
+        "fs/promises": false,
+        fs: false,
+      };
+    }
+    return config;
+  },
   async headers() {
     return [
       {
