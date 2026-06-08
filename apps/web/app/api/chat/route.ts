@@ -7,6 +7,7 @@ import { runAgentTurn, type AgentEvent } from "@/lib/agent";
 import { allowedToolNames, openTableauMcp } from "@/lib/mcp-client";
 import { audit, shortHash } from "@/lib/audit";
 import { checkAndRecord } from "@/lib/rate-limit";
+import { getSiteForTenant } from "@/lib/tenant-site";
 
 const CHAT_RATE_LIMIT = { windowSeconds: 60, max: 12 } as const;
 
@@ -118,10 +119,12 @@ export async function POST(req: Request): Promise<Response> {
       let lastUsage: { input_tokens?: number; output_tokens?: number } | undefined;
       const toolInFlight = new Map<string, { name: string; startedAt: number }>();
       try {
-        if (env.TABLEAU_MCP_URL) {
+        const site = await getSiteForTenant(tenantId);
+        const mcpUrl = site.mcpUrl ?? env.TABLEAU_MCP_URL;
+        if (mcpUrl) {
           try {
             mcp = await openTableauMcp({
-              url: env.TABLEAU_MCP_URL,
+              url: mcpUrl,
               tableauUser: userEmail,
             });
             send({ type: "open", tools: mcp.tools.map((t) => t.name) });
@@ -185,6 +188,13 @@ export async function POST(req: Request): Promise<Response> {
               userId,
               tenantId,
               action: event.name,
+            });
+          } else if (event.type === "pulse_card") {
+            audit.emit({
+              kind: "chat.viz_action",
+              userId,
+              tenantId,
+              action: "pulse_card",
             });
           } else if (event.type === "done") {
             lastUsage = event.usage;

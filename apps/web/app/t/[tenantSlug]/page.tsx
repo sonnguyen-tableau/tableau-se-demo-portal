@@ -17,7 +17,7 @@ export default async function TenantHome({ params }: PageProps) {
 
   const [impressions, catalog, recentViews, popularRaw] = await Promise.all([
     ctx ? getImpressionStatus(ctx.tenantId) : Promise.resolve(null),
-    getLiveCatalog(),
+    getLiveCatalog(ctx?.tenantId),
     getRecentViews(email),
     getPopularViews(6),
   ]);

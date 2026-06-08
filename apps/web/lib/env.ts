@@ -39,6 +39,13 @@ const schema = z.object({
 
   IMPRESSION_DAILY_CAP_PER_TENANT: z.coerce.number().int().positive().default(2000),
   PORTAL_ENV: z.enum(["dev", "preview", "staging", "prod"]).default("dev"),
+
+  // Multi-site: AES-256-GCM key for encrypting Connected App secrets at rest in KV.
+  // 64 hex chars = 32 bytes. Required when using the /admin/sites UI in production.
+  SITE_CONFIG_ENCRYPTION_KEY: z
+    .string()
+    .regex(/^[0-9a-fA-F]{64}$/, "Must be 64 hex chars (openssl rand -hex 32)")
+    .optional(),
 });
 
 export type Env = z.infer<typeof schema>;

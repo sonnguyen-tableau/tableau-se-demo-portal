@@ -17,7 +17,7 @@ export default async function AdminPage({ params }: PageProps) {
   const { tenantSlug } = await params;
 
   // Ensure catalog is fetched so workbook cache is populated
-  await getLiveCatalog();
+  await getLiveCatalog(ctx?.tenantId);
   const workbooks = getCachedWorkbooks();
   const hiddenIds = [...(await getHiddenWorkbookIds())];
 

@@ -3,14 +3,17 @@
 import { type FormEvent, type ReactElement, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TenantRecord } from "@/lib/tenants";
+import type { SiteConfigPublic } from "@/lib/site-config";
 
 interface Props {
   tenant: TenantRecord;
+  availableSites?: SiteConfigPublic[];
 }
 
-export function TenantAdminForm({ tenant }: Props): ReactElement {
+export function TenantAdminForm({ tenant, availableSites = [] }: Props): ReactElement {
   const router = useRouter();
   const [name, setName] = useState(tenant.name);
+  const [siteId, setSiteId] = useState(tenant.siteId ?? "");
   const [primary, setPrimary] = useState("#1a56db");
   const [secondary, setSecondary] = useState("#f59e0b");
   const [logoUrl, setLogoUrl] = useState("");
@@ -27,7 +30,7 @@ export function TenantAdminForm({ tenant }: Props): ReactElement {
       const res = await fetch(`/api/admin/tenants/${encodeURIComponent(tenant.slug)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, ...(siteId ? { siteId } : { siteId: null }) }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setInfo("Saved.");
@@ -109,7 +112,7 @@ export function TenantAdminForm({ tenant }: Props): ReactElement {
         onSubmit={saveRename}
         className="space-y-3 rounded-lg border border-[hsl(var(--border))] p-4"
       >
-        <h2 className="text-sm font-semibold">Rename</h2>
+        <h2 className="text-sm font-semibold">General settings</h2>
         <label className="block text-sm">
           <span className="mb-1 block">Display name</span>
           <input
@@ -120,12 +123,29 @@ export function TenantAdminForm({ tenant }: Props): ReactElement {
             required
           />
         </label>
+        {availableSites.length > 0 && (
+          <label className="block text-sm">
+            <span className="mb-1 block">Tableau Site</span>
+            <select
+              value={siteId}
+              onChange={(e) => setSiteId(e.target.value)}
+              className="w-full rounded-md border border-[hsl(var(--border))] px-3 py-2 bg-white"
+            >
+              <option value="">(dùng env vars mặc định)</option>
+              {availableSites.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label} ({s.tableauSiteName})
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <button
           type="submit"
           disabled={busy}
           className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
         >
-          Save name
+          Save
         </button>
       </form>
 

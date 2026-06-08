@@ -1,0 +1,11 @@
+[
+  {
+    "tenantId": "t-a",
+    "companyName": "Salesforce Bank",
+    "primaryColor": "#abcdef",
+    "secondaryColor": "#f5a623",
+    "neutralColor": "#032d60",
+    "fontFamily": "Inter",
+    "tone": "professional"
+  }
+]

@@ -17,6 +17,17 @@ export default async function TenantsAdminPage() {
 
   return (
     <main className="mx-auto max-w-5xl space-y-4 px-6 py-8">
+      <nav className="flex gap-3 text-sm">
+        <span className="font-semibold">Tenants</span>
+        <span className="text-[hsl(var(--muted-foreground))]">·</span>
+        <Link href="/admin/sites" className="text-[hsl(var(--muted-foreground))] hover:underline">
+          Tableau Sites
+        </Link>
+        <span className="text-[hsl(var(--muted-foreground))]">·</span>
+        <Link href="/admin/impressions" className="text-[hsl(var(--muted-foreground))] hover:underline">
+          Impressions
+        </Link>
+      </nav>
       <header className="flex items-end justify-between">
         <div>
           <p className="text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">

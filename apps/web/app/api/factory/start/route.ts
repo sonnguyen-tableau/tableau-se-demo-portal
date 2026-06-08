@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { tenantFromSession, slugify } from "@/lib/tenant";
 import { audit } from "@/lib/audit";
+import { getSiteForTenant } from "@/lib/tenant-site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,7 +23,9 @@ export async function POST(req: Request): Promise<Response> {
   if (!session?.user || !ctx?.isInternal) {
     return new NextResponse("forbidden — internal only", { status: 403 });
   }
-  if (!env.FACTORY_URL) {
+  const site = await getSiteForTenant(ctx.tenantId);
+  const factoryUrl = site.factoryUrl ?? env.FACTORY_URL;
+  if (!factoryUrl) {
     return new NextResponse("FACTORY_URL is not configured.", { status: 503 });
   }
 
@@ -47,7 +50,7 @@ export async function POST(req: Request): Promise<Response> {
     parsed.data.tenant_slug?.toLowerCase() ??
     slugify(new URL(parsed.data.url).hostname.replace(/^www\./, ""));
 
-  const upstream = await fetch(new URL("/factory/start", env.FACTORY_URL), {
+  const upstream = await fetch(new URL("/factory/start", factoryUrl), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url: parsed.data.url, tenant_slug: slug }),

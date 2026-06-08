@@ -3,11 +3,15 @@
  * Uses the service-account PAT from env to sign in once per request and
  * fetch projects + workbooks for the configured site.
  *
+ * Supports multi-site: getLiveCatalog(tenantId?) resolves which Tableau site
+ * to use via getSiteForTenant, with an env-var fallback for existing deploys.
+ *
  * All calls are server-side only — never import from client components.
  */
 import { env } from "@/lib/env";
 import { tableauOrigin } from "@/lib/tableau-config";
 import { getHiddenWorkbookIds } from "@/lib/catalog-filter";
+import { getSiteForTenant, resolvedSiteOrigin, type ResolvedSite } from "@/lib/tenant-site";
 
 // Tableau supports up to 3.24 at time of writing; 3.20 is widely available
 const API_VERSION = "3.20";
@@ -66,44 +70,75 @@ interface LiveCatalog {
   fetchedAt: number;
 }
 
-// ── In-memory cache (per process, TTL = 5 min) ────────────────────────────
-let _cache: LiveCatalog | null = null;
-let _cacheTs = 0;
+// ── In-memory cache per site (TTL = 5 min) ───────────────────────────────
+interface CacheEntry {
+  catalog: LiveCatalog;
+  ts: number;
+}
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const _cacheBysite = new Map<string, CacheEntry>();
+const _inFlightBySite = new Map<string, Promise<LiveCatalog>>();
 
-// In-flight deduplication: concurrent callers share one fetch instead of
-// each triggering a separate PAT sign-in (which would cause 401s).
-let _inFlight: Promise<LiveCatalog> | null = null;
-
-export async function getLiveCatalog(): Promise<LiveCatalog> {
+/**
+ * Fetch the live catalog for the given tenant's Tableau site.
+ * Pass tenantId to resolve via the site registry; omit to use env-var defaults.
+ */
+export async function getLiveCatalog(tenantId?: string): Promise<LiveCatalog> {
   const now = Date.now();
-  if (_cache && now - _cacheTs < CACHE_TTL_MS) return _cache;
-  if (_inFlight) return _inFlight;
+
+  // Resolve which site to use
+  let site: ResolvedSite;
+  if (tenantId) {
+    site = await getSiteForTenant(tenantId);
+  } else {
+    site = {
+      tableauSite: env.TABLEAU_SITE,
+      tableauSiteName: env.TABLEAU_SITE_NAME,
+      tableauSiteVersion: env.TABLEAU_SITE_VERSION,
+      connectedAppClientId: env.TABLEAU_CONNECTED_APP_CLIENT_ID,
+      connectedAppSecretId: env.TABLEAU_CONNECTED_APP_SECRET_ID,
+      connectedAppSecretValue: env.TABLEAU_CONNECTED_APP_SECRET_VALUE,
+      mcpUrl: env.TABLEAU_MCP_URL,
+      factoryUrl: env.FACTORY_URL,
+      fromRegistry: false,
+    };
+  }
+
+  const cacheKey = site.tableauSiteName;
+
+  const cached = _cacheBysite.get(cacheKey);
+  if (cached && now - cached.ts < CACHE_TTL_MS) return cached.catalog;
+
+  const inFlight = _inFlightBySite.get(cacheKey);
+  if (inFlight) return inFlight;
 
   if (!env.TABLEAU_PAT_NAME || !env.TABLEAU_PAT_SECRET) {
     return { projects: [], dashboards: [], fetchedAt: now };
   }
 
-  _inFlight = fetchFromTableau()
+  const promise = fetchFromTableau(site)
     .then((catalog) => {
-      _cache = catalog;
-      _cacheTs = Date.now();
-      _inFlight = null;
+      _cacheBysite.set(cacheKey, { catalog, ts: Date.now() });
+      _inFlightBySite.delete(cacheKey);
       return catalog;
     })
     .catch((e) => {
-      console.error("[tableau-rest] Failed to fetch live catalog:", e);
-      _inFlight = null;
-      return _cache ?? { projects: [], dashboards: [], fetchedAt: Date.now() };
+      console.error(`[tableau-rest] Failed to fetch catalog for site ${cacheKey}:`, e);
+      _inFlightBySite.delete(cacheKey);
+      return _cacheBysite.get(cacheKey)?.catalog ?? { projects: [], dashboards: [], fetchedAt: Date.now() };
     });
 
-  return _inFlight;
+  _inFlightBySite.set(cacheKey, promise);
+  return promise;
 }
 
-/** Force-refresh ignoring TTL (useful for a manual refresh button later) */
-export function invalidateCatalogCache() {
-  _cache = null;
-  _cacheTs = 0;
+/** Force-refresh a specific site's cache (or all sites if no key given). */
+export function invalidateCatalogCache(siteName?: string) {
+  if (siteName) {
+    _cacheBysite.delete(siteName);
+  } else {
+    _cacheBysite.clear();
+  }
 }
 
 export interface LiveWorkbook {
@@ -123,8 +158,8 @@ export function getCachedWorkbooks(): LiveWorkbook[] {
 
 // ── Implementation ─────────────────────────────────────────────────────────
 
-async function fetchFromTableau(): Promise<LiveCatalog> {
-  const origin = tableauOrigin();
+async function fetchFromTableau(site: ResolvedSite): Promise<LiveCatalog> {
+  const origin = resolvedSiteOrigin(site);
   const base = `${origin}/api/${API_VERSION}`;
 
   // 1. Sign in
@@ -136,7 +171,7 @@ async function fetchFromTableau(): Promise<LiveCatalog> {
         credentials: {
           personalAccessTokenName: env.TABLEAU_PAT_NAME,
           personalAccessTokenSecret: env.TABLEAU_PAT_SECRET,
-          site: { contentUrl: env.TABLEAU_SITE_NAME },
+          site: { contentUrl: site.tableauSiteName },
         },
       }),
     },

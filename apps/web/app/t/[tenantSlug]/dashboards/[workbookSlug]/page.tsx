@@ -13,9 +13,9 @@ export default async function WorkbookPage({ params }: PageProps) {
 
   const session = await auth();
   if (!session?.user) notFound();
-  tenantFromSession(session);
+  const ctx = tenantFromSession(session);
 
-  const catalog = await getLiveCatalog();
+  const catalog = await getLiveCatalog(ctx?.tenantId);
   const views = catalog.dashboards
     .filter((d) => d.workbookSlug === workbookSlug)
     .sort((a, b) => a.viewName.localeCompare(b.viewName, "vi"));

@@ -5,6 +5,7 @@ import { tenantFromSession } from "@/lib/tenant";
 import { getTenant } from "@/lib/tenants";
 import { getTenantTheme } from "@/lib/tenant-theme";
 import { getImpressionStatus } from "@/lib/billing";
+import { listSiteConfigs } from "@/lib/site-config";
 import { TenantAdminForm } from "@/components/admin/TenantAdminForm";
 
 interface PageProps {
@@ -19,8 +20,11 @@ export default async function TenantAdminDetail({ params }: PageProps) {
   const { slug } = await params;
   const tenant = await getTenant(slug);
   if (!tenant) notFound();
-  const theme = await getTenantTheme(slug);
-  const impressions = await getImpressionStatus(slug);
+  const [theme, impressions, availableSites] = await Promise.all([
+    getTenantTheme(slug),
+    getImpressionStatus(slug),
+    listSiteConfigs(),
+  ]);
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-6 py-8">
@@ -45,7 +49,7 @@ export default async function TenantAdminDetail({ params }: PageProps) {
         />
       </section>
 
-      <TenantAdminForm tenant={tenant} />
+      <TenantAdminForm tenant={tenant} availableSites={availableSites} />
     </main>
   );
 }

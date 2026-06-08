@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { enforceImpressionBudget, ImpressionBudgetExceededError } from "@/lib/billing";
 import { audit } from "@/lib/audit";
+import { getSiteForTenant, resolvedSiteOrigin } from "@/lib/tenant-site";
 import { mintTableauJwt, JWT_TTL_SECONDS } from "@portal/tableau-jwt";
 
 export const runtime = "nodejs";
@@ -68,6 +69,8 @@ export async function POST(req: Request): Promise<Response> {
     throw e;
   }
 
+  const site = await getSiteForTenant(tenantId);
+
   audit.emit({
     kind: "jwt.mint",
     userId: session.user.email,
@@ -79,9 +82,9 @@ export async function POST(req: Request): Promise<Response> {
 
   const token = await mintTableauJwt(
     {
-      clientId: env.TABLEAU_CONNECTED_APP_CLIENT_ID,
-      secretId: env.TABLEAU_CONNECTED_APP_SECRET_ID,
-      secretValue: env.TABLEAU_CONNECTED_APP_SECRET_VALUE,
+      clientId: site.connectedAppClientId,
+      secretId: site.connectedAppSecretId,
+      secretValue: site.connectedAppSecretValue,
     },
     {
       sub: session.user.email,
@@ -101,6 +104,8 @@ export async function POST(req: Request): Promise<Response> {
       expiresIn: JWT_TTL_SECONDS,
       tenantId,
       impressionStatus: status,
+      siteUrl: resolvedSiteOrigin(site),
+      siteName: site.tableauSiteName,
     },
     { headers: { "Cache-Control": "private, no-store" } },
   );

@@ -4,7 +4,8 @@ import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { getLiveCatalog } from "@/lib/tableau-rest";
 import { env } from "@/lib/env";
-import { isTableauConfigured, tableauViewUrl } from "@/lib/tableau-config";
+import { isTableauConfigured } from "@/lib/tableau-config";
+import { getSiteForTenant, resolvedSiteViewUrl } from "@/lib/tenant-site";
 import { enforceImpressionBudget, ImpressionBudgetExceededError } from "@/lib/billing";
 import { mintTableauJwt } from "@portal/tableau-jwt";
 import { TableauVizShell } from "@/components/embed/TableauVizShell";
@@ -26,7 +27,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
 
   const { tenantSlug, workbookSlug, viewSlug } = await params;
 
-  const catalog = await getLiveCatalog();
+  const catalog = await getLiveCatalog(ctx?.tenantId);
   const dashboard = catalog.dashboards.find(
     (d) => d.workbookSlug === workbookSlug && d.viewSlug === viewSlug,
   );
@@ -52,14 +53,15 @@ export default async function ViewEmbedPage({ params }: PageProps) {
     );
   }
 
+  const site = await getSiteForTenant(ctx.tenantId);
   let token: string;
   try {
     await enforceImpressionBudget(ctx.tenantId);
     token = await mintTableauJwt(
       {
-        clientId: env.TABLEAU_CONNECTED_APP_CLIENT_ID,
-        secretId: env.TABLEAU_CONNECTED_APP_SECRET_ID,
-        secretValue: env.TABLEAU_CONNECTED_APP_SECRET_VALUE,
+        clientId: site.connectedAppClientId,
+        secretId: site.connectedAppSecretId,
+        secretValue: site.connectedAppSecretValue,
       },
       {
         sub: session.user.email ?? "",
@@ -87,7 +89,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
     throw e;
   }
 
-  const src = tableauViewUrl(dashboard.viewPath);
+  const src = resolvedSiteViewUrl(site, dashboard.viewPath);
 
   return (
     <div className="flex flex-col gap-3 flex-1 min-h-0">

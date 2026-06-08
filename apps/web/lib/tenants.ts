@@ -14,6 +14,8 @@ export interface TenantRecord {
   createdAt: string;
   /** "active" = visible; "archived" = soft-deleted. */
   status: "active" | "archived";
+  /** ID of the SiteConfig this tenant is assigned to. Undefined = use deployment env vars. */
+  siteId?: string;
 }
 
 const STORE = new Map<string, TenantRecord>();
@@ -68,6 +70,11 @@ export async function upsertTenant(input: Partial<TenantRecord> & { name: string
         : {}),
     createdAt: existing?.createdAt ?? new Date().toISOString(),
     status: input.status ?? existing?.status ?? "active",
+    ...(input.siteId !== undefined
+      ? { siteId: input.siteId }
+      : existing?.siteId !== undefined
+        ? { siteId: existing.siteId }
+        : {}),
   };
   STORE.set(slug, next);
   return next;

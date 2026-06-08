@@ -16,7 +16,7 @@ export default async function UsersAdminPage({ params }: PageProps) {
 
   const { tenantSlug } = await params;
 
-  await getLiveCatalog(); // populates workbook cache
+  await getLiveCatalog(ctx?.tenantId); // populates workbook cache
   const [users, workbooks] = await Promise.all([
     listPortalUsers(),
     Promise.resolve(getCachedWorkbooks()),

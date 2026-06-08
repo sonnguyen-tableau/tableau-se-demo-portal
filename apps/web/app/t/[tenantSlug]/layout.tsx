@@ -37,7 +37,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
 
   const [rawTheme, catalog] = await Promise.all([
     getTenantTheme(ctx?.tenantId ?? tenantSlug),
-    getLiveCatalog(),
+    getLiveCatalog(ctx?.tenantId),
   ]);
   const theme = {
     primary: rawTheme.primaryColor,
@@ -134,6 +134,9 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
               <NavLink href={`/t/${tenantSlug}/admin/theme`} icon={
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
               }>Tuỳ chỉnh giao diện</NavLink>
+              <NavLink href="/admin/tenants" icon={
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" />
+              }>Tenants &amp; Sites</NavLink>
             </div>
           )}
         </nav>
