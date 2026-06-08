@@ -178,6 +178,41 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
         });
         continue;
       }
+      if (call.name === "viz_drawChart") {
+        // Agent-generated Vega-Lite chart: validate the spec then emit as
+        // tool_vegaspec so ChatPanel renders it via VegaChart.
+        const title = String(call.input.title ?? "").trim() || undefined;
+        const rawSpec = call.input.spec;
+        if (
+          typeof rawSpec !== "object" ||
+          rawSpec === null ||
+          Array.isArray(rawSpec)
+        ) {
+          const msg = "viz_drawChart: spec must be a Vega-Lite object.";
+          yield { type: "tool_result", id: call.id, ok: false, preview: msg };
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: call.id,
+            is_error: true,
+            content: [{ type: "text", text: msg }],
+          });
+          continue;
+        }
+        const spec = rawSpec as Record<string, unknown>;
+        // Enforce width:container so the chart fills the panel
+        spec.width = "container";
+        if (title && !spec.title) spec.title = title;
+        yield { type: "tool_vegaspec", id: call.id, spec, title };
+        const preview = `Chart rendered: ${title ?? "Vega-Lite chart"}.`;
+        yield { type: "tool_result", id: call.id, ok: true, preview };
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: call.id,
+          is_error: false,
+          content: [{ type: "text", text: preview }],
+        });
+        continue;
+      }
       if (isVizToolName(call.name)) {
         // Client-side viz action: emit a request event and synthesize a
         // "queued" result back to Claude. The actual viz update happens in

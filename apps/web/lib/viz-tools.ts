@@ -93,6 +93,36 @@ export const VIZ_TOOLS: readonly McpToolDescriptor[] = [
       },
     },
   },
+  {
+    name: "viz_drawChart",
+    description:
+      "Render a Vega-Lite v5 chart directly in the chat panel. Call this AFTER query-datasource returns data — embed the rows inline in spec.data.values and choose the mark/encoding that best answers the question. The chart renders immediately above your narrative.\n\nChart type guide:\n- Time-series (month/date on X) → mark:\"line\" with point:true; add a second layer with transform:[{regression}] for trend questions.\n- Category comparison → mark:\"bar\"; use horizontal bar (x=measure, y=dimension) when >6 categories.\n- Two numeric dimensions / correlation → mark:\"point\"; add transform:[{regression}] layer.\n- Part-of-whole → mark:\"bar\" with color encoding + stack:\"normalize\" for 100% stacked.\n- Distribution → mark:\"bar\" with transform:[{bin:true, field:\"...\", as:[\"bin_start\",\"bin_end\"]}].\n- Forecast / trend line → layer chart: layer[0] actual data (line/bar), layer[1] transform:[{regression:\"y\",on:\"x\",extent:[min,max_future]}] mark:\"line\" with strokeDash.\n\nAlways: include descriptive axis titles, limit data.values to ≤150 rows (use the top/most-recent rows), set width:\"container\".",
+    input_schema: {
+      type: "object",
+      required: ["spec", "title"],
+      properties: {
+        title: {
+          type: "string",
+          description: "Concise chart title shown above the chart, e.g. 'Monthly Revenue — Q1 2025'.",
+        },
+        spec: {
+          type: "object",
+          description:
+            "Complete Vega-Lite v5 spec. Must include: data.values (array of row objects from query result, max 150), mark or layer, encoding.x, encoding.y. Set width:\"container\". For layered charts use the top-level layer array.",
+          properties: {
+            data: { type: "object" },
+            mark: {},
+            layer: { type: "array" },
+            encoding: { type: "object" },
+            transform: { type: "array" },
+            width: {},
+            height: {},
+            $schema: { type: "string" },
+          },
+        },
+      },
+    },
+  },
 ] as const;
 
 export function isVizToolName(name: string): boolean {
