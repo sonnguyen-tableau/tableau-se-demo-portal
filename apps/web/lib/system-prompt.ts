@@ -6,6 +6,8 @@ export interface VizContext {
   activeSheet?: string;
   filters?: Array<{ field: string; values: string[] }>;
   selectedMarks?: Array<Record<string, string>>;
+  /** Datasources powering the active workbook, captured via Embedding API getDataSourcesAsync(). */
+  datasources?: Array<{ name: string; id?: string }>;
 }
 
 function sf(s: string | undefined, max = 200): string {
@@ -62,13 +64,20 @@ export function buildSystemPrompt(opts: BuildOpts): string {
             )
             .join(" | ")
         : "(none)";
-    // Workbook/sheet names come from Tableau (potentially untrusted strings).
+    // Workbook/sheet names and datasource names come from Tableau (untrusted strings).
+    const dsLines =
+      viz.datasources && viz.datasources.length > 0
+        ? viz.datasources
+            .map((d) => `  - "${sf(d.name, 120)}"${d.id ? ` (id: ${sf(d.id, 80)})` : ""}`)
+            .join("\n")
+        : "  (not yet captured — use list-datasources then match by workbook name)";
     parts.push(
       `The user is ALREADY viewing this Tableau dashboard right now:\n` +
         `- workbook: ${sf(viz.workbook)}\n` +
         `- active sheet: ${sf(viz.activeSheet) || "(unknown)"}\n` +
         `- active filters: ${filters}\n` +
         `- selected marks: ${marks}\n` +
+        `- datasources powering this workbook:\n${dsLines}\n` +
         `IMPORTANT: Do NOT switch tabs or navigate away — the user is already on the correct sheet. ` +
         `When the user asks about "this", "it", "the dashboard", or "xu hướng này" etc., ` +
         `they mean the active sheet above. Query or screenshot it directly without switching. ` +
@@ -85,9 +94,12 @@ export function buildSystemPrompt(opts: BuildOpts): string {
       `Available MCP tools: ${mcpDataTools.join(", ")}.\n` +
         `Dashboard control tools: ${vizOnlyTools.join(", ")}.\n` +
         `Workflow rules:\n` +
-        `1. ALWAYS call get-datasource-metadata before query-datasource on a new data source — this prevents field-name hallucinations.\n` +
-        `2. When the user asks about a view or dashboard they are looking at, call get-view-image with the correct view ID to fetch a screenshot — then describe what you see in the chart.\n` +
-        `3. When the user asks for data, trends, or comparisons: call query-datasource THEN immediately call viz_drawChart with the result embedded in spec.data.values. The user must see a chart, not just a table.\n` +
+        `1. Datasource selection — ALWAYS use the datasource(s) listed under "datasources powering this workbook" above. ` +
+        `Do NOT call list-datasources to browse all site datasources — that wastes a round-trip and risks picking the wrong source. ` +
+        `Only call list-datasources if no datasource is listed above AND the question requires data not visible in the screenshot. ` +
+        `Once you have used get-datasource-metadata on a datasource in this conversation, do NOT call it again for the same datasource — reuse the field list from the prior tool result.\n` +
+        `2. When the user asks about a view or dashboard they are looking at, call get-view-image with the correct view ID to fetch a screenshot — then describe the key insights you see.\n` +
+        `3. When the user asks for data, trends, or comparisons: call query-datasource on the workbook's datasource THEN immediately call viz_drawChart. The user must see a chart, not just a table.\n` +
         `4. Prefer aggregated queries over raw rows. Row-level data is governed by Tableau's data policies regardless of what you request.\n` +
         `5. If the user asks "why" or "what changed", call query-datasource with appropriate group-bys to investigate, then call viz_drawChart to show the pattern visually, then summarize in prose.\n` +
         `6. When a question is ambiguous, ask a brief clarifying question rather than guessing.\n` +

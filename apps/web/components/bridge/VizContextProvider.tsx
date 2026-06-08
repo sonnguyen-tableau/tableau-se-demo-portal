@@ -18,6 +18,7 @@ export interface VizContextState {
   filters: Array<{ field: string; values: string[] }>;
   selectedMarks: Array<Record<string, string>>;
   parameters: Record<string, string>;
+  datasources: Array<{ name: string; id?: string }>;
   ready: boolean;
 }
 
@@ -25,6 +26,7 @@ const emptyState: VizContextState = {
   filters: [],
   selectedMarks: [],
   parameters: {},
+  datasources: [],
   ready: false,
 };
 

@@ -150,6 +150,17 @@ export function TableauVizShell({ src, initialToken, height = "700px", viewMeta 
             activeSheet: String((wb["activeSheet"] as AnyRecord | undefined)?.["name"] ?? ""),
             ready: true,
           });
+          // Capture datasources powering this workbook for agent context injection.
+          const dsFn = wb["getDataSourcesAsync"] as (() => Promise<AnyRecord[]>) | undefined;
+          if (typeof dsFn === "function") {
+            void dsFn.call(wb).then((dsList) => {
+              const datasources = dsList.map((ds) => ({
+                name: String(ds["name"] ?? ""),
+                ...(ds["id"] ? { id: String(ds["id"]) } : {}),
+              }));
+              update({ datasources });
+            }).catch(() => {});
+          }
         }
         // Record this view in history (fire-and-forget)
         if (viewMeta) {

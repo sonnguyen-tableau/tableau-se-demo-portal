@@ -101,6 +101,7 @@ export function ChatPanel(): ReactElement {
             activeSheet: ctx.activeSheet,
             filters: ctx.filters,
             selectedMarks: ctx.selectedMarks,
+            ...(ctx.datasources.length > 0 ? { datasources: ctx.datasources } : {}),
           }
         : undefined;
       const res = await fetch("/api/chat", {

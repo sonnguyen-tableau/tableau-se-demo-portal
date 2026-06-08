@@ -23,6 +23,10 @@ const vizContextSchema = z
       .max(20)
       .optional(),
     selectedMarks: z.array(z.record(z.string().max(120), z.string().max(200))).max(20).optional(),
+    datasources: z
+      .array(z.object({ name: z.string().max(200), id: z.string().max(80).optional() }))
+      .max(20)
+      .optional(),
   })
   .optional();
 
