@@ -11,14 +11,14 @@ const kpiSchema = z.object({
   name: z.string().min(1).max(120),
   type: z.enum(["currency", "percent", "number"]),
   favorable_direction: z.enum(["up", "down", "neutral"]),
-  time_dim: z.string().min(1).max(120).optional(),
+  time_dim: z.string().min(1).max(120).nullish(),
 });
 
 const profileSchema = z.object({
   company_name: z.string().min(1).max(200),
-  company_url: z.string().url(),
-  tagline: z.string().max(280).optional(),
-  logo_url: z.string().url().optional(),
+  company_url: z.string().max(2048),
+  tagline: z.string().max(280).nullish(),
+  logo_url: z.string().max(2048).nullish(),
   industry: z.enum([
     "retail-ecommerce",
     "retail-banking",
@@ -26,7 +26,7 @@ const profileSchema = z.object({
     "healthcare",
     "logistics",
   ]),
-  sub_vertical: z.string().max(120).optional(),
+  sub_vertical: z.string().max(120).nullish(),
   products: z.array(z.string().max(120)).max(40).default([]),
   segments: z.array(z.string().max(120)).max(20).default([]),
   geographies: z.array(z.enum(["NA", "EMEA", "APAC", "LATAM"])).max(8).default([]),
