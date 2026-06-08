@@ -1,4 +1,10 @@
-"""Stage 7 — publish the .hyper extract to Tableau Cloud via TSC."""
+"""Stage 7 — publish the .hyper extract to Tableau Cloud via TSC.
+
+Multi-table extracts must be wrapped in a .tdsx (zip of .hyper + .tds) so
+Tableau learns the table relationships. We package on the fly here using
+`packager.package_tdsx` and upload the resulting .tdsx instead of the raw
+.hyper.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .config import Settings
+from .models import Industry
+from .packager import package_tdsx
 
 
 @dataclass
@@ -30,6 +38,7 @@ def publish_hyper(
     hyper_path: Path,
     *,
     tenant_slug: str,
+    industry: Industry,
     settings: Settings,
 ) -> PublishResult:
     """Publish to a per-tenant project. Returns metadata for downstream stages."""
@@ -50,6 +59,15 @@ def publish_hyper(
     assert settings.tableau_site_name is not None
     assert settings.tableau_site_url is not None
 
+    # Package .hyper + per-industry .tds (with table relationships) into a
+    # .tdsx so Tableau Cloud accepts the multi-table extract.
+    datasource_name = hyper_path.stem
+    tdsx_path = package_tdsx(
+        hyper_path=hyper_path,
+        datasource_name=datasource_name,
+        industry=industry,
+    )
+
     tableau_auth = TSC.PersonalAccessTokenAuth(
         settings.tableau_pat_name,
         settings.tableau_pat_secret.get_secret_value(),
@@ -68,15 +86,15 @@ def publish_hyper(
             new_proj = TSC.ProjectItem(name=project_name, description=f"Auto-created for {tenant_slug}")
             project = server.projects.create(new_proj)
 
-        datasource = TSC.DatasourceItem(project_id=project.id, name=hyper_path.stem)
+        datasource = TSC.DatasourceItem(project_id=project.id, name=datasource_name)
         published = server.datasources.publish(
             datasource,
-            str(hyper_path),
+            str(tdsx_path),
             mode=TSC.Server.PublishMode.Overwrite,
         )
 
         return PublishResult(
             datasource_id=published.id or "",
-            datasource_name=published.name or hyper_path.stem,
+            datasource_name=published.name or datasource_name,
             project_name=project_name,
         )

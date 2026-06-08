@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!--
+  Placeholder Tableau workbook for Retail / E-commerce demos.
+
+  This is intentionally minimal: one datasource (federated → Hyper extract)
+  and one worksheet, just enough for the factory to exercise the rewrite +
+  publish pipeline end-to-end. Replace this file with a Tableau Desktop-
+  authored version (multi-sheet dashboard, polished styling) when ready.
+
+  Hard rules — do not break (the contract test enforces them):
+    * Only reference fields listed in
+      packages/factory-schema/retail-ecommerce.schema.json (or calculated /
+      __-prefixed fields the template defines locally).
+    * Keep the FACTORY_DATASOURCE placeholder on the inner hyper connection;
+      the factory rewrites that single dbname attribute at publish time.
+    * Keep the [__tenant_filter__] calculated field with the
+      USERATTRIBUTE("TenantId") formula AND the <filter> on it — without
+      this, RLS is broken on every published copy.
+-->
+<workbook original-version='18.1' source-build='2024.2' source-platform='mac'
+          version='18.1'
+          xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <preferences/>
+  <datasources>
+    <datasource caption='Retail Demo' inline='true' name='federated.retail' version='18.1'>
+      <connection class='federated'>
+        <named-connections>
+          <named-connection caption='retail-extract' name='hyper.retail'>
+            <connection class='hyper' dbname='__FACTORY_DATASOURCE__'
+                        schema='Extract' server='localhost'/>
+          </named-connection>
+        </named-connections>
+        <relation connection='hyper.retail' name='Orders'
+                  table='[Extract].[Orders]' type='table'/>
+      </connection>
+
+      <!-- Schema-backed columns (must match retail-ecommerce.schema.json) -->
+      <column datatype='integer' name='[OrderId]' role='dimension' type='ordinal'/>
+      <column datatype='date' name='[OrderDate]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[CustomerId]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[StoreId]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[ChannelId]' role='dimension' type='ordinal'/>
+      <column datatype='string' name='[Status]' role='dimension' type='nominal'/>
+      <column datatype='real' name='[LineTotal]' role='measure' type='quantitative'/>
+      <column datatype='real' name='[LineCost]' role='measure' type='quantitative'/>
+      <column datatype='string' name='[TenantId]' role='dimension' type='nominal'/>
+
+      <!-- Calculated fields used by the worksheet below -->
+      <column caption='Revenue' datatype='real' name='[Revenue]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([LineTotal])'/>
+      </column>
+      <column caption='Gross Margin' datatype='real' name='[GrossMargin]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([LineTotal]) - SUM([LineCost])'/>
+      </column>
+
+      <!-- RLS data policy. The factory ALSO sets a server-side data policy
+           on the published datasource via REST; this in-workbook filter is
+           defense in depth so a download/extract still respects tenancy. -->
+      <column caption='Tenant Filter' datatype='boolean' name='[__tenant_filter__]'
+              role='dimension' type='nominal'>
+        <calculation class='tableau'
+                     formula='[TenantId] = USERATTRIBUTE(&quot;TenantId&quot;) OR USERATTRIBUTE(&quot;TenantId&quot;) = &quot;internal&quot;'/>
+      </column>
+      <filter class='categorical' column='[__tenant_filter__]' filter-group='2'>
+        <groupfilter function='member' level='[__tenant_filter__]' member='&quot;true&quot;'/>
+      </filter>
+    </datasource>
+  </datasources>
+
+  <worksheets>
+    <worksheet name='Revenue by Month'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='Retail Demo' name='federated.retail'/>
+          </datasources>
+          <datasource-dependencies datasource='federated.retail'>
+            <column datatype='date' name='[OrderDate]' role='dimension' type='ordinal'/>
+            <column datatype='real' name='[Revenue]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([LineTotal])'/>
+            </column>
+          </datasource-dependencies>
+        </view>
+        <rows>[federated.retail].[Revenue]</rows>
+        <cols>[federated.retail].[OrderDate]</cols>
+        <panes>
+          <pane>
+            <mark class='Line'/>
+          </pane>
+        </panes>
+      </table>
+    </worksheet>
+  </worksheets>
+
+  <windows source-height='30'>
+    <window class='worksheet' maximized='true' name='Revenue by Month'/>
+  </windows>
+</workbook>

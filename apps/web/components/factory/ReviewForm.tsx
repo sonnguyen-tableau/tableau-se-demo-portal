@@ -75,7 +75,22 @@ export function ReviewForm({ jobId, initial, onSubmitted }: Props): ReactElement
         body: JSON.stringify({ profile_override: profile }),
       });
       if (!res.ok) {
-        setError(`Confirm failed (HTTP ${res.status})`);
+        let detail = "";
+        try {
+          const ct = res.headers.get("content-type") ?? "";
+          if (ct.includes("application/json")) {
+            const j = (await res.json()) as { error?: string; issues?: Array<{ path?: unknown[]; message?: string }> };
+            const issues = (j.issues ?? [])
+              .map((i) => `${(i.path ?? []).join(".") || "(root)"}: ${i.message ?? ""}`)
+              .join("; ");
+            detail = issues ? ` — ${issues}` : j.error ? ` — ${j.error}` : "";
+          } else {
+            detail = ` — ${(await res.text()).slice(0, 200)}`;
+          }
+        } catch {
+          // ignore parse errors; show status only
+        }
+        setError(`Confirm failed (HTTP ${res.status})${detail}`);
         return;
       }
       onSubmitted();

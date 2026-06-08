@@ -38,10 +38,12 @@ from .publish import is_configured as tableau_configured
 from .publish import publish_hyper
 from .pulse import create_definitions
 from .scrape import scrape_basic
+from .workbook import TemplateContractError, run_workbook_stage
 
 # Max time the pipeline waits for the user to submit the review form. Beyond
 # this the job aborts and the user can restart.
 CONFIRM_TIMEOUT_SECONDS = 600
+
 
 
 def now_ms() -> int:
@@ -176,7 +178,9 @@ class FactoryJob:
             yield await emit(Stage.generate, StageStatus.error, error=str(e))
             return
 
-        # 6. hyper
+        # 6. hyper — write all tables. Tableau Cloud needs the multi-table
+        # extract wrapped in a .tdsx (with relationships) at publish time;
+        # bare-.hyper uploads only accept a single fact table.
         yield await emit(Stage.hyper, StageStatus.running)
         hyper_path = s.factory_data_dir / f"{self.tenant_slug}.hyper"
         hyper_ok = False
@@ -205,6 +209,8 @@ class FactoryJob:
         # 7. publish
         yield await emit(Stage.publish, StageStatus.running)
         published_id = ""
+        published_name = ""
+        publish_ok = False
         if not tableau_configured(s):
             yield await emit(
                 Stage.publish,
@@ -223,23 +229,59 @@ class FactoryJob:
                     publish_hyper,
                     hyper_path,
                     tenant_slug=self.tenant_slug,
+                    industry=profile.industry,
                     settings=s,
                 )
                 published_id = result.datasource_id
+                published_name = result.datasource_name
+                publish_ok = not result.skipped
                 yield await emit(
                     Stage.publish,
-                    StageStatus.ok if not result.skipped else StageStatus.skipped,
+                    StageStatus.ok if publish_ok else StageStatus.skipped,
                     detail=f"datasource_id={result.datasource_id} project={result.project_name}",
                 )
             except Exception as e:
                 yield await emit(Stage.publish, StageStatus.error, error=str(e))
 
-        # 8. workbook — Phase 8 wires per-industry .twb templates.
-        yield await emit(
-            Stage.workbook,
-            StageStatus.skipped,
-            detail="workbook templating arrives in Phase 8 (this is Phase 7 MVP)",
-        )
+        # 8. workbook — rewrite per-industry .twb against the published
+        # datasource and republish to the tenant project. Skipped gracefully
+        # when (a) the industry has no template authored yet, or (b) the
+        # publish stage above didn't actually publish a datasource.
+        yield await emit(Stage.workbook, StageStatus.running)
+        if not publish_ok:
+            yield await emit(
+                Stage.workbook,
+                StageStatus.skipped,
+                detail="no published datasource to bind workbook to.",
+            )
+        else:
+            try:
+                wb_result = await asyncio.to_thread(
+                    run_workbook_stage,
+                    industry=profile.industry.value,
+                    tenant_slug=self.tenant_slug,
+                    datasource_name=published_name,
+                    settings=s,
+                )
+                yield await emit(
+                    Stage.workbook,
+                    StageStatus.skipped if wb_result.skipped else StageStatus.ok,
+                    detail=(
+                        wb_result.reason
+                        if wb_result.skipped
+                        else f"workbook_id={wb_result.workbook_id} project={wb_result.project_name}"
+                    ),
+                )
+            except TemplateContractError as e:
+                # Contract violation is a hard error — never publish a
+                # template that bypasses RLS or references missing fields.
+                yield await emit(
+                    Stage.workbook,
+                    StageStatus.error,
+                    error=f"template contract violation: {e}",
+                )
+            except Exception as e:
+                yield await emit(Stage.workbook, StageStatus.error, error=str(e))
 
         # 9. pulse
         yield await emit(Stage.pulse, StageStatus.running)

@@ -1,0 +1,1346 @@
+<?xml version='1.0' encoding='utf-8' ?>
+
+<!-- build 20261.26.0410.0924                               -->
+<workbook original-version='18.1' source-build='2026.1.1 (20261.26.0410.0924)' source-platform='mac' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <document-format-change-manifest>
+    <AnimationOnByDefault />
+    <MarkAnimation />
+    <ObjectModelEncapsulateLegacy />
+    <ObjectModelExtractV2 />
+    <_.fcp.ObjectModelSharedDimensions.true...ObjectModelSharedDimensions />
+    <ObjectModelTableType />
+    <SchemaViewerObjectModel />
+    <SheetIdentifierTracking />
+    <_.fcp.VConnDownstreamExtractsWithWarnings.true...VConnDownstreamExtractsWithWarnings />
+    <WindowsPersistSimpleIdentifiers />
+  </document-format-change-manifest>
+  <preferences>
+    <preference name='ui.encoding.shelf.height' value='24' />
+    <preference name='ui.shelf.height' value='26' />
+  </preferences>
+  <datasources>
+    <datasource caption='retail-banking' inline='true' name='federated.0n2ma350layh6q1dm81i9174lctg' version='18.1'>
+      <connection class='federated'>
+        <named-connections>
+          <named-connection caption='retail-banking' name='hyper.0uhq7970hesxzg1fzukaf0oz732v'>
+            <connection authentication='auth-none' author-locale='en_US' class='hyper' dbname='/Users/son.nguyen/tableau-ai-portal/services/factory/data/retail-banking.hyper' default-settings='yes' server='' sslmode='' username='tableau_internal_user' />
+          </named-connection>
+        </named-connections>
+        <relation type='collection'>
+          <_.fcp.ObjectModelSharedDimensions.true...relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Loans' table='[Extract].[Loans]' type='table' />
+          <_.fcp.ObjectModelSharedDimensions.true...relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Customers' table='[Extract].[Customers]' type='table' />
+          <_.fcp.ObjectModelSharedDimensions.true...relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Products' table='[Extract].[Products]' type='table' />
+          <relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Transactions' table='[Extract].[Transactions]' type='table' />
+          <relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Accounts' table='[Extract].[Accounts]' type='table' />
+          <_.fcp.ObjectModelSharedDimensions.true...relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Branches' table='[Extract].[Branches]' type='table' />
+        </relation>
+        <cols>
+          <map key='[AccountId (Accounts)]' value='[Accounts].[AccountId]' />
+          <map key='[AccountId]' value='[Transactions].[AccountId]' />
+          <map key='[Amount]' value='[Transactions].[Amount]' />
+          <map key='[Balance]' value='[Accounts].[Balance]' />
+          <map key='[BaseInterestRate]' value='[Products].[BaseInterestRate]' />
+          <map key='[BranchId (Branches)]' value='[Branches].[BranchId]' />
+          <map key='[BranchId]' value='[Accounts].[BranchId]' />
+          <map key='[BranchName]' value='[Branches].[BranchName]' />
+          <map key='[Channel]' value='[Transactions].[Channel]' />
+          <map key='[CustomerId (Customers)]' value='[Customers].[CustomerId]' />
+          <map key='[CustomerId (Loans)]' value='[Loans].[CustomerId]' />
+          <map key='[CustomerId]' value='[Accounts].[CustomerId]' />
+          <map key='[CustomerName]' value='[Customers].[CustomerName]' />
+          <map key='[FteCount]' value='[Branches].[FteCount]' />
+          <map key='[InterestRate]' value='[Loans].[InterestRate]' />
+          <map key='[LoanId]' value='[Loans].[LoanId]' />
+          <map key='[OpenDate (Branches)]' value='[Branches].[OpenDate]' />
+          <map key='[OpenDate]' value='[Accounts].[OpenDate]' />
+          <map key='[OriginationDate]' value='[Loans].[OriginationDate]' />
+          <map key='[OutstandingBalance]' value='[Loans].[OutstandingBalance]' />
+          <map key='[PostedDate]' value='[Transactions].[PostedDate]' />
+          <map key='[PrimaryBranchId]' value='[Customers].[PrimaryBranchId]' />
+          <map key='[Principal]' value='[Loans].[Principal]' />
+          <map key='[ProductGroup]' value='[Products].[ProductGroup]' />
+          <map key='[ProductId (Loans)]' value='[Loans].[ProductId]' />
+          <map key='[ProductId (Products)]' value='[Products].[ProductId]' />
+          <map key='[ProductId]' value='[Accounts].[ProductId]' />
+          <map key='[ProductName]' value='[Products].[ProductName]' />
+          <map key='[Region (Branches)]' value='[Branches].[Region]' />
+          <map key='[Region]' value='[Customers].[Region]' />
+          <map key='[Segment]' value='[Customers].[Segment]' />
+          <map key='[Status]' value='[Loans].[Status]' />
+          <map key='[TenantId]' value='[Customers].[TenantId]' />
+          <map key='[Tenure_Years]' value='[Customers].[Tenure_Years]' />
+          <map key='[TransactionId]' value='[Transactions].[TransactionId]' />
+          <map key='[Type]' value='[Transactions].[Type]' />
+        </cols>
+        <metadata-records>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>LoanId</remote-name>
+            <remote-type>20</remote-type>
+            <local-name>[LoanId]</local-name>
+            <parent-name>[Loans]</parent-name>
+            <remote-alias>LoanId</remote-alias>
+            <ordinal>0</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>2275</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>CustomerId</remote-name>
+            <remote-type>3</remote-type>
+            <local-name>[CustomerId (Loans)]</local-name>
+            <parent-name>[Loans]</parent-name>
+            <remote-alias>CustomerId</remote-alias>
+            <ordinal>1</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>2275</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>ProductId</remote-name>
+            <remote-type>3</remote-type>
+            <local-name>[ProductId (Loans)]</local-name>
+            <parent-name>[Loans]</parent-name>
+            <remote-alias>ProductId</remote-alias>
+            <ordinal>2</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>3</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>Principal</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[Principal]</local-name>
+            <parent-name>[Loans]</parent-name>
+            <remote-alias>Principal</remote-alias>
+            <ordinal>3</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>2275</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>OutstandingBalance</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[OutstandingBalance]</local-name>
+            <parent-name>[Loans]</parent-name>
+            <remote-alias>OutstandingBalance</remote-alias>
+            <ordinal>4</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>2230</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>InterestRate</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[InterestRate]</local-name>
+            <parent-name>[Loans]</parent-name>
+            <remote-alias>InterestRate</remote-alias>
+            <ordinal>5</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>1030</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>Status</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[Status]</local-name>
+            <parent-name>[Loans]</parent-name>
+            <remote-alias>Status</remote-alias>
+            <ordinal>6</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>5</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>OriginationDate</remote-name>
+            <remote-type>135</remote-type>
+            <local-name>[OriginationDate]</local-name>
+            <parent-name>[Loans]</parent-name>
+            <remote-alias>OriginationDate</remote-alias>
+            <ordinal>7</ordinal>
+            <local-type>datetime</local-type>
+            <aggregation>Year</aggregation>
+            <approx-count>1207</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>CustomerId</remote-name>
+            <remote-type>3</remote-type>
+            <local-name>[CustomerId (Customers)]</local-name>
+            <parent-name>[Customers]</parent-name>
+            <remote-alias>CustomerId</remote-alias>
+            <ordinal>8</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>6500</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>CustomerName</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[CustomerName]</local-name>
+            <parent-name>[Customers]</parent-name>
+            <remote-alias>CustomerName</remote-alias>
+            <ordinal>9</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>6500</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>Segment</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[Segment]</local-name>
+            <parent-name>[Customers]</parent-name>
+            <remote-alias>Segment</remote-alias>
+            <ordinal>10</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>4</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>Region</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[Region]</local-name>
+            <parent-name>[Customers]</parent-name>
+            <remote-alias>Region</remote-alias>
+            <ordinal>11</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>3</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>Tenure_Years</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[Tenure_Years]</local-name>
+            <parent-name>[Customers]</parent-name>
+            <remote-alias>Tenure_Years</remote-alias>
+            <ordinal>12</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>310</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>PrimaryBranchId</remote-name>
+            <remote-type>3</remote-type>
+            <local-name>[PrimaryBranchId]</local-name>
+            <parent-name>[Customers]</parent-name>
+            <remote-alias>PrimaryBranchId</remote-alias>
+            <ordinal>13</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>36</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>TenantId</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[TenantId]</local-name>
+            <parent-name>[Customers]</parent-name>
+            <remote-alias>TenantId</remote-alias>
+            <ordinal>14</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>1</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>ProductId</remote-name>
+            <remote-type>3</remote-type>
+            <local-name>[ProductId (Products)]</local-name>
+            <parent-name>[Products]</parent-name>
+            <remote-alias>ProductId</remote-alias>
+            <ordinal>15</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>5</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>ProductName</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[ProductName]</local-name>
+            <parent-name>[Products]</parent-name>
+            <remote-alias>ProductName</remote-alias>
+            <ordinal>16</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>5</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>BaseInterestRate</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[BaseInterestRate]</local-name>
+            <parent-name>[Products]</parent-name>
+            <remote-alias>BaseInterestRate</remote-alias>
+            <ordinal>17</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>5</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>ProductGroup</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[ProductGroup]</local-name>
+            <parent-name>[Products]</parent-name>
+            <remote-alias>ProductGroup</remote-alias>
+            <ordinal>18</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>2</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <metadata-record class='column'>
+            <remote-name>TransactionId</remote-name>
+            <remote-type>20</remote-type>
+            <local-name>[TransactionId]</local-name>
+            <parent-name>[Transactions]</parent-name>
+            <remote-alias>TransactionId</remote-alias>
+            <ordinal>19</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>211502</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>AccountId</remote-name>
+            <remote-type>20</remote-type>
+            <local-name>[AccountId]</local-name>
+            <parent-name>[Transactions]</parent-name>
+            <remote-alias>AccountId</remote-alias>
+            <ordinal>20</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>59391</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>PostedDate</remote-name>
+            <remote-type>135</remote-type>
+            <local-name>[PostedDate]</local-name>
+            <parent-name>[Transactions]</parent-name>
+            <remote-alias>PostedDate</remote-alias>
+            <ordinal>21</ordinal>
+            <local-type>datetime</local-type>
+            <aggregation>Year</aggregation>
+            <approx-count>3277</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>Amount</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[Amount]</local-name>
+            <parent-name>[Transactions]</parent-name>
+            <remote-alias>Amount</remote-alias>
+            <ordinal>22</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>68775</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>Type</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[Type]</local-name>
+            <parent-name>[Transactions]</parent-name>
+            <remote-alias>Type</remote-alias>
+            <ordinal>23</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>4</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>Channel</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[Channel]</local-name>
+            <parent-name>[Transactions]</parent-name>
+            <remote-alias>Channel</remote-alias>
+            <ordinal>24</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>4</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>AccountId</remote-name>
+            <remote-type>20</remote-type>
+            <local-name>[AccountId (Accounts)]</local-name>
+            <parent-name>[Accounts]</parent-name>
+            <remote-alias>AccountId</remote-alias>
+            <ordinal>25</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>18386</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>CustomerId</remote-name>
+            <remote-type>3</remote-type>
+            <local-name>[CustomerId]</local-name>
+            <parent-name>[Accounts]</parent-name>
+            <remote-alias>CustomerId</remote-alias>
+            <ordinal>26</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>5416</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>ProductId</remote-name>
+            <remote-type>3</remote-type>
+            <local-name>[ProductId]</local-name>
+            <parent-name>[Accounts]</parent-name>
+            <remote-alias>ProductId</remote-alias>
+            <ordinal>27</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>3</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>Balance</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[Balance]</local-name>
+            <parent-name>[Accounts]</parent-name>
+            <remote-alias>Balance</remote-alias>
+            <ordinal>28</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>18386</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>OpenDate</remote-name>
+            <remote-type>135</remote-type>
+            <local-name>[OpenDate]</local-name>
+            <parent-name>[Accounts]</parent-name>
+            <remote-alias>OpenDate</remote-alias>
+            <ordinal>29</ordinal>
+            <local-type>datetime</local-type>
+            <aggregation>Year</aggregation>
+            <approx-count>4199</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>BranchId</remote-name>
+            <remote-type>3</remote-type>
+            <local-name>[BranchId]</local-name>
+            <parent-name>[Accounts]</parent-name>
+            <remote-alias>BranchId</remote-alias>
+            <ordinal>30</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>36</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+          </metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>BranchId</remote-name>
+            <remote-type>3</remote-type>
+            <local-name>[BranchId (Branches)]</local-name>
+            <parent-name>[Branches]</parent-name>
+            <remote-alias>BranchId</remote-alias>
+            <ordinal>31</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>36</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>BranchName</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[BranchName]</local-name>
+            <parent-name>[Branches]</parent-name>
+            <remote-alias>BranchName</remote-alias>
+            <ordinal>32</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>36</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>Region</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[Region (Branches)]</local-name>
+            <parent-name>[Branches]</parent-name>
+            <remote-alias>Region</remote-alias>
+            <ordinal>33</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <approx-count>3</approx-count>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='binary' />
+            <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>OpenDate</remote-name>
+            <remote-type>135</remote-type>
+            <local-name>[OpenDate (Branches)]</local-name>
+            <parent-name>[Branches]</parent-name>
+            <remote-alias>OpenDate</remote-alias>
+            <ordinal>34</ordinal>
+            <local-type>datetime</local-type>
+            <aggregation>Year</aggregation>
+            <approx-count>34</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+            <remote-name>FteCount</remote-name>
+            <remote-type>2</remote-type>
+            <local-name>[FteCount]</local-name>
+            <parent-name>[Branches]</parent-name>
+            <remote-alias>FteCount</remote-alias>
+            <ordinal>35</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <approx-count>25</approx-count>
+            <contains-null>true</contains-null>
+            <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+          </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+        </metadata-records>
+      </connection>
+      <aliases enabled='yes' />
+      <column datatype='integer' name='[AccountId (Accounts)]' role='dimension' type='ordinal' />
+      <column caption='Account Id' datatype='integer' name='[AccountId]' role='dimension' type='ordinal' />
+      <column caption='Base Interest Rate' datatype='real' name='[BaseInterestRate]' role='measure' type='quantitative' />
+      <column datatype='integer' name='[BranchId (Branches)]' role='dimension' type='ordinal' />
+      <column caption='Branch Id' datatype='integer' name='[BranchId]' role='dimension' type='ordinal' />
+      <column caption='Branch Name' datatype='string' name='[BranchName]' role='dimension' type='nominal' />
+      <column datatype='integer' name='[CustomerId (Customers)]' role='dimension' type='ordinal' />
+      <column datatype='integer' name='[CustomerId (Loans)]' role='dimension' type='ordinal' />
+      <column caption='Customer Id' datatype='integer' name='[CustomerId]' role='dimension' type='ordinal' />
+      <column caption='Customer Name' datatype='string' name='[CustomerName]' role='dimension' type='nominal' />
+      <column caption='Fte Count' datatype='integer' name='[FteCount]' role='measure' type='quantitative' />
+      <column caption='Interest Rate' datatype='real' name='[InterestRate]' role='measure' type='quantitative' />
+      <column caption='Loan Id' datatype='integer' name='[LoanId]' role='dimension' type='ordinal' />
+      <column caption='Open Date' datatype='datetime' name='[OpenDate]' role='dimension' type='ordinal' />
+      <column caption='Origination Date' datatype='datetime' name='[OriginationDate]' role='dimension' type='ordinal' />
+      <column caption='Outstanding Balance' datatype='real' name='[OutstandingBalance]' role='measure' type='quantitative' />
+      <column caption='Posted Date' datatype='datetime' name='[PostedDate]' role='dimension' type='ordinal' />
+      <column caption='Primary Branch Id' datatype='integer' name='[PrimaryBranchId]' role='dimension' type='ordinal' />
+      <column caption='Product Group' datatype='string' name='[ProductGroup]' role='dimension' type='nominal' />
+      <column datatype='integer' name='[ProductId (Loans)]' role='dimension' type='ordinal' />
+      <column datatype='integer' name='[ProductId (Products)]' role='dimension' type='ordinal' />
+      <column caption='Product Id' datatype='integer' name='[ProductId]' role='dimension' type='ordinal' />
+      <column caption='Product Name' datatype='string' name='[ProductName]' role='dimension' type='nominal' />
+      <column caption='Tenant Id' datatype='string' name='[TenantId]' role='dimension' type='nominal' />
+      <column caption='Tenure Years' datatype='real' name='[Tenure_Years]' role='measure' type='quantitative' />
+      <column caption='Transaction Id' datatype='integer' name='[TransactionId]' role='dimension' type='ordinal' />
+      <column caption='Accounts' datatype='table' name='[__tableau_internal_object_id__].[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]' role='measure' type='quantitative' />
+      <column caption='Branches' datatype='table' name='[__tableau_internal_object_id__].[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]' role='measure' type='quantitative' />
+      <column caption='Customers' datatype='table' name='[__tableau_internal_object_id__].[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]' role='measure' type='quantitative' />
+      <column caption='Loans' datatype='table' name='[__tableau_internal_object_id__].[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]' role='measure' type='quantitative' />
+      <column caption='Products' datatype='table' name='[__tableau_internal_object_id__].[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]' role='measure' type='quantitative' />
+      <column caption='Transactions' datatype='table' name='[__tableau_internal_object_id__].[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]' role='measure' type='quantitative' />
+      <extract _.fcp.VConnDownstreamExtractsWithWarnings.true...user-specific='false' count='-1' enabled='true' object-id='' units='records'>
+        <connection access_mode='readonly' authentication='auth-none' author-locale='en_US' class='hyper' dbname='/Users/son.nguyen/tableau-ai-portal/services/factory/data/retail-banking/retail-banking.hyper' default-settings='yes' schema='Extract' sslmode='' tablename='Extract' update-time='05/29/2026 10:58:04 AM' username='tableau_internal_user'>
+          <relation type='collection'>
+            <_.fcp.ObjectModelSharedDimensions.true...relation name='Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785' table='[Extract].[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]' type='table' />
+            <_.fcp.ObjectModelSharedDimensions.true...relation name='Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6' table='[Extract].[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]' type='table' />
+            <_.fcp.ObjectModelSharedDimensions.true...relation name='Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2' table='[Extract].[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]' type='table' />
+            <relation name='Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05' table='[Extract].[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]' type='table' />
+            <relation name='Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16' table='[Extract].[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]' type='table' />
+            <_.fcp.ObjectModelSharedDimensions.true...relation name='Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3' table='[Extract].[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]' type='table' />
+          </relation>
+          <cols>
+            <map key='[AccountId (Accounts)]' value='[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16].[AccountId]' />
+            <map key='[AccountId]' value='[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05].[AccountId]' />
+            <map key='[Amount]' value='[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05].[Amount]' />
+            <map key='[Balance]' value='[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16].[Balance]' />
+            <map key='[BaseInterestRate]' value='[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2].[BaseInterestRate]' />
+            <map key='[BranchId (Branches)]' value='[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3].[BranchId]' />
+            <map key='[BranchId]' value='[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16].[BranchId]' />
+            <map key='[BranchName]' value='[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3].[BranchName]' />
+            <map key='[Channel]' value='[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05].[Channel]' />
+            <map key='[CustomerId (Customers)]' value='[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6].[CustomerId]' />
+            <map key='[CustomerId (Loans)]' value='[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785].[CustomerId]' />
+            <map key='[CustomerId]' value='[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16].[CustomerId]' />
+            <map key='[CustomerName]' value='[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6].[CustomerName]' />
+            <map key='[FteCount]' value='[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3].[FteCount]' />
+            <map key='[InterestRate]' value='[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785].[InterestRate]' />
+            <map key='[LoanId]' value='[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785].[LoanId]' />
+            <map key='[OpenDate (Branches)]' value='[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3].[OpenDate]' />
+            <map key='[OpenDate]' value='[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16].[OpenDate]' />
+            <map key='[OriginationDate]' value='[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785].[OriginationDate]' />
+            <map key='[OutstandingBalance]' value='[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785].[OutstandingBalance]' />
+            <map key='[PostedDate]' value='[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05].[PostedDate]' />
+            <map key='[PrimaryBranchId]' value='[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6].[PrimaryBranchId]' />
+            <map key='[Principal]' value='[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785].[Principal]' />
+            <map key='[ProductGroup]' value='[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2].[ProductGroup]' />
+            <map key='[ProductId (Loans)]' value='[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785].[ProductId]' />
+            <map key='[ProductId (Products)]' value='[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2].[ProductId]' />
+            <map key='[ProductId]' value='[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16].[ProductId]' />
+            <map key='[ProductName]' value='[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2].[ProductName]' />
+            <map key='[Region (Branches)]' value='[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3].[Region]' />
+            <map key='[Region]' value='[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6].[Region]' />
+            <map key='[Segment]' value='[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6].[Segment]' />
+            <map key='[Status]' value='[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785].[Status]' />
+            <map key='[TenantId]' value='[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6].[TenantId]' />
+            <map key='[Tenure_Years]' value='[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6].[Tenure_Years]' />
+            <map key='[TransactionId]' value='[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05].[TransactionId]' />
+            <map key='[Type]' value='[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05].[Type]' />
+          </cols>
+          <refresh>
+            <refresh-event add-from-file-path='retail-banking' increment-value='%null%' refresh-type='create' rows-inserted='238704' timestamp-start='2026-05-29 10:58:04.141' />
+          </refresh>
+          <metadata-records>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>LoanId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[LoanId]</local-name>
+              <parent-name>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</parent-name>
+              <remote-alias>LoanId</remote-alias>
+              <ordinal>0</ordinal>
+              <family>Loans</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>2275</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>CustomerId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[CustomerId (Loans)]</local-name>
+              <parent-name>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</parent-name>
+              <remote-alias>CustomerId</remote-alias>
+              <ordinal>1</ordinal>
+              <family>Loans</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>2275</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>ProductId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[ProductId (Loans)]</local-name>
+              <parent-name>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</parent-name>
+              <remote-alias>ProductId</remote-alias>
+              <ordinal>2</ordinal>
+              <family>Loans</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>3</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>Principal</remote-name>
+              <remote-type>5</remote-type>
+              <local-name>[Principal]</local-name>
+              <parent-name>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</parent-name>
+              <remote-alias>Principal</remote-alias>
+              <ordinal>3</ordinal>
+              <family>Loans</family>
+              <local-type>real</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>2275</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>OutstandingBalance</remote-name>
+              <remote-type>5</remote-type>
+              <local-name>[OutstandingBalance]</local-name>
+              <parent-name>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</parent-name>
+              <remote-alias>OutstandingBalance</remote-alias>
+              <ordinal>4</ordinal>
+              <family>Loans</family>
+              <local-type>real</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>2230</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>InterestRate</remote-name>
+              <remote-type>5</remote-type>
+              <local-name>[InterestRate]</local-name>
+              <parent-name>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</parent-name>
+              <remote-alias>InterestRate</remote-alias>
+              <ordinal>5</ordinal>
+              <family>Loans</family>
+              <local-type>real</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>1030</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>Status</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[Status]</local-name>
+              <parent-name>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</parent-name>
+              <remote-alias>Status</remote-alias>
+              <ordinal>6</ordinal>
+              <family>Loans</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>5</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>OriginationDate</remote-name>
+              <remote-type>135</remote-type>
+              <local-name>[OriginationDate]</local-name>
+              <parent-name>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</parent-name>
+              <remote-alias>OriginationDate</remote-alias>
+              <ordinal>7</ordinal>
+              <family>Loans</family>
+              <local-type>datetime</local-type>
+              <aggregation>Year</aggregation>
+              <approx-count>1207</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>CustomerId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[CustomerId (Customers)]</local-name>
+              <parent-name>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</parent-name>
+              <remote-alias>CustomerId</remote-alias>
+              <ordinal>8</ordinal>
+              <family>Customers</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>6500</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>CustomerName</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[CustomerName]</local-name>
+              <parent-name>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</parent-name>
+              <remote-alias>CustomerName</remote-alias>
+              <ordinal>9</ordinal>
+              <family>Customers</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>6500</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>Segment</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[Segment]</local-name>
+              <parent-name>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</parent-name>
+              <remote-alias>Segment</remote-alias>
+              <ordinal>10</ordinal>
+              <family>Customers</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>4</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>Region</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[Region]</local-name>
+              <parent-name>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</parent-name>
+              <remote-alias>Region</remote-alias>
+              <ordinal>11</ordinal>
+              <family>Customers</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>3</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>Tenure_Years</remote-name>
+              <remote-type>5</remote-type>
+              <local-name>[Tenure_Years]</local-name>
+              <parent-name>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</parent-name>
+              <remote-alias>Tenure_Years</remote-alias>
+              <ordinal>12</ordinal>
+              <family>Customers</family>
+              <local-type>real</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>310</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>PrimaryBranchId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[PrimaryBranchId]</local-name>
+              <parent-name>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</parent-name>
+              <remote-alias>PrimaryBranchId</remote-alias>
+              <ordinal>13</ordinal>
+              <family>Customers</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>36</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>TenantId</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[TenantId]</local-name>
+              <parent-name>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</parent-name>
+              <remote-alias>TenantId</remote-alias>
+              <ordinal>14</ordinal>
+              <family>Customers</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>1</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>ProductId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[ProductId (Products)]</local-name>
+              <parent-name>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</parent-name>
+              <remote-alias>ProductId</remote-alias>
+              <ordinal>15</ordinal>
+              <family>Products</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>5</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>ProductName</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[ProductName]</local-name>
+              <parent-name>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</parent-name>
+              <remote-alias>ProductName</remote-alias>
+              <ordinal>16</ordinal>
+              <family>Products</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>5</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>BaseInterestRate</remote-name>
+              <remote-type>5</remote-type>
+              <local-name>[BaseInterestRate]</local-name>
+              <parent-name>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</parent-name>
+              <remote-alias>BaseInterestRate</remote-alias>
+              <ordinal>17</ordinal>
+              <family>Products</family>
+              <local-type>real</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>5</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>ProductGroup</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[ProductGroup]</local-name>
+              <parent-name>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</parent-name>
+              <remote-alias>ProductGroup</remote-alias>
+              <ordinal>18</ordinal>
+              <family>Products</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>2</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <metadata-record class='column'>
+              <remote-name>TransactionId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[TransactionId]</local-name>
+              <parent-name>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</parent-name>
+              <remote-alias>TransactionId</remote-alias>
+              <ordinal>19</ordinal>
+              <family>Transactions</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>211502</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>AccountId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[AccountId]</local-name>
+              <parent-name>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</parent-name>
+              <remote-alias>AccountId</remote-alias>
+              <ordinal>20</ordinal>
+              <family>Transactions</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>62805</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>PostedDate</remote-name>
+              <remote-type>135</remote-type>
+              <local-name>[PostedDate]</local-name>
+              <parent-name>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</parent-name>
+              <remote-alias>PostedDate</remote-alias>
+              <ordinal>21</ordinal>
+              <family>Transactions</family>
+              <local-type>datetime</local-type>
+              <aggregation>Year</aggregation>
+              <approx-count>3374</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>Amount</remote-name>
+              <remote-type>5</remote-type>
+              <local-name>[Amount]</local-name>
+              <parent-name>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</parent-name>
+              <remote-alias>Amount</remote-alias>
+              <ordinal>22</ordinal>
+              <family>Transactions</family>
+              <local-type>real</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>77763</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>Type</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[Type]</local-name>
+              <parent-name>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</parent-name>
+              <remote-alias>Type</remote-alias>
+              <ordinal>23</ordinal>
+              <family>Transactions</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>4</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>Channel</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[Channel]</local-name>
+              <parent-name>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</parent-name>
+              <remote-alias>Channel</remote-alias>
+              <ordinal>24</ordinal>
+              <family>Transactions</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>4</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>AccountId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[AccountId (Accounts)]</local-name>
+              <parent-name>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</parent-name>
+              <remote-alias>AccountId</remote-alias>
+              <ordinal>25</ordinal>
+              <family>Accounts</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>18386</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>CustomerId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[CustomerId]</local-name>
+              <parent-name>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</parent-name>
+              <remote-alias>CustomerId</remote-alias>
+              <ordinal>26</ordinal>
+              <family>Accounts</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>5416</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>ProductId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[ProductId]</local-name>
+              <parent-name>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</parent-name>
+              <remote-alias>ProductId</remote-alias>
+              <ordinal>27</ordinal>
+              <family>Accounts</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>3</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>Balance</remote-name>
+              <remote-type>5</remote-type>
+              <local-name>[Balance]</local-name>
+              <parent-name>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</parent-name>
+              <remote-alias>Balance</remote-alias>
+              <ordinal>28</ordinal>
+              <family>Accounts</family>
+              <local-type>real</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>18386</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>OpenDate</remote-name>
+              <remote-type>135</remote-type>
+              <local-name>[OpenDate]</local-name>
+              <parent-name>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</parent-name>
+              <remote-alias>OpenDate</remote-alias>
+              <ordinal>29</ordinal>
+              <family>Accounts</family>
+              <local-type>datetime</local-type>
+              <aggregation>Year</aggregation>
+              <approx-count>4199</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+            </metadata-record>
+            <metadata-record class='column'>
+              <remote-name>BranchId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[BranchId]</local-name>
+              <parent-name>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</parent-name>
+              <remote-alias>BranchId</remote-alias>
+              <ordinal>30</ordinal>
+              <family>Accounts</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>36</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]</object-id>
+            </metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>BranchId</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[BranchId (Branches)]</local-name>
+              <parent-name>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</parent-name>
+              <remote-alias>BranchId</remote-alias>
+              <ordinal>31</ordinal>
+              <family>Branches</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>36</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>BranchName</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[BranchName]</local-name>
+              <parent-name>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</parent-name>
+              <remote-alias>BranchName</remote-alias>
+              <ordinal>32</ordinal>
+              <family>Branches</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>36</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>Region</remote-name>
+              <remote-type>129</remote-type>
+              <local-name>[Region (Branches)]</local-name>
+              <parent-name>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</parent-name>
+              <remote-alias>Region</remote-alias>
+              <ordinal>33</ordinal>
+              <family>Branches</family>
+              <local-type>string</local-type>
+              <aggregation>Count</aggregation>
+              <approx-count>3</approx-count>
+              <contains-null>true</contains-null>
+              <collation flag='0' name='binary' />
+              <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>OpenDate</remote-name>
+              <remote-type>135</remote-type>
+              <local-name>[OpenDate (Branches)]</local-name>
+              <parent-name>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</parent-name>
+              <remote-alias>OpenDate</remote-alias>
+              <ordinal>34</ordinal>
+              <family>Branches</family>
+              <local-type>datetime</local-type>
+              <aggregation>Year</aggregation>
+              <approx-count>34</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+            <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+              <remote-name>FteCount</remote-name>
+              <remote-type>20</remote-type>
+              <local-name>[FteCount]</local-name>
+              <parent-name>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</parent-name>
+              <remote-alias>FteCount</remote-alias>
+              <ordinal>35</ordinal>
+              <family>Branches</family>
+              <local-type>integer</local-type>
+              <aggregation>Sum</aggregation>
+              <approx-count>25</approx-count>
+              <contains-null>true</contains-null>
+              <object-id>[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]</object-id>
+            </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+          </metadata-records>
+        </connection>
+      </extract>
+      <layout dim-ordering='alphabetic' measure-ordering='alphabetic' show-structure='true' />
+      <semantic-values>
+        <semantic-value key='[Country].[Name]' value='&quot;Singapore&quot;' />
+      </semantic-values>
+      <object-graph>
+        <objects>
+          <object caption='Accounts' id='Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16'>
+            <properties context=''>
+              <relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Accounts' table='[Extract].[Accounts]' type='table' />
+            </properties>
+            <properties context='extract'>
+              <relation name='Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16' table='[Extract].[Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16]' type='table' />
+            </properties>
+          </object>
+          <_.fcp.ObjectModelSharedDimensions.true...object caption='Branches' id='Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3'>
+            <properties context=''>
+              <relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Branches' table='[Extract].[Branches]' type='table' />
+            </properties>
+            <properties context='extract'>
+              <relation name='Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3' table='[Extract].[Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3]' type='table' />
+            </properties>
+          </_.fcp.ObjectModelSharedDimensions.true...object>
+          <_.fcp.ObjectModelSharedDimensions.true...object caption='Customers' id='Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6'>
+            <properties context=''>
+              <relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Customers' table='[Extract].[Customers]' type='table' />
+            </properties>
+            <properties context='extract'>
+              <relation name='Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6' table='[Extract].[Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6]' type='table' />
+            </properties>
+          </_.fcp.ObjectModelSharedDimensions.true...object>
+          <_.fcp.ObjectModelSharedDimensions.true...object caption='Loans' id='Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785'>
+            <properties context=''>
+              <relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Loans' table='[Extract].[Loans]' type='table' />
+            </properties>
+            <properties context='extract'>
+              <relation name='Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785' table='[Extract].[Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785]' type='table' />
+            </properties>
+          </_.fcp.ObjectModelSharedDimensions.true...object>
+          <_.fcp.ObjectModelSharedDimensions.true...object caption='Products' id='Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2'>
+            <properties context=''>
+              <relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Products' table='[Extract].[Products]' type='table' />
+            </properties>
+            <properties context='extract'>
+              <relation name='Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2' table='[Extract].[Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2]' type='table' />
+            </properties>
+          </_.fcp.ObjectModelSharedDimensions.true...object>
+          <object caption='Transactions' id='Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05'>
+            <properties context=''>
+              <relation connection='hyper.0uhq7970hesxzg1fzukaf0oz732v' name='Transactions' table='[Extract].[Transactions]' type='table' />
+            </properties>
+            <properties context='extract'>
+              <relation name='Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05' table='[Extract].[Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05]' type='table' />
+            </properties>
+          </object>
+        </objects>
+        <relationships>
+          <relationship>
+            <expression op='='>
+              <expression op='[AccountId]' />
+              <expression op='[AccountId (Accounts)]' />
+            </expression>
+            <first-end-point object-id='Transactions (Extract.Transactions)_E494EFA353194C02814548488FAD7F05' />
+            <second-end-point object-id='Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16' />
+          </relationship>
+          <_.fcp.ObjectModelSharedDimensions.true...relationship>
+            <expression op='='>
+              <expression op='[BranchId]' />
+              <expression op='[BranchId (Branches)]' />
+            </expression>
+            <first-end-point object-id='Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16' />
+            <second-end-point object-id='Branches (Extract.Branches)_91D9DD73DC3D4758A6E30FECCB8D63D3' />
+          </_.fcp.ObjectModelSharedDimensions.true...relationship>
+          <_.fcp.ObjectModelSharedDimensions.true...relationship>
+            <expression op='='>
+              <expression op='[CustomerId]' />
+              <expression op='[CustomerId (Customers)]' />
+            </expression>
+            <first-end-point object-id='Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16' />
+            <second-end-point object-id='Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6' />
+          </_.fcp.ObjectModelSharedDimensions.true...relationship>
+          <_.fcp.ObjectModelSharedDimensions.true...relationship>
+            <expression op='='>
+              <expression op='[CustomerId (Loans)]' />
+              <expression op='[CustomerId (Customers)]' />
+            </expression>
+            <first-end-point object-id='Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785' />
+            <second-end-point object-id='Customers (Extract.Customers)_F40B12135FE54752A1CF6B09735CFEB6' />
+          </_.fcp.ObjectModelSharedDimensions.true...relationship>
+          <_.fcp.ObjectModelSharedDimensions.true...relationship>
+            <expression op='='>
+              <expression op='[ProductId]' />
+              <expression op='[ProductId (Products)]' />
+            </expression>
+            <first-end-point object-id='Accounts (Extract.Accounts)_FF130D0C4BB04278A0F8A1CA447A3C16' />
+            <second-end-point object-id='Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2' />
+          </_.fcp.ObjectModelSharedDimensions.true...relationship>
+          <_.fcp.ObjectModelSharedDimensions.true...relationship>
+            <expression op='='>
+              <expression op='[ProductId (Loans)]' />
+              <expression op='[ProductId (Products)]' />
+            </expression>
+            <first-end-point object-id='Loans (Extract.Loans)_8CD51F251F1C4CAE8EDC29C8CB3A7785' />
+            <second-end-point object-id='Products (Extract.Products)_F7C8BC7CB09E48E7877CC79BF5B7E6F2' />
+          </_.fcp.ObjectModelSharedDimensions.true...relationship>
+        </relationships>
+      </object-graph>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name='Sheet 1'>
+      <table>
+        <view>
+          <datasources />
+          <aggregation value='true' />
+        </view>
+        <style />
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Automatic' />
+          </pane>
+        </panes>
+        <rows />
+        <cols />
+      </table>
+      <simple-id uuid='{9AFC7A9E-BEAB-493B-B0C7-E3D3F8989CA6}' />
+    </worksheet>
+  </worksheets>
+  <windows source-height='30'>
+    <window class='worksheet' maximized='true' name='Sheet 1'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+      </cards>
+      <simple-id uuid='{D7CA9DC1-0A90-44C9-B59F-F042564DC514}' />
+    </window>
+  </windows>
+  <thumbnails>
+    <thumbnail height='384' name='Sheet 1' width='384'>
+      iVBORw0KGgoAAAANSUhEUgAAAYAAAAGACAYAAACkx7W/AAAACXBIWXMAAA7DAAAOwwHHb6hk
+      AAAFXUlEQVR4nO3VMQEAIAzAMMC/5yFjRxMF/XpnZg4AOW87AIAdBgAQZQAAUQYAEGUAAFEG
+      ABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAA
+      UQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBl
+      AABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYA
+      EGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABR
+      BgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUA
+      AFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQ
+      ZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEG
+      ABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAA
+      UQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBl
+      AABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYA
+      EGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABR
+      BgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUA
+      AFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQ
+      ZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEG
+      ABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAA
+      UQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBl
+      AABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYA
+      EGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABR
+      BgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUA
+      AFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQ
+      ZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEG
+      ABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAA
+      UQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBl
+      AABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYA
+      EGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEfFxoG/IiMv0YAAAAASUVORK5CYII=
+    </thumbnail>
+  </thumbnails>
+</workbook>
