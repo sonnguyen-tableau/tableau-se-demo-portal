@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactElement, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { ReviewForm, type ProfileDraft } from "@/components/factory/ReviewForm";
 
 interface StageEvent {
@@ -319,12 +320,12 @@ export function FactoryProgress({ jobId }: { jobId: string }): ReactElement {
           {logCopied ? "✅ Đã copy logs" : "📋 Copy logs"}
         </button>
         {(done || streamError) && (
-          <a
+          <Link
             href="/factory/new"
             className="rounded-md border border-[hsl(var(--border))] px-3 py-1.5 text-xs font-medium hover:bg-[hsl(var(--muted))]"
           >
             ← Tạo portal mới
-          </a>
+          </Link>
         )}
         {hasError && (
           <button

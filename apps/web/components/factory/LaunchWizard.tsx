@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, type ReactElement, useState } from "react";
+import Link from "next/link";
 import type { SiteConfigPublic } from "@/lib/site-config";
 
 interface Props {
@@ -182,9 +183,9 @@ export function LaunchWizard({ sites, factoryConfigured }: Props): ReactElement 
             {sites.length === 0 ? (
               <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Chưa có Tableau site nào được đăng ký.{" "}
-                <a href="/admin/sites/new" className="underline font-medium">
+                <Link href="/admin/sites/new" className="underline font-medium">
                   Tạo site mới
-                </a>{" "}
+                </Link>{" "}
                 trước khi tiếp tục.
               </div>
             ) : (
