@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 class Industry(StrEnum):
     retail = "retail-ecommerce"
     banking = "retail-banking"
+    mall = "retail-mall"
     manufacturing = "manufacturing"
     healthcare = "healthcare"
     logistics = "logistics"

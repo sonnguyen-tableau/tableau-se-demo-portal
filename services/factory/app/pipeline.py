@@ -24,6 +24,7 @@ from .generators.healthcare import HealthcareParameters, generate_healthcare
 from .generators.logistics import LogisticsParameters, generate_logistics
 from .generators.manufacturing import ManufacturingParameters, generate_manufacturing
 from .generators.retail import RetailParameters, generate_retail
+from .generators.vincommerce import VinCommerceParameters, generate_vincommerce
 from .hyper import is_available as hyper_available
 from .hyper import write_hyper
 from .models import (
@@ -328,6 +329,10 @@ class FactoryJob:
         if profile.industry is Industry.retail:
             tables = generate_retail(
                 RetailParameters(tenant_id=self.tenant_slug, start_date=start, end_date=end)
+            ).all_tables()
+        elif profile.industry is Industry.mall:
+            tables = generate_vincommerce(
+                VinCommerceParameters(tenant_id=self.tenant_slug, start_date=start, end_date=end)
             ).all_tables()
         elif profile.industry is Industry.banking:
             tables = generate_banking(

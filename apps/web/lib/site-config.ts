@@ -18,6 +18,7 @@ import crypto from "crypto";
 export const INDUSTRY_OPTIONS = [
   "retail-ecommerce",
   "retail-banking",
+  "retail-mall",
   "manufacturing",
   "healthcare",
   "logistics",

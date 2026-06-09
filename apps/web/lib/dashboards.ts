@@ -8,7 +8,7 @@ export interface DashboardEntry {
   id: string;
   name: string;
   description: string;
-  industry: "retail" | "banking" | "manufacturing" | "healthcare" | "logistics" | "generic";
+  industry: "retail" | "retail-mall" | "banking" | "manufacturing" | "healthcare" | "logistics" | "generic";
   viewPath: string;
   scope: DashboardScope;
   /** Tableau project folder path, e.g. "Banking" or "Samples/Superstore" */
@@ -109,6 +109,43 @@ export const DASHBOARD_CATALOG: readonly DashboardEntry[] = [
     scope: "all",
     project: "IT",
   },
+  // ── VinCommerce ───────────────────────────────────────────────────────────
+  {
+    id: "vincommerce-retail-revenue",
+    name: "VinCommerce — Doanh Thu Bán Lẻ",
+    description: "Doanh thu và biên lợi nhuận gộp của WinMart/WinMart+ theo tháng và cửa hàng.",
+    industry: "retail-mall",
+    viewPath: "VinCommerce-RetailMall/Doanh Thu Bán Lẻ",
+    scope: "all",
+    project: "VinCommerce",
+  },
+  {
+    id: "vincommerce-gross-margin",
+    name: "VinCommerce — Biên Lợi Nhuận",
+    description: "Gross margin % theo từng cửa hàng WinMart/WinMart+, phân tích tác động chiết khấu.",
+    industry: "retail-mall",
+    viewPath: "VinCommerce-RetailMall/Biên Lợi Nhuận",
+    scope: "all",
+    project: "VinCommerce",
+  },
+  {
+    id: "vincommerce-mall-revenue",
+    name: "VinCommerce — Doanh Thu Cho Thuê",
+    description: "Doanh thu cho thuê sàn TTTM Vincom theo tháng và trung tâm thương mại.",
+    industry: "retail-mall",
+    viewPath: "VinCommerce-RetailMall/Doanh Thu Cho Thuê",
+    scope: "all",
+    project: "VinCommerce",
+  },
+  {
+    id: "vincommerce-arrears",
+    name: "VinCommerce — Tỷ Lệ Nợ Thuê",
+    description: "Theo dõi tỷ lệ nợ thuê (arrears) theo từng TTTM — cảnh báo sớm rủi ro dòng tiền.",
+    industry: "retail-mall",
+    viewPath: "VinCommerce-RetailMall/Tỷ Lệ Nợ Thuê",
+    scope: "all",
+    project: "VinCommerce",
+  },
   // ── Internal ─────────────────────────────────────────────────────────────
   {
     id: "internal-admin-impressions",
@@ -146,6 +183,12 @@ export const PROJECT_FOLDERS: readonly ProjectFolder[] = [
     label: "Công nghệ IT",
     icon: "💻",
     get dashboards() { return DASHBOARD_CATALOG.filter((d) => d.project === "IT"); },
+  },
+  {
+    name: "VinCommerce",
+    label: "VinCommerce",
+    icon: "🛒",
+    get dashboards() { return DASHBOARD_CATALOG.filter((d) => d.project === "VinCommerce"); },
   },
   {
     name: "Internal",

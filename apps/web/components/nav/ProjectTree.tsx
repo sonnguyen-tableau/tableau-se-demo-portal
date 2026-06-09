@@ -76,7 +76,7 @@ function TreeNode({
       {/* Project row */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="group flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-meta font-medium text-white/70 transition-all duration-base ease-smooth hover:bg-white/[0.06] hover:text-white"
+        className="group flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[13px] leading-snug font-medium text-white/70 transition-all duration-base ease-smooth hover:bg-white/[0.06] hover:text-white"
         style={{ paddingLeft: `${8 + depth * 12}px` }}
       >
         <svg
@@ -111,7 +111,7 @@ function TreeNode({
             <Link
               key={d.workbookSlug}
               href={`/t/${tenantSlug}/dashboards/${d.workbookSlug}`}
-              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-meta text-white/55 transition-all duration-base ease-smooth hover:bg-white/[0.06] hover:text-white truncate"
+              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] leading-snug text-white/55 transition-all duration-base ease-smooth hover:bg-white/[0.06] hover:text-white truncate"
               style={{ paddingLeft: `${24 + depth * 12}px` }}
               title={d.workbookName}
             >

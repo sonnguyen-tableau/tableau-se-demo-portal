@@ -1,0 +1,217 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!--
+  Placeholder Tableau workbook for VinCommerce Retail & Mall Leasing demos.
+
+  Two sub-verticals in one workbook:
+    - Retail: SalesTransactions fact table (WinMart / WinMart+)
+    - Mall Leasing: MonthlyRentalRevenue fact table (Vincom Center portfolio)
+
+  Hard rules — do not break (the contract test enforces them):
+    * Only reference fields listed in
+      packages/factory-schema/retail-mall.schema.json (or calculated /
+      __-prefixed fields the template defines locally).
+    * Keep the FACTORY_DATASOURCE placeholder on the inner hyper connection;
+      the factory rewrites that single dbname attribute at publish time.
+    * Keep the [__tenant_filter__] calculated field with the
+      USERATTRIBUTE("TenantId") formula AND the <filter> on it on EVERY
+      datasource — without this, RLS is broken on every published copy.
+-->
+<workbook original-version='18.1' source-build='2024.2' source-platform='mac'
+          version='18.1'
+          xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <preferences/>
+  <datasources>
+
+    <!-- ── Retail datasource (SalesTransactions) ────────────────────────── -->
+    <datasource caption='VinCommerce Retail' inline='true' name='federated.retail-mall-sales' version='18.1'>
+      <connection class='federated'>
+        <named-connections>
+          <named-connection caption='vincommerce-extract' name='hyper.vincommerce'>
+            <connection class='hyper' dbname='__FACTORY_DATASOURCE__'
+                        schema='Extract' server='localhost'/>
+          </named-connection>
+        </named-connections>
+        <relation connection='hyper.vincommerce' name='SalesTransactions'
+                  table='[Extract].[SalesTransactions]' type='table'/>
+      </connection>
+
+      <!-- Schema-backed columns (must match retail-mall.schema.json SalesTransactions) -->
+      <column datatype='integer' name='[TxId]' role='dimension' type='ordinal'/>
+      <column datatype='date'    name='[TxDate]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[StoreId]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[ProductId]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[Qty]' role='measure' type='quantitative'/>
+      <column datatype='integer' name='[Revenue]' role='measure' type='quantitative'/>
+      <column datatype='integer' name='[COGS]' role='measure' type='quantitative'/>
+      <column datatype='integer' name='[Discount]' role='measure' type='quantitative'/>
+      <column datatype='string'  name='[TenantId]' role='dimension' type='nominal'/>
+
+      <!-- Calculated KPIs -->
+      <column caption='Gross Profit' datatype='real' name='[GrossProfit]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([Revenue]) - SUM([COGS])'/>
+      </column>
+      <column caption='Gross Margin %' datatype='real' name='[GrossMarginPct]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='(SUM([Revenue]) - SUM([COGS])) / SUM([Revenue])'/>
+      </column>
+      <column caption='Discount Rate %' datatype='real' name='[DiscountRatePct]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([Discount]) / (SUM([Revenue]) + SUM([Discount]))'/>
+      </column>
+
+      <!-- RLS — defense in depth (server-side data policy is set separately) -->
+      <column caption='Tenant Filter' datatype='boolean' name='[__tenant_filter__]'
+              role='dimension' type='nominal'>
+        <calculation class='tableau'
+                     formula='[TenantId] = USERATTRIBUTE(&quot;TenantId&quot;) OR USERATTRIBUTE(&quot;TenantId&quot;) = &quot;internal&quot;'/>
+      </column>
+      <filter class='categorical' column='[__tenant_filter__]' filter-group='2'>
+        <groupfilter function='member' level='[__tenant_filter__]' member='&quot;true&quot;'/>
+      </filter>
+    </datasource>
+
+    <!-- ── Mall Leasing datasource (MonthlyRentalRevenue) ───────────────── -->
+    <datasource caption='VinCommerce Mall Leasing' inline='true' name='federated.retail-mall-leasing' version='18.1'>
+      <connection class='federated'>
+        <named-connections>
+          <named-connection caption='vincommerce-extract' name='hyper.vincommerce.leasing'>
+            <connection class='hyper' dbname='__FACTORY_DATASOURCE__'
+                        schema='Extract' server='localhost'/>
+          </named-connection>
+        </named-connections>
+        <relation connection='hyper.vincommerce.leasing' name='MonthlyRentalRevenue'
+                  table='[Extract].[MonthlyRentalRevenue]' type='table'/>
+      </connection>
+
+      <!-- Schema-backed columns (must match retail-mall.schema.json MonthlyRentalRevenue) -->
+      <column datatype='date'    name='[Month]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[ContractId]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[UnitId]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[MallId]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[BaseRent]' role='measure' type='quantitative'/>
+      <column datatype='integer' name='[CAMFee]' role='measure' type='quantitative'/>
+      <column datatype='integer' name='[Arrears]' role='measure' type='quantitative'/>
+      <column datatype='integer' name='[TotalRevenue]' role='measure' type='quantitative'/>
+      <column datatype='string'  name='[TenantId]' role='dimension' type='nominal'/>
+
+      <!-- Calculated KPIs -->
+      <column caption='Total Rental Revenue' datatype='real' name='[TotalRentalRevenue]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([TotalRevenue])'/>
+      </column>
+      <column caption='Arrears Rate %' datatype='real' name='[ArrearsRatePct]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([Arrears]) / SUM([TotalRevenue])'/>
+      </column>
+
+      <!-- RLS -->
+      <column caption='Tenant Filter' datatype='boolean' name='[__tenant_filter__]'
+              role='dimension' type='nominal'>
+        <calculation class='tableau'
+                     formula='[TenantId] = USERATTRIBUTE(&quot;TenantId&quot;) OR USERATTRIBUTE(&quot;TenantId&quot;) = &quot;internal&quot;'/>
+      </column>
+      <filter class='categorical' column='[__tenant_filter__]' filter-group='2'>
+        <groupfilter function='member' level='[__tenant_filter__]' member='&quot;true&quot;'/>
+      </filter>
+    </datasource>
+
+  </datasources>
+
+  <worksheets>
+
+    <!-- Sheet 1: Doanh thu bán lẻ theo tháng -->
+    <worksheet name='Doanh Thu Bán Lẻ'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='VinCommerce Retail' name='federated.retail-mall-sales'/>
+          </datasources>
+          <datasource-dependencies datasource='federated.retail-mall-sales'>
+            <column datatype='date' name='[TxDate]' role='dimension' type='ordinal'/>
+            <column datatype='real' name='[GrossProfit]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([Revenue]) - SUM([COGS])'/>
+            </column>
+          </datasource-dependencies>
+        </view>
+        <rows>[federated.retail-mall-sales].[GrossProfit]</rows>
+        <cols>[federated.retail-mall-sales].[TxDate]</cols>
+        <panes>
+          <pane><mark class='Bar'/></pane>
+        </panes>
+      </table>
+    </worksheet>
+
+    <!-- Sheet 2: Biên lợi nhuận gộp theo cửa hàng -->
+    <worksheet name='Biên Lợi Nhuận'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='VinCommerce Retail' name='federated.retail-mall-sales'/>
+          </datasources>
+          <datasource-dependencies datasource='federated.retail-mall-sales'>
+            <column datatype='integer' name='[StoreId]' role='dimension' type='ordinal'/>
+            <column datatype='real' name='[GrossMarginPct]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='(SUM([Revenue]) - SUM([COGS])) / SUM([Revenue])'/>
+            </column>
+          </datasource-dependencies>
+        </view>
+        <rows>[federated.retail-mall-sales].[GrossMarginPct]</rows>
+        <cols>[federated.retail-mall-sales].[StoreId]</cols>
+        <panes>
+          <pane><mark class='Bar'/></pane>
+        </panes>
+      </table>
+    </worksheet>
+
+    <!-- Sheet 3: Doanh thu cho thuê theo TTTM -->
+    <worksheet name='Doanh Thu Cho Thuê'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='VinCommerce Mall Leasing' name='federated.retail-mall-leasing'/>
+          </datasources>
+          <datasource-dependencies datasource='federated.retail-mall-leasing'>
+            <column datatype='date'    name='[Month]' role='dimension' type='ordinal'/>
+            <column datatype='integer' name='[MallId]' role='dimension' type='ordinal'/>
+            <column datatype='real' name='[TotalRentalRevenue]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([TotalRevenue])'/>
+            </column>
+          </datasource-dependencies>
+        </view>
+        <rows>[federated.retail-mall-leasing].[TotalRentalRevenue]</rows>
+        <cols>[federated.retail-mall-leasing].[Month]</cols>
+        <panes>
+          <pane><mark class='Line'/></pane>
+        </panes>
+      </table>
+    </worksheet>
+
+    <!-- Sheet 4: Tỷ lệ nợ thuê theo trung tâm -->
+    <worksheet name='Tỷ Lệ Nợ Thuê'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='VinCommerce Mall Leasing' name='federated.retail-mall-leasing'/>
+          </datasources>
+          <datasource-dependencies datasource='federated.retail-mall-leasing'>
+            <column datatype='integer' name='[MallId]' role='dimension' type='ordinal'/>
+            <column datatype='real' name='[ArrearsRatePct]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([Arrears]) / SUM([TotalRevenue])'/>
+            </column>
+          </datasource-dependencies>
+        </view>
+        <rows>[federated.retail-mall-leasing].[ArrearsRatePct]</rows>
+        <cols>[federated.retail-mall-leasing].[MallId]</cols>
+        <panes>
+          <pane><mark class='Bar'/></pane>
+        </panes>
+      </table>
+    </worksheet>
+
+  </worksheets>
+
+  <windows source-height='30'>
+    <window class='worksheet' maximized='true' name='Doanh Thu Bán Lẻ'/>
+  </windows>
+</workbook>

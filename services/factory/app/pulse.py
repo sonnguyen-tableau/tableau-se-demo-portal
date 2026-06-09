@@ -38,6 +38,48 @@ def _format_for(kpi: KpiSpec) -> str:
     }[kpi.type]
 
 
+# Industry-specific field mappings for the basic_specification measure + time_dimension.
+_INDUSTRY_FIELD_MAP: dict[str, dict[str, str]] = {
+    "retail-ecommerce": {
+        "currency_field": "LineTotal",
+        "count_field": "OrderId",
+        "time_field": "OrderDate",
+    },
+    "retail-banking": {
+        "currency_field": "TransactionAmount",
+        "count_field": "TransactionId",
+        "time_field": "TransactionDate",
+    },
+    "retail-mall": {
+        "currency_field": "TotalRevenue",
+        "count_field": "ContractId",
+        "time_field": "Month",
+    },
+    "manufacturing": {
+        "currency_field": "Revenue",
+        "count_field": "OrderId",
+        "time_field": "OrderDate",
+    },
+    "healthcare": {
+        "currency_field": "BilledAmount",
+        "count_field": "EncounterId",
+        "time_field": "EncounterDate",
+    },
+    "logistics": {
+        "currency_field": "ShipmentValue",
+        "count_field": "ShipmentId",
+        "time_field": "ShipDate",
+    },
+}
+
+# Allowed dimensions/granularities vary by industry.
+_INDUSTRY_DIMENSIONS: dict[str, list[str]] = {
+    "retail-mall": ["MallId", "UnitType", "Category", "Province"],
+}
+
+_DEFAULT_DIMENSIONS = ["Region", "Channel", "Segment", "Category"]
+
+
 def build_payload(
     *,
     tenant_slug: str,
@@ -46,6 +88,11 @@ def build_payload(
     kpi: KpiSpec,
 ) -> dict[str, object]:
     name_snake = kpi.name.lower().replace(" ", "-")
+    field_map = _INDUSTRY_FIELD_MAP.get(industry, _INDUSTRY_FIELD_MAP["retail-ecommerce"])
+    measure_field = field_map["currency_field"] if kpi.type == "currency" else field_map["count_field"]
+    aggregation = "SUM" if kpi.type in ("currency", "number") else "AVG"
+    time_field = kpi.time_dim or field_map["time_field"]
+    dimensions = _INDUSTRY_DIMENSIONS.get(industry, _DEFAULT_DIMENSIONS)
     return {
         "metadata": {
             "name": kpi.name,
@@ -55,8 +102,8 @@ def build_payload(
         "specification": {
             "datasource": {"id": datasource_id},
             "basic_specification": {
-                "measure": {"field": "LineTotal" if kpi.type == "currency" else "OrderId", "aggregation": "SUM" if kpi.type == "currency" else "COUNTD"},
-                "time_dimension": {"field": kpi.time_dim or "OrderDate"},
+                "measure": {"field": measure_field, "aggregation": aggregation},
+                "time_dimension": {"field": time_field},
                 "filters": [
                     {
                         "field": "TenantId",
@@ -68,7 +115,7 @@ def build_payload(
             "is_running_total": False,
         },
         "extension_options": {
-            "allowed_dimensions": ["Region", "Channel", "Segment", "Category"],
+            "allowed_dimensions": dimensions,
             "allowed_granularities": ["DAY", "WEEK", "MONTH", "QUARTER"],
             "offset_from_today": 0,
         },
