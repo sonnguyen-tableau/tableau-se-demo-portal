@@ -8,6 +8,7 @@ import { allowedToolNames, openTableauMcp } from "@/lib/mcp-client";
 import { audit, shortHash } from "@/lib/audit";
 import { checkAndRecord } from "@/lib/rate-limit";
 import { getSiteForTenant } from "@/lib/tenant-site";
+import { getTenantDesignMd } from "@/lib/tenant-theme";
 
 const CHAT_RATE_LIMIT = { windowSeconds: 60, max: 12 } as const;
 
@@ -150,10 +151,12 @@ export async function POST(req: Request): Promise<Response> {
           send({ type: "open", tools: [] });
         }
 
+        const [designMd] = await Promise.all([getTenantDesignMd(ctx.tenantId)]);
         const systemPrompt = buildSystemPrompt({
           tenant: ctx,
           ...(parsed.data.vizContext ? { viz: parsed.data.vizContext as VizContext } : {}),
           toolNames: mcp ? mcp.tools.map((t) => t.name) : allowedToolNames(),
+          designMd,
         });
 
         for await (const event of runAgentTurn({

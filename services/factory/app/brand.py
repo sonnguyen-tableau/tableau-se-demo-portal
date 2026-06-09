@@ -14,10 +14,13 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import logging
 import re
 from typing import Any
 
 import httpx
+
+_log = logging.getLogger(__name__)
 
 from .config import Settings
 from .models import BrandTheme
@@ -62,6 +65,65 @@ def _absolute(url: str, base: str) -> str:
     return url
 
 
+def _linearize(channel: float) -> float:
+    """sRGB channel [0,1] → linear light (WCAG relative luminance formula)."""
+    return channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
+
+
+def _luminance(hex_color: str) -> float:
+    """Relative luminance of a #rrggbb hex color."""
+    r = int(hex_color[1:3], 16) / 255
+    g = int(hex_color[3:5], 16) / 255
+    b = int(hex_color[5:7], 16) / 255
+    return 0.2126 * _linearize(r) + 0.7152 * _linearize(g) + 0.0722 * _linearize(b)
+
+
+def _contrast(hex1: str, hex2: str) -> float:
+    """WCAG 2.1 contrast ratio between two #rrggbb colors."""
+    l1, l2 = _luminance(hex1), _luminance(hex2)
+    lighter, darker = max(l1, l2), min(l1, l2)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def _darken(hex_color: str, steps: int = 1) -> str:
+    """Reduce each RGB channel by 12% per step to increase contrast on white."""
+    r = int(hex_color[1:3], 16)
+    g = int(hex_color[3:5], 16)
+    b = int(hex_color[5:7], 16)
+    factor = 0.88 ** steps
+    r2, g2, b2 = int(r * factor), int(g * factor), int(b * factor)
+    return f"#{r2:02x}{g2:02x}{b2:02x}"
+
+
+def _ensure_wcag_aa(theme: "BrandTheme") -> "BrandTheme":
+    """Darken primary_color until it passes WCAG AA (4.5:1) against white.
+
+    Three darkening passes are attempted; if still failing a warning is emitted
+    and the original value is kept (better than silent failure).
+    """
+    WHITE = "#ffffff"
+    color = theme.primary_color
+    ratio = _contrast(color, WHITE)
+    if ratio >= 4.5:
+        return theme
+
+    for step in range(1, 6):
+        candidate = _darken(theme.primary_color, steps=step)
+        new_ratio = _contrast(candidate, WHITE)
+        if new_ratio >= 4.5:
+            _log.info(
+                "WCAG AA: adjusted primary %s → %s (ratio %.2f → %.2f)",
+                theme.primary_color, candidate, ratio, new_ratio,
+            )
+            return theme.model_copy(update={"primary_color": candidate})
+
+    _log.warning(
+        "WCAG AA: primary %s has contrast %.2f against white — could not reach 4.5:1 in 5 steps",
+        theme.primary_color, ratio,
+    )
+    return theme
+
+
 def _fallback_theme(scrape: ScrapeResult) -> BrandTheme:
     """Deterministic palette derived from the URL hostname.
 
@@ -72,7 +134,7 @@ def _fallback_theme(scrape: ScrapeResult) -> BrandTheme:
     primary = f"#{seed[0]:02x}{seed[1]:02x}{seed[2]:02x}"
     secondary = f"#{seed[3]:02x}{seed[4]:02x}{seed[5]:02x}"
     neutral = "#0F172A"
-    return BrandTheme(
+    theme = BrandTheme(
         primary_color=primary,
         secondary_color=secondary,
         neutral_color=neutral,
@@ -80,6 +142,62 @@ def _fallback_theme(scrape: ScrapeResult) -> BrandTheme:
         logo_url=extract_image_url(scrape),
         tone="professional",
     )
+    return _ensure_wcag_aa(theme)
+
+
+def generate_tenant_design_md(
+    company_name: str,
+    source_url: str,
+    industry: str,
+    theme: "BrandTheme",
+) -> str:
+    """Return a minimal per-tenant DESIGN.md string for the AI agent system prompt."""
+    primary_contrast = _contrast(theme.primary_color, "#ffffff")
+    wcag_note = (
+        f"WCAG AA compliant ({primary_contrast:.1f}:1 vs white)"
+        if primary_contrast >= 4.5
+        else f"WARNING: contrast {primary_contrast:.1f}:1 — below WCAG AA threshold"
+    )
+    return f"""---
+tenant: "{company_name}"
+source_url: "{source_url}"
+industry: "{industry}"
+brand:
+  primary:   "{theme.primary_color}"   # {wcag_note}
+  secondary: "{theme.secondary_color}"
+  neutral:   "{theme.neutral_color}"
+  font:      "{theme.font_family}"
+  tone:      "{theme.tone}"
+---
+
+# {company_name} — Tenant Design Context
+
+## Brand Identity
+
+- **Primary color:** `{theme.primary_color}` — used for CTAs, active states, and links in the portal.
+- **Secondary color:** `{theme.secondary_color}` — used for accents, tag backgrounds, and hover states.
+- **Neutral color:** `{theme.neutral_color}` — sidebar background and inverted surfaces.
+- **Font family:** {theme.font_family} — override applied globally via `--font-sans`.
+- **Tone:** {theme.tone} — informs how the AI assistant phrases answers for this tenant.
+
+## Portal Theme
+
+This tenant's portal overrides three CSS variables at runtime:
+```css
+--brand-primary:   {theme.primary_color};
+--brand-secondary: {theme.secondary_color};
+--brand-neutral:   {theme.neutral_color};
+--font-sans:       {theme.font_family}, Inter, system-ui, sans-serif;
+```
+
+## AI Assistant Guidance
+
+When answering questions for this tenant:
+- Match the **{theme.tone}** tone of the brand.
+- Reference the company name **{company_name}** when describing data.
+- Industry context: **{industry}** — apply relevant domain vocabulary.
+- Never use placeholder names or generic company names in responses.
+"""
 
 
 async def extract_brand(scrape: ScrapeResult, settings: Settings) -> BrandTheme:
@@ -146,7 +264,7 @@ async def extract_brand(scrape: ScrapeResult, settings: Settings) -> BrandTheme:
             return v.lower()
         return default
 
-    return BrandTheme(
+    theme = BrandTheme(
         primary_color=_hex(payload.get("primary_color"), "#1A56DB"),
         secondary_color=_hex(payload.get("secondary_color"), "#F59E0B"),
         neutral_color=_hex(payload.get("neutral_color"), "#0F172A"),
@@ -154,3 +272,4 @@ async def extract_brand(scrape: ScrapeResult, settings: Settings) -> BrandTheme:
         logo_url=str(payload.get("logo_url") or image_url)[:1024],
         tone=(payload.get("tone") if payload.get("tone") in {"professional", "playful", "technical"} else "professional"),
     )
+    return _ensure_wcag_aa(theme)

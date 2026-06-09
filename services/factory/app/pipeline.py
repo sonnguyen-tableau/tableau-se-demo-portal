@@ -17,7 +17,7 @@ import asyncio
 from collections.abc import AsyncIterator
 from datetime import date, timedelta
 
-from .brand import extract_brand
+from .brand import extract_brand, generate_tenant_design_md
 from .config import Settings, get_settings
 from .generators.banking import BankingParameters, generate_banking
 from .generators.healthcare import HealthcareParameters, generate_healthcare
@@ -423,6 +423,29 @@ class FactoryJob:
                         raise RuntimeError(f"user create failed ({r.status}): {body[:200]}")
             else:
                 temp_password = None
+
+            # 4. Store per-tenant DESIGN.md for AI chat context
+            if theme is not None:
+                from .models import BrandTheme
+                t2: BrandTheme = theme  # type: ignore[assignment]
+                design_content = generate_tenant_design_md(
+                    company_name=profile.company_name,
+                    source_url=profile.company_url,
+                    industry=profile.industry.value,
+                    theme=t2,
+                )
+                async with session.post(
+                    f"{base}/api/admin/provision/design",
+                    json={"tenantId": slug, "content": design_content},
+                    headers=headers,
+                ) as r:
+                    if r.status not in (200, 201):
+                        # Non-fatal — log but don't abort the provision stage.
+                        body = await r.text()
+                        import logging
+                        logging.getLogger(__name__).warning(
+                            "design.md storage failed (%d): %s", r.status, body[:200]
+                        )
 
         portal_tenant_url = f"{base}/t/{urllib.parse.quote(slug)}"
         result: dict[str, object] = {
