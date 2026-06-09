@@ -43,6 +43,12 @@ class FactoryStartRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     url: HttpUrl
     tenant_slug: str | None = Field(default=None, max_length=48)
+    # Optional provision metadata — when supplied the pipeline auto-wires
+    # the tenant record, theme, and first user after brand extraction.
+    site_id: str | None = Field(default=None, max_length=48)
+    admin_email: str | None = Field(default=None, max_length=320)
+    # Portal base URL for the provision callback (e.g. https://portal.example.com)
+    portal_url: str | None = Field(default=None, max_length=512)
 
 
 class FactoryStartResponse(BaseModel):

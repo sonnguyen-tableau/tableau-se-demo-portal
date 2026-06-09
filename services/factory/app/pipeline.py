@@ -52,11 +52,23 @@ def now_ms() -> int:
 
 
 class FactoryJob:
-    def __init__(self, job_id: str, url: str, tenant_slug: str, settings: Settings | None = None):
+    def __init__(
+        self,
+        job_id: str,
+        url: str,
+        tenant_slug: str,
+        settings: Settings | None = None,
+        site_id: str | None = None,
+        admin_email: str | None = None,
+        portal_url: str | None = None,
+    ):
         self.job_id = job_id
         self.url = url
         self.tenant_slug = tenant_slug
         self.settings = settings or get_settings()
+        self.site_id = site_id
+        self.admin_email = admin_email
+        self.portal_url = portal_url
         # Confirm-before-build coordination (Phase 9).
         self._confirm_event = asyncio.Event()
         self._profile: CompanyProfile | None = None
@@ -303,6 +315,7 @@ class FactoryJob:
             yield await emit(Stage.pulse, StageStatus.error, error=str(e))
 
         # 10. brand
+        theme = None
         yield await emit(Stage.brand, StageStatus.running)
         try:
             theme = await extract_brand(scrape, s)
@@ -315,12 +328,119 @@ class FactoryJob:
         except Exception as e:
             yield await emit(Stage.brand, StageStatus.error, error=str(e))
 
-        # 11. provision — Phase 11 wires the tenant record.
-        yield await emit(
-            Stage.provision,
-            StageStatus.skipped,
-            detail="tenant record provisioning arrives in Phase 11",
-        )
+        # 11. provision — create tenant record, apply brand, wire first user.
+        yield await emit(Stage.provision, StageStatus.running)
+        try:
+            provision_result = await self._provision(profile, theme)
+            yield await emit(
+                Stage.provision,
+                StageStatus.skipped if provision_result.get("skipped") else StageStatus.ok,
+                detail=provision_result.get("detail", ""),
+                payload=provision_result,
+            )
+        except Exception as e:
+            yield await emit(Stage.provision, StageStatus.error, error=str(e))
+
+    async def _provision(
+        self,
+        profile: CompanyProfile,
+        theme: object | None,
+    ) -> dict[str, object]:
+        """Call back to the portal to create the tenant record + apply brand + create admin user."""
+        import urllib.parse
+
+        if not self.portal_url:
+            return {
+                "skipped": True,
+                "detail": "portal_url not set — tenant record not provisioned automatically",
+            }
+
+        base = self.portal_url.rstrip("/")
+        slug = self.tenant_slug
+        headers = {"Content-Type": "application/json", "X-Factory-Secret": self._factory_secret()}
+
+        async with __import__("aiohttp").ClientSession() as session:
+            # 1. Upsert tenant record
+            tenant_payload: dict[str, object] = {
+                "slug": slug,
+                "name": profile.company_name,
+                "industry": profile.industry.value,
+                "sourceUrl": profile.company_url,
+            }
+            if self.site_id:
+                tenant_payload["siteId"] = self.site_id
+
+            async with session.post(
+                f"{base}/api/admin/provision/tenant",
+                json=tenant_payload,
+                headers=headers,
+            ) as r:
+                if r.status not in (200, 201):
+                    body = await r.text()
+                    raise RuntimeError(f"tenant upsert failed ({r.status}): {body[:200]}")
+
+            # 2. Apply brand theme if extracted
+            if theme is not None:
+                from .models import BrandTheme
+                t: BrandTheme = theme  # type: ignore[assignment]
+                theme_payload = {
+                    "tenantId": slug,
+                    "companyName": profile.company_name,
+                    "primaryColor": t.primary_color,
+                    "secondaryColor": t.secondary_color,
+                    "neutralColor": t.neutral_color,
+                    "fontFamily": t.font_family,
+                    "tone": t.tone,
+                    **({"logoUrl": t.logo_url} if t.logo_url else {}),
+                }
+                async with session.put(
+                    f"{base}/api/admin/provision/theme",
+                    json=theme_payload,
+                    headers=headers,
+                ) as r:
+                    if r.status not in (200, 201):
+                        body = await r.text()
+                        raise RuntimeError(f"theme apply failed ({r.status}): {body[:200]}")
+
+            # 3. Create admin user if requested
+            if self.admin_email:
+                import secrets as _secrets
+                temp_password = _secrets.token_urlsafe(16)
+                user_payload = {
+                    "email": self.admin_email,
+                    "password": temp_password,
+                    "tenantId": slug,
+                    "tenantName": profile.company_name,
+                    "groups": ["admin"],
+                }
+                async with session.put(
+                    f"{base}/api/admin/provision/user",
+                    json=user_payload,
+                    headers=headers,
+                ) as r:
+                    if r.status not in (200, 201):
+                        body = await r.text()
+                        raise RuntimeError(f"user create failed ({r.status}): {body[:200]}")
+            else:
+                temp_password = None
+
+        portal_tenant_url = f"{base}/t/{urllib.parse.quote(slug)}"
+        result: dict[str, object] = {
+            "skipped": False,
+            "detail": f"tenant={slug} portal={portal_tenant_url}",
+            "tenant_slug": slug,
+            "portal_url": portal_tenant_url,
+            "company_name": profile.company_name,
+            "industry": profile.industry.value,
+        }
+        if self.admin_email:
+            result["admin_email"] = self.admin_email
+            result["temp_password"] = temp_password
+        return result
+
+    def _factory_secret(self) -> str:
+        import os
+        return os.environ.get("FACTORY_PROVISION_SECRET", "")
 
     def _generate_for(self, profile: CompanyProfile) -> tuple[dict[str, object], int]:
         end = date.today()

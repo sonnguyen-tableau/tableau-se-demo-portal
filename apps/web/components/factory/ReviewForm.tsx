@@ -14,7 +14,7 @@ export interface ProfileDraft {
   company_url: string;
   tagline?: string;
   logo_url?: string;
-  industry: "retail-ecommerce" | "retail-banking" | "manufacturing" | "healthcare" | "logistics";
+  industry: "retail-ecommerce" | "retail-banking" | "retail-mall" | "manufacturing" | "healthcare" | "logistics";
   sub_vertical?: string;
   products: string[];
   segments: string[];
@@ -33,6 +33,7 @@ interface Props {
 const INDUSTRY_OPTIONS: Array<{ value: ProfileDraft["industry"]; label: string }> = [
   { value: "retail-ecommerce", label: "Retail / E-commerce" },
   { value: "retail-banking", label: "Retail Banking" },
+  { value: "retail-mall", label: "Retail & Mall Leasing (VinCommerce)" },
   { value: "manufacturing", label: "Manufacturing / Operations" },
   { value: "healthcare", label: "Healthcare (synthetic)" },
   { value: "logistics", label: "Logistics / Supply Chain" },

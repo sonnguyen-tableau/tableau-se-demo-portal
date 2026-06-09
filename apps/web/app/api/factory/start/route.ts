@@ -11,10 +11,9 @@ export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
   url: z.string().url().max(2048),
-  tenant_slug: z
-    .string()
-    .regex(/^[a-z0-9-]{2,48}$/i)
-    .optional(),
+  tenant_slug: z.string().regex(/^[a-z0-9-]{2,48}$/i).optional(),
+  site_id: z.string().regex(/^[a-z0-9-]{2,48}$/).optional(),
+  admin_email: z.string().email().max(320).optional(),
 });
 
 export async function POST(req: Request): Promise<Response> {
@@ -50,10 +49,21 @@ export async function POST(req: Request): Promise<Response> {
     parsed.data.tenant_slug?.toLowerCase() ??
     slugify(new URL(parsed.data.url).hostname.replace(/^www\./, ""));
 
+  // Derive portal base URL so the factory can call back for provisioning
+  const portalBase = (() => {
+    try { return new URL(req.url).origin; } catch { return ""; }
+  })();
+
   const upstream = await fetch(new URL("/factory/start", factoryUrl), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url: parsed.data.url, tenant_slug: slug }),
+    body: JSON.stringify({
+      url: parsed.data.url,
+      tenant_slug: slug,
+      ...(parsed.data.site_id ? { site_id: parsed.data.site_id } : {}),
+      ...(parsed.data.admin_email ? { admin_email: parsed.data.admin_email } : {}),
+      ...(portalBase ? { portal_url: portalBase } : {}),
+    }),
   });
 
   if (!upstream.ok) {
@@ -71,5 +81,9 @@ export async function POST(req: Request): Promise<Response> {
     hasVizContext: false,
   });
 
+  // JSON callers (LaunchWizard) get a JSON response; form POSTs get a redirect.
+  if (ct.includes("application/json")) {
+    return NextResponse.json({ job_id: job.job_id, redirect: `/factory/${job.job_id}` });
+  }
   return NextResponse.redirect(new URL(`/factory/${job.job_id}`, req.url), 303);
 }

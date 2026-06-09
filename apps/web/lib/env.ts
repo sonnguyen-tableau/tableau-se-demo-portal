@@ -42,6 +42,10 @@ const schema = z.object({
   IMPRESSION_DAILY_CAP_PER_TENANT: z.coerce.number().int().positive().default(2000),
   PORTAL_ENV: z.enum(["dev", "preview", "staging", "prod"]).default("dev"),
 
+  // Shared secret between the factory sidecar and the portal provision API.
+  // Generate with: openssl rand -hex 32
+  FACTORY_PROVISION_SECRET: z.string().min(16).optional(),
+
   // Multi-site: AES-256-GCM key for encrypting Connected App secrets at rest in KV.
   // 64 hex chars = 32 bytes. Required when using the /admin/sites UI in production.
   SITE_CONFIG_ENCRYPTION_KEY: z

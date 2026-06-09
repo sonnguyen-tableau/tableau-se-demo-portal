@@ -50,7 +50,13 @@ async def start_factory(req: FactoryStartRequest) -> FactoryStartResponse:
     slug = (req.tenant_slug or _slugify(str(req.url)))[:48] or "demo"
     job_id = uuid.uuid4().hex[:12]
     _JOBS[job_id] = FactoryJob(
-        job_id=job_id, url=str(req.url), tenant_slug=slug, settings=settings
+        job_id=job_id,
+        url=str(req.url),
+        tenant_slug=slug,
+        settings=settings,
+        site_id=req.site_id,
+        admin_email=req.admin_email,
+        portal_url=req.portal_url,
     )
     return FactoryStartResponse(job_id=job_id, sse_url=f"/factory/{job_id}/events")
 
