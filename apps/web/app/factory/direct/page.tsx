@@ -3,7 +3,6 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { tenantFromSession } from "@/lib/tenant";
-import { listSiteConfigs } from "@/lib/site-config";
 import { DirectLaunchWizard } from "@/components/factory/DirectLaunchWizard";
 
 export const metadata = { title: "Direct Launch — Demo Factory" };
@@ -22,8 +21,6 @@ export default async function DirectLaunchPage() {
       </main>
     );
   }
-
-  const sites = await listSiteConfigs();
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
@@ -50,10 +47,7 @@ export default async function DirectLaunchPage() {
         </p>
       </header>
 
-      <DirectLaunchWizard
-        sites={sites}
-        factoryConfigured={!!env.FACTORY_URL}
-      />
+      <DirectLaunchWizard factoryConfigured={!!env.FACTORY_URL} />
     </main>
   );
 }

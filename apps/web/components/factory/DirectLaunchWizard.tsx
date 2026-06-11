@@ -2,7 +2,6 @@
 
 import { type FormEvent, type ReactElement, useState } from "react";
 import Link from "next/link";
-import type { SiteConfigPublic } from "@/lib/site-config";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -190,11 +189,10 @@ function ParamField({ def, value, onChange }: { def: ParamDef; value: number; on
 // ─── Main component ────────────────────────────────────────────────────────────
 
 interface Props {
-  sites: SiteConfigPublic[];
   factoryConfigured: boolean;
 }
 
-export function DirectLaunchWizard({ sites, factoryConfigured }: Props): ReactElement {
+export function DirectLaunchWizard({ factoryConfigured }: Props): ReactElement {
   const [step, setStep] = useState<Step>(1);
 
   // Step 1 — Company identity
@@ -223,15 +221,10 @@ export function DirectLaunchWizard({ sites, factoryConfigured }: Props): ReactEl
     tone: "professional",
   });
 
-  // Step 4 — Site & admin
-  const [siteId, setSiteId] = useState<string>(sites[0]?.id ?? "");
+  // Step 4 — Admin only (no site selector — all demos share the default site)
   const [adminEmail, setAdminEmail] = useState("");
-  const [verifying, setVerifying] = useState(false);
-  const [verifyResult, setVerifyResult] = useState<{ ok: boolean; message: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const selectedSite = sites.find((s) => s.id === siteId);
 
   // Auto-derive slug from company name
   const handleCompanyName = (v: string) => {
@@ -247,20 +240,6 @@ export function DirectLaunchWizard({ sites, factoryConfigured }: Props): ReactEl
     setParamValues((prev) => ({ ...prev, [key]: value }));
   };
 
-  const testConnection = async () => {
-    if (!siteId) return;
-    setVerifying(true);
-    setVerifyResult(null);
-    try {
-      const res = await fetch(`/api/admin/sites/${encodeURIComponent(siteId)}/verify`, { method: "POST" });
-      const data = (await res.json()) as { ok: boolean; message: string };
-      setVerifyResult(data);
-    } catch {
-      setVerifyResult({ ok: false, message: "Không thể kết nối — kiểm tra lại URL sidecar." });
-    } finally {
-      setVerifying(false);
-    }
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -289,7 +268,6 @@ export function DirectLaunchWizard({ sites, factoryConfigured }: Props): ReactEl
         ...(brand.logo_url ? { logo_url: brand.logo_url } : {}),
       },
       tenant_slug: tenantSlug || undefined,
-      site_id: siteId || undefined,
       admin_email: adminEmail || undefined,
     };
 
@@ -511,44 +489,12 @@ export function DirectLaunchWizard({ sites, factoryConfigured }: Props): ReactEl
           </div>
         )}
 
-        {/* ── Step 4: Site & Admin + Submit ──────────────────────────────── */}
+        {/* ── Step 4: Admin & Submit ──────────────────────────────────────── */}
         {step === 4 && (
           <div className="space-y-5">
-            {sites.length === 0 ? (
-              <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Chưa có Tableau site.{" "}
-                <Link href="/admin/sites/new" className="font-medium underline">Tạo site mới</Link>
-              </div>
-            ) : (
-              <label className="block text-sm">
-                <span className="mb-1 block font-medium">Tableau Site *</span>
-                <select
-                  value={siteId}
-                  onChange={(e) => { setSiteId(e.target.value); setVerifyResult(null); }}
-                  className="w-full rounded-md border border-[hsl(var(--border))] px-3 py-2 text-sm"
-                >
-                  {sites.map((s) => (
-                    <option key={s.id} value={s.id}>{s.label} ({s.tableauSiteName})</option>
-                  ))}
-                </select>
-                {selectedSite && <p className="mt-0.5 text-xs text-[hsl(var(--muted-foreground))]">{selectedSite.tableauSite}</p>}
-              </label>
-            )}
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                disabled={!siteId || verifying}
-                onClick={testConnection}
-                className="rounded-md border border-[hsl(var(--border))] px-4 py-2 text-sm font-medium hover:bg-[hsl(var(--muted))] disabled:opacity-40"
-              >
-                {verifying ? "Đang kiểm tra…" : "🔌 Test Connection"}
-              </button>
-              {verifyResult && (
-                <span className={`text-sm font-medium ${verifyResult.ok ? "text-green-700" : "text-red-700"}`}>
-                  {verifyResult.ok ? "✅" : "❌"} {verifyResult.message}
-                </span>
-              )}
+            {/* Info: all demos share the default Tableau site */}
+            <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+              Portal sẽ được tạo trong project folder <strong>Demo/{companyName || tenantSlug}</strong> trên Tableau site mặc định.
             </div>
 
             <label className="block text-sm">
@@ -568,7 +514,7 @@ export function DirectLaunchWizard({ sites, factoryConfigured }: Props): ReactEl
               <Row label="Công ty" value={companyName} />
               <Row label="Ngành" value={INDUSTRY_LABELS[industry]} />
               <Row label="Slug" value={tenantSlug || "(auto)"} mono />
-              {selectedSite && <Row label="Site" value={selectedSite.label} />}
+              <Row label="Tableau folder" value={`Demo/${companyName || tenantSlug}`} mono />
               {adminEmail && <Row label="Admin" value={adminEmail} />}
               <div className="flex justify-between pt-1">
                 <span className="text-[hsl(var(--muted-foreground))]">Brand</span>
@@ -594,7 +540,7 @@ export function DirectLaunchWizard({ sites, factoryConfigured }: Props): ReactEl
               <button type="button" onClick={() => setStep(3)} className="rounded-md border border-[hsl(var(--border))] px-4 py-2 text-sm hover:bg-[hsl(var(--muted))]">← Quay lại</button>
               <button
                 type="submit"
-                disabled={submitting || !companyName || !siteId || !factoryConfigured}
+                disabled={submitting || !companyName || !factoryConfigured}
                 className="rounded-md bg-brand px-6 py-2 text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90"
               >
                 {submitting ? "Đang khởi động…" : "🚀 Tạo Portal"}

@@ -54,7 +54,15 @@ export async function POST(
       }
     })();
 
-    const res = await fetch(`${origin}/api/${site.tableauSiteVersion}/auth/signin`, {
+    // tableauSiteVersion is a product version like "2026.1" but the REST API
+    // path uses the API version like "3.24". Map known product versions; fall
+    // back to "3.24" (Tableau 2025.1+) which is broadly compatible.
+    const API_VERSION_MAP: Record<string, string> = {
+      "2026.1": "3.27", "2025.3": "3.26", "2025.2": "3.25",
+      "2025.1": "3.24", "2024.3": "3.23", "2024.2": "3.22",
+    };
+    const apiVersion = API_VERSION_MAP[site.tableauSiteVersion] ?? "3.24";
+    const res = await fetch(`${origin}/api/${apiVersion}/auth/signin`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
