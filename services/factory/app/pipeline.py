@@ -273,11 +273,14 @@ class FactoryJob:
                     detail="downstream publish/workbook will be skipped",
                 )
 
-        # 7. publish
+        # 7. publish — project folder = "Demo/{company_name}" so all demos
+        # live under a shared parent and tenants can be filtered by folder.
         yield await emit(Stage.publish, StageStatus.running)
         published_id = ""
         published_name = ""
+        published_project = ""
         publish_ok = False
+        tableau_project_name = f"Demo/{profile.company_name}"
         if not tableau_configured(s):
             yield await emit(
                 Stage.publish,
@@ -298,9 +301,11 @@ class FactoryJob:
                     tenant_slug=self.tenant_slug,
                     industry=profile.industry,
                     settings=s,
+                    project_name=tableau_project_name,
                 )
                 published_id = result.datasource_id
                 published_name = result.datasource_name
+                published_project = result.project_name
                 publish_ok = not result.skipped
                 yield await emit(
                     Stage.publish,
@@ -396,7 +401,7 @@ class FactoryJob:
         # 11. provision — create tenant record, apply brand, wire first user.
         yield await emit(Stage.provision, StageStatus.running)
         try:
-            provision_result = await self._provision(profile, theme)
+            provision_result = await self._provision(profile, theme, published_project)
             yield await emit(
                 Stage.provision,
                 StageStatus.skipped if provision_result.get("skipped") else StageStatus.ok,
@@ -410,6 +415,7 @@ class FactoryJob:
         self,
         profile: CompanyProfile,
         theme: object | None,
+        published_project: str = "",
     ) -> dict[str, object]:
         """Call back to the portal to create the tenant record + apply brand + create admin user."""
         import urllib.parse
@@ -443,6 +449,21 @@ class FactoryJob:
                 if r.status not in (200, 201):
                     body = await r.text()
                     raise RuntimeError(f"tenant upsert failed ({r.status}): {body[:200]}")
+
+            # 1b. Wire allowedProjects so this tenant only sees its own folder
+            if published_project:
+                patch_payload = {"allowedProjects": [published_project]}
+                async with session.patch(
+                    f"{base}/api/admin/tenants/{urllib.parse.quote(slug)}",
+                    json=patch_payload,
+                    headers=headers,
+                ) as r:
+                    if r.status not in (200, 201):
+                        import logging
+                        body = await r.text()
+                        logging.getLogger(__name__).warning(
+                            "allowedProjects patch failed (%d): %s", r.status, body[:200]
+                        )
 
             # 2. Apply brand theme if extracted
             if theme is not None:

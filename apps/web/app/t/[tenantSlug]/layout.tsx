@@ -4,6 +4,7 @@ import { auth, signOut } from "@/lib/auth";
 import { canAccessTenant, tenantFromSession } from "@/lib/tenant";
 import { getTenantTheme, themeToCssVariables } from "@/lib/tenant-theme";
 import { getLiveCatalog } from "@/lib/tableau-rest";
+import { getTenant } from "@/lib/tenants";
 import { SalesforceBankIcon } from "@/components/SalesforceBankLogo";
 import { ProjectTree } from "@/components/nav/ProjectTree";
 import { SidebarProvider, SidebarWrapper, SidebarToggle } from "@/components/layout/SidebarShell";
@@ -35,9 +36,10 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
     );
   }
 
+  const tenantRecord = await getTenant(tenantSlug);
   const [rawTheme, catalog] = await Promise.all([
     getTenantTheme(ctx?.tenantId ?? tenantSlug),
-    getLiveCatalog(ctx?.tenantId),
+    getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects),
   ]);
   const theme = {
     primary: rawTheme.primaryColor,

@@ -82,8 +82,10 @@ const _inFlightBySite = new Map<string, Promise<LiveCatalog>>();
 /**
  * Fetch the live catalog for the given tenant's Tableau site.
  * Pass tenantId to resolve via the site registry; omit to use env-var defaults.
+ * Pass allowedProjects to restrict the returned projects+dashboards to those
+ * whose project name matches (case-insensitive prefix or exact match).
  */
-export async function getLiveCatalog(tenantId?: string): Promise<LiveCatalog> {
+export async function getLiveCatalog(tenantId?: string, allowedProjects?: string[]): Promise<LiveCatalog> {
   const now = Date.now();
 
   // Resolve which site to use — always go through getSiteForTenant so the
@@ -117,7 +119,45 @@ export async function getLiveCatalog(tenantId?: string): Promise<LiveCatalog> {
     });
 
   _inFlightBySite.set(cacheKey, promise);
-  return promise;
+  const catalog = await promise;
+  return filterCatalog(catalog, allowedProjects);
+}
+
+/**
+ * Filter a catalog to only include projects (and their dashboards) whose
+ * name matches one of the allowedProjects entries.
+ * Matching is case-insensitive and supports exact name or "Parent/Child" path.
+ * If allowedProjects is empty/undefined, the full catalog is returned.
+ */
+function filterCatalog(catalog: LiveCatalog, allowedProjects?: string[]): LiveCatalog {
+  if (!allowedProjects || allowedProjects.length === 0) return catalog;
+
+  const allowed = new Set(allowedProjects.map((p) => p.toLowerCase().trim()));
+
+  // Build parent-name lookup for path matching (e.g. "Demo/VinCommerce")
+  const projectNameById = new Map(catalog.projects.map((p) => [p.id, p.name]));
+
+  function projectPath(p: LiveProject): string {
+    if (!p.parentProjectId) return p.name;
+    const parentName = projectNameById.get(p.parentProjectId);
+    return parentName ? `${parentName}/${p.name}` : p.name;
+  }
+
+  const allowedProjectIds = new Set(
+    catalog.projects
+      .filter((p) => {
+        const name = p.name.toLowerCase();
+        const path = projectPath(p).toLowerCase();
+        return allowed.has(name) || allowed.has(path);
+      })
+      .map((p) => p.id),
+  );
+
+  return {
+    ...catalog,
+    projects: catalog.projects.filter((p) => allowedProjectIds.has(p.id)),
+    dashboards: catalog.dashboards.filter((d) => allowedProjectIds.has(d.projectId)),
+  };
 }
 
 /** Force-refresh a specific site's cache (or all sites if no key given). */

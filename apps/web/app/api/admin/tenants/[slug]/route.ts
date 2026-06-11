@@ -13,6 +13,7 @@ const patchSchema = z.object({
   industry: z.string().max(80).optional(),
   status: z.enum(["active", "archived"]).optional(),
   siteId: z.string().regex(/^[a-z0-9-]{2,48}$/).nullable().optional(),
+  allowedProjects: z.array(z.string().max(200)).max(50).nullable().optional(),
 });
 
 export async function PATCH(
@@ -58,6 +59,11 @@ export async function PATCH(
       ? (data.siteId != null ? { siteId: data.siteId } : {})
       : existing.siteId
         ? { siteId: existing.siteId }
+        : {}),
+    ...("allowedProjects" in data
+      ? (data.allowedProjects != null ? { allowedProjects: data.allowedProjects } : {})
+      : existing.allowedProjects
+        ? { allowedProjects: existing.allowedProjects }
         : {}),
   });
   return NextResponse.json(updated);

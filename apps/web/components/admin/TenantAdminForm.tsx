@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, type ReactElement, useState } from "react";
+import { type FormEvent, type ReactElement, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TenantRecord } from "@/lib/tenants";
 import type { SiteConfigPublic } from "@/lib/site-config";
@@ -10,16 +10,50 @@ interface Props {
   availableSites?: SiteConfigPublic[];
 }
 
+interface ProjectOption {
+  id: string;
+  name: string;
+  path: string;
+}
+
 export function TenantAdminForm({ tenant, availableSites = [] }: Props): ReactElement {
   const router = useRouter();
   const [name, setName] = useState(tenant.name);
   const [siteId, setSiteId] = useState(tenant.siteId ?? "");
+  const [allowedProjects, setAllowedProjects] = useState<string[]>(tenant.allowedProjects ?? []);
+  const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [projectInput, setProjectInput] = useState("");
   const [primary, setPrimary] = useState("#1a56db");
   const [secondary, setSecondary] = useState("#f59e0b");
   const [logoUrl, setLogoUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+
+  // Fetch available projects from the tenant's Tableau site
+  useEffect(() => {
+    setProjectsLoading(true);
+    fetch(`/api/admin/tenants/${encodeURIComponent(tenant.slug)}/projects`)
+      .then((r) => r.json())
+      .then((d: { projects?: ProjectOption[] }) => setProjectOptions(d.projects ?? []))
+      .catch(() => setProjectOptions([]))
+      .finally(() => setProjectsLoading(false));
+  }, [tenant.slug]);
+
+  const toggleProject = (path: string) => {
+    setAllowedProjects((prev) =>
+      prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path],
+    );
+  };
+
+  const addManualProject = () => {
+    const v = projectInput.trim();
+    if (v && !allowedProjects.includes(v)) {
+      setAllowedProjects((prev) => [...prev, v]);
+    }
+    setProjectInput("");
+  };
 
   const saveRename = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -30,7 +64,11 @@ export function TenantAdminForm({ tenant, availableSites = [] }: Props): ReactEl
       const res = await fetch(`/api/admin/tenants/${encodeURIComponent(tenant.slug)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, ...(siteId ? { siteId } : { siteId: null }) }),
+        body: JSON.stringify({
+          name,
+          ...(siteId ? { siteId } : { siteId: null }),
+          allowedProjects: allowedProjects.length > 0 ? allowedProjects : null,
+        }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setInfo("Saved.");
@@ -140,6 +178,95 @@ export function TenantAdminForm({ tenant, availableSites = [] }: Props): ReactEl
             </select>
           </label>
         )}
+        {/* Allowed Projects picker */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Project folders hiển thị</span>
+            {allowedProjects.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setAllowedProjects([])}
+                className="text-xs text-[hsl(var(--muted-foreground))] underline hover:no-underline"
+              >
+                Xoá bộ lọc (hiện tất cả)
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+            {allowedProjects.length === 0
+              ? "Chưa lọc — tenant thấy tất cả project folders trên site này."
+              : `Tenant chỉ thấy ${allowedProjects.length} folder đã chọn.`}
+          </p>
+
+          {/* Selected tags */}
+          {allowedProjects.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {allowedProjects.map((p) => (
+                <span
+                  key={p}
+                  className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand"
+                >
+                  📁 {p}
+                  <button
+                    type="button"
+                    onClick={() => toggleProject(p)}
+                    className="ml-0.5 text-brand/60 hover:text-brand"
+                    aria-label={`Remove ${p}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Live project list from Tableau */}
+          {projectsLoading ? (
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">Đang tải danh sách projects…</p>
+          ) : projectOptions.length > 0 ? (
+            <div className="max-h-48 overflow-y-auto rounded-md border border-[hsl(var(--border))] divide-y divide-[hsl(var(--border))]">
+              {projectOptions.map((p) => (
+                <label
+                  key={p.id}
+                  className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm hover:bg-[hsl(var(--muted))]"
+                >
+                  <input
+                    type="checkbox"
+                    checked={allowedProjects.includes(p.path)}
+                    onChange={() => toggleProject(p.path)}
+                    className="accent-brand"
+                  />
+                  <span className="flex-1 truncate font-mono text-xs">{p.path}</span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              Không có projects — Tableau site chưa connect hoặc PAT chưa cấu hình.
+            </p>
+          )}
+
+          {/* Manual entry fallback */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={projectInput}
+              onChange={(e) => setProjectInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addManualProject())}
+              placeholder="Nhập tên folder thủ công…"
+              className="flex-1 rounded-md border border-[hsl(var(--border))] px-2 py-1.5 text-xs outline-none focus:border-brand"
+            />
+            <button
+              type="button"
+              onClick={addManualProject}
+              disabled={!projectInput.trim()}
+              className="rounded-md border border-[hsl(var(--border))] px-3 py-1.5 text-xs hover:bg-[hsl(var(--muted))] disabled:opacity-40"
+            >
+              Thêm
+            </button>
+          </div>
+        </div>
+
         <button
           type="submit"
           disabled={busy}

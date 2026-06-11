@@ -16,6 +16,13 @@ export interface TenantRecord {
   status: "active" | "archived";
   /** ID of the SiteConfig this tenant is assigned to. Undefined = use deployment env vars. */
   siteId?: string;
+  /**
+   * Tableau project folder names this tenant is allowed to see.
+   * When set, the sidebar and catalog only show workbooks in these folders.
+   * When undefined/empty, tenant sees ALL projects (legacy behaviour).
+   * Example: ["Demo/VinCommerce"] or ["Banking", "Samples"]
+   */
+  allowedProjects?: string[];
 }
 
 const STORE = new Map<string, TenantRecord>();
@@ -74,6 +81,11 @@ export async function upsertTenant(input: Partial<TenantRecord> & { name: string
       ? { siteId: input.siteId }
       : existing?.siteId !== undefined
         ? { siteId: existing.siteId }
+        : {}),
+    ...(input.allowedProjects !== undefined
+      ? { allowedProjects: input.allowedProjects }
+      : existing?.allowedProjects !== undefined
+        ? { allowedProjects: existing.allowedProjects }
         : {}),
   };
   STORE.set(slug, next);
