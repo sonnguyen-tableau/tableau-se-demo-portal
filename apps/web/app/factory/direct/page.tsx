@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { tenantFromSession } from "@/lib/tenant";
@@ -43,9 +44,9 @@ export default async function DirectLaunchPage() {
         </p>
         <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">
           Muốn AI tự phân tích từ website?{" "}
-          <a href="/factory/new" className="text-brand underline hover:no-underline">
+          <Link href="/factory/new" className="text-brand underline hover:no-underline">
             Dùng URL mode →
-          </a>
+          </Link>
         </p>
       </header>
 

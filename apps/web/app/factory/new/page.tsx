@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { tenantFromSession } from "@/lib/tenant";
@@ -36,9 +37,9 @@ export default async function FactoryNewPage() {
         </p>
         <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">
           Muốn nhập trực tiếp tất cả tham số?{" "}
-          <a href="/factory/direct" className="text-brand underline hover:no-underline">
+          <Link href="/factory/direct" className="text-brand underline hover:no-underline">
             Dùng Direct mode →
-          </a>
+          </Link>
         </p>
       </header>
 
