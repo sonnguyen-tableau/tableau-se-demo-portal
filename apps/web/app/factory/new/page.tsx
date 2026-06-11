@@ -34,6 +34,12 @@ export default async function FactoryNewPage() {
           sinh 2 năm dữ liệu tổng hợp, publish lên Tableau Cloud, tạo Pulse metrics và
           provisioning portal tenant hoàn chỉnh — trong khoảng 5–7 phút.
         </p>
+        <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">
+          Muốn nhập trực tiếp tất cả tham số?{" "}
+          <a href="/factory/direct" className="text-brand underline hover:no-underline">
+            Dùng Direct mode →
+          </a>
+        </p>
       </header>
 
       <LaunchWizard

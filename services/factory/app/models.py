@@ -111,3 +111,78 @@ class BrandTheme(BaseModel):
     font_family: str = "Inter"
     logo_url: str | None = None
     tone: Literal["professional", "playful", "technical"] = "professional"
+
+
+class GeneratorParams(BaseModel):
+    """Industry-specific numeric overrides. All fields optional — defaults
+    come from each generator's @dataclass. Only the params relevant to the
+    chosen industry are used; extras are silently ignored."""
+
+    model_config = ConfigDict(extra="allow")
+
+    # Common
+    seed: int | None = None
+    yoy_growth_pct: float | None = None
+
+    # Retail e-commerce
+    base_daily_orders: int | None = None
+
+    # Retail banking
+    base_daily_transactions: int | None = None
+    geographies: list[str] | None = None
+
+    # Retail mall (VinCommerce)
+    n_winmart: int | None = None
+    n_winmart_plus: int | None = None
+    n_malls: int | None = None
+    n_products: int | None = None
+    n_lessees: int | None = None
+    base_daily_sales_winmart: int | None = None
+    base_daily_sales_winmart_plus: int | None = None
+    target_occupancy_rate: float | None = None
+
+    # Manufacturing
+    n_plants: int | None = None
+    lines_per_plant: int | None = None
+    n_suppliers: int | None = None
+
+    # Healthcare
+    n_patients: int | None = None
+    n_providers: int | None = None
+    n_beds: int | None = None
+
+    # Logistics
+    n_carriers: int | None = None
+    n_hubs: int | None = None
+    n_lanes: int | None = None
+    n_vehicles: int | None = None
+    n_customers: int | None = None
+
+
+class DirectStartRequest(BaseModel):
+    """Direct-mode start: caller supplies all parameters explicitly.
+
+    Stages scrape / profile / confirm are skipped. The pipeline jumps
+    straight to generate → hyper → publish → workbook → pulse → brand → provision.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Identity
+    company_name: str = Field(min_length=1, max_length=120)
+    company_url: str = Field(max_length=2048)
+    industry: Industry
+    tagline: str | None = Field(default=None, max_length=280)
+    logo_url: str | None = Field(default=None, max_length=2048)
+
+    # Generator tuning
+    generator_params: GeneratorParams = Field(default_factory=GeneratorParams)
+
+    # Brand override (skips Claude vision extraction)
+    brand: BrandTheme | None = None
+
+    # Provision metadata
+    tenant_slug: str | None = Field(default=None, max_length=48)
+    site_id: str | None = Field(default=None, max_length=48)
+    admin_email: str | None = Field(default=None, max_length=320)
+    portal_url: str | None = Field(default=None, max_length=512)

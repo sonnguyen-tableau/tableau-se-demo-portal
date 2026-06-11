@@ -28,7 +28,10 @@ from .generators.vincommerce import VinCommerceParameters, generate_vincommerce
 from .hyper import is_available as hyper_available
 from .hyper import write_hyper
 from .models import (
+    BrandTheme,
     CompanyProfile,
+    DirectStartRequest,
+    GeneratorParams,
     Industry,
     Stage,
     StageEvent,
@@ -61,6 +64,10 @@ class FactoryJob:
         site_id: str | None = None,
         admin_email: str | None = None,
         portal_url: str | None = None,
+        # Direct mode — skip scrape/profile/confirm and use these directly.
+        direct_profile: CompanyProfile | None = None,
+        direct_brand: BrandTheme | None = None,
+        direct_generator_params: GeneratorParams | None = None,
     ):
         self.job_id = job_id
         self.url = url
@@ -69,11 +76,49 @@ class FactoryJob:
         self.site_id = site_id
         self.admin_email = admin_email
         self.portal_url = portal_url
+        self._direct_profile = direct_profile
+        self._direct_brand = direct_brand
+        self._direct_generator_params = direct_generator_params or GeneratorParams()
         # Confirm-before-build coordination (Phase 9).
         self._confirm_event = asyncio.Event()
         self._profile: CompanyProfile | None = None
         self._profile_override: CompanyProfile | None = None
-        self.require_confirm: bool = True
+        self.require_confirm: bool = direct_profile is None  # skip confirm in direct mode
+
+    @classmethod
+    def from_direct(cls, job_id: str, req: DirectStartRequest, settings: Settings | None = None) -> "FactoryJob":
+        """Create a FactoryJob from a DirectStartRequest, bypassing scrape/profile."""
+        import re as _re
+
+        def _slugify(s: str) -> str:
+            out: list[str] = []
+            for ch in s.lower():
+                if ch.isalnum():
+                    out.append(ch)
+                elif out and out[-1] != "-":
+                    out.append("-")
+            return "".join(out).strip("-")[:48]
+
+        slug = (req.tenant_slug or _slugify(req.company_name))[:48] or "demo"
+        profile = CompanyProfile(
+            company_name=req.company_name,
+            company_url=req.company_url,
+            industry=req.industry,
+            tagline=req.tagline,
+            logo_url=req.logo_url,
+        )
+        return cls(
+            job_id=job_id,
+            url=req.company_url,
+            tenant_slug=slug,
+            settings=settings,
+            site_id=req.site_id,
+            admin_email=req.admin_email,
+            portal_url=req.portal_url,
+            direct_profile=profile,
+            direct_brand=req.brand,
+            direct_generator_params=req.generator_params,
+        )
 
     # ------------------------------------------------------------------
     # Public API used by the FastAPI layer.
@@ -111,34 +156,43 @@ class FactoryJob:
         # Local reference; the active profile is the override (if any) by
         # the time we reach the generator branch.
         profile: CompanyProfile
+        scrape = None
 
-        # 1. scrape
-        yield await emit(Stage.scrape, StageStatus.running)
-        try:
-            scrape = await scrape_basic(self.url)
-            yield await emit(Stage.scrape, StageStatus.ok, detail=f"title={scrape.title!r}")
-        except Exception as e:
-            yield await emit(Stage.scrape, StageStatus.error, error=str(e))
-            return
+        # Direct mode: skip scrape / profile / confirm — use supplied values.
+        if self._direct_profile is not None:
+            yield await emit(Stage.scrape, StageStatus.skipped, detail="direct mode — no scrape")
+            yield await emit(Stage.profile, StageStatus.skipped, detail="direct mode — profile supplied by caller")
+            yield await emit(Stage.schema, StageStatus.skipped, detail="direct mode")
+            yield await emit(Stage.confirm, StageStatus.skipped, detail="direct mode — no confirmation required")
+            profile = self._direct_profile
+        else:
+            # 1. scrape
+            yield await emit(Stage.scrape, StageStatus.running)
+            try:
+                scrape = await scrape_basic(self.url)
+                yield await emit(Stage.scrape, StageStatus.ok, detail=f"title={scrape.title!r}")
+            except Exception as e:
+                yield await emit(Stage.scrape, StageStatus.error, error=str(e))
+                return
 
-        # 2. profile
-        yield await emit(Stage.profile, StageStatus.running)
-        try:
-            profile = await profile_company(scrape, s)
-            self._profile = profile
-            yield await emit(
-                Stage.profile,
-                StageStatus.ok,
-                detail=f"industry={profile.industry.value} kpis={len(profile.kpis)}",
-                payload=profile.model_dump(mode="json"),
-            )
-        except Exception as e:
-            yield await emit(Stage.profile, StageStatus.error, error=str(e))
-            return
+            # 2. profile
+            yield await emit(Stage.profile, StageStatus.running)
+            try:
+                profile = await profile_company(scrape, s)
+                self._profile = profile
+                yield await emit(
+                    Stage.profile,
+                    StageStatus.ok,
+                    detail=f"industry={profile.industry.value} kpis={len(profile.kpis)}",
+                    payload=profile.model_dump(mode="json"),
+                )
+            except Exception as e:
+                yield await emit(Stage.profile, StageStatus.error, error=str(e))
+                return
 
-        # 3. schema (static per industry; Claude-driven customization later.)
-        yield await emit(Stage.schema, StageStatus.running)
-        yield await emit(Stage.schema, StageStatus.ok, detail=f"using static schema for {profile.industry.value}")
+            # 3. schema (static per industry; Claude-driven customization later.)
+            yield await emit(Stage.schema, StageStatus.running)
+            yield await emit(Stage.schema, StageStatus.ok, detail=f"using static schema for {profile.industry.value}")
 
         # 4. confirm — wait for the user to review/edit the profile, then
         # resume with the (possibly edited) profile.
@@ -314,19 +368,30 @@ class FactoryJob:
         except Exception as e:
             yield await emit(Stage.pulse, StageStatus.error, error=str(e))
 
-        # 10. brand
+        # 10. brand — use caller-supplied theme in direct mode, else extract.
         theme = None
         yield await emit(Stage.brand, StageStatus.running)
-        try:
-            theme = await extract_brand(scrape, s)
+        if self._direct_brand is not None:
+            theme = self._direct_brand
             yield await emit(
                 Stage.brand,
                 StageStatus.ok,
-                detail=f"primary={theme.primary_color} font={theme.font_family} tone={theme.tone}",
+                detail=f"direct mode — primary={theme.primary_color} font={theme.font_family} tone={theme.tone}",
                 payload=theme.model_dump(mode="json"),
             )
-        except Exception as e:
-            yield await emit(Stage.brand, StageStatus.error, error=str(e))
+        elif scrape is not None:
+            try:
+                theme = await extract_brand(scrape, s)
+                yield await emit(
+                    Stage.brand,
+                    StageStatus.ok,
+                    detail=f"primary={theme.primary_color} font={theme.font_family} tone={theme.tone}",
+                    payload=theme.model_dump(mode="json"),
+                )
+            except Exception as e:
+                yield await emit(Stage.brand, StageStatus.error, error=str(e))
+        else:
+            yield await emit(Stage.brand, StageStatus.skipped, detail="no scrape result and no direct brand supplied")
 
         # 11. provision — create tenant record, apply brand, wire first user.
         yield await emit(Stage.provision, StageStatus.running)
@@ -468,30 +533,93 @@ class FactoryJob:
     def _generate_for(self, profile: CompanyProfile) -> tuple[dict[str, object], int]:
         end = date.today()
         start = end - timedelta(days=730)
+        p = self._direct_generator_params  # may be empty GeneratorParams()
+
+        def _ov(field: str, default: object) -> object:
+            """Return override value if set, else default."""
+            v = getattr(p, field, None)
+            return v if v is not None else default
 
         if profile.industry is Industry.retail:
             tables = generate_retail(
-                RetailParameters(tenant_id=self.tenant_slug, start_date=start, end_date=end)
+                RetailParameters(
+                    tenant_id=self.tenant_slug,
+                    start_date=start,
+                    end_date=end,
+                    base_daily_orders=int(_ov("base_daily_orders", 70)),
+                    seed=int(_ov("seed", 42)),
+                    yoy_growth_pct=float(_ov("yoy_growth_pct", 12.0)),
+                )
             ).all_tables()
         elif profile.industry is Industry.mall:
             tables = generate_vincommerce(
-                VinCommerceParameters(tenant_id=self.tenant_slug, start_date=start, end_date=end)
+                VinCommerceParameters(
+                    tenant_id=self.tenant_slug,
+                    start_date=start,
+                    end_date=end,
+                    n_winmart=int(_ov("n_winmart", 12)),
+                    n_winmart_plus=int(_ov("n_winmart_plus", 85)),
+                    n_malls=int(_ov("n_malls", 6)),
+                    n_products=int(_ov("n_products", 3_000)),
+                    n_lessees=int(_ov("n_lessees", 280)),
+                    base_daily_sales_winmart=int(_ov("base_daily_sales_winmart", 1_800)),
+                    base_daily_sales_winmart_plus=int(_ov("base_daily_sales_winmart_plus", 320)),
+                    target_occupancy_rate=float(_ov("target_occupancy_rate", 0.87)),
+                    yoy_growth_pct=float(_ov("yoy_growth_pct", 8.0)),
+                    seed=int(_ov("seed", 42)),
+                )
             ).all_tables()
         elif profile.industry is Industry.banking:
+            geo_raw = _ov("geographies", None)
+            geo: tuple[str, ...] = tuple(geo_raw) if geo_raw is not None else ("NA", "EMEA", "APAC")  # type: ignore[arg-type]
             tables = generate_banking(
-                BankingParameters(tenant_id=self.tenant_slug, start_date=start, end_date=end)
+                BankingParameters(
+                    tenant_id=self.tenant_slug,
+                    start_date=start,
+                    end_date=end,
+                    base_daily_transactions=int(_ov("base_daily_transactions", 320)),
+                    seed=int(_ov("seed", 42)),
+                    geographies=geo,
+                )
             ).all_tables()
         elif profile.industry is Industry.manufacturing:
             tables = generate_manufacturing(
-                ManufacturingParameters(tenant_id=self.tenant_slug, start_date=start, end_date=end)
+                ManufacturingParameters(
+                    tenant_id=self.tenant_slug,
+                    start_date=start,
+                    end_date=end,
+                    n_plants=int(_ov("n_plants", 8)),
+                    lines_per_plant=int(_ov("lines_per_plant", 6)),
+                    n_products=int(_ov("n_products", 60)),
+                    n_suppliers=int(_ov("n_suppliers", 24)),
+                    seed=int(_ov("seed", 42)),
+                )
             ).all_tables()
         elif profile.industry is Industry.healthcare:
             tables = generate_healthcare(
-                HealthcareParameters(tenant_id=self.tenant_slug, start_date=start, end_date=end)
+                HealthcareParameters(
+                    tenant_id=self.tenant_slug,
+                    start_date=start,
+                    end_date=end,
+                    n_patients=int(_ov("n_patients", 4_200)),
+                    n_providers=int(_ov("n_providers", 180)),
+                    n_beds=int(_ov("n_beds", 320)),
+                    seed=int(_ov("seed", 42)),
+                )
             ).all_tables()
         elif profile.industry is Industry.logistics:
             tables = generate_logistics(
-                LogisticsParameters(tenant_id=self.tenant_slug, start_date=start, end_date=end)
+                LogisticsParameters(
+                    tenant_id=self.tenant_slug,
+                    start_date=start,
+                    end_date=end,
+                    n_carriers=int(_ov("n_carriers", 18)),
+                    n_hubs=int(_ov("n_hubs", 14)),
+                    n_lanes=int(_ov("n_lanes", 70)),
+                    n_vehicles=int(_ov("n_vehicles", 240)),
+                    n_customers=int(_ov("n_customers", 380)),
+                    seed=int(_ov("seed", 42)),
+                )
             ).all_tables()
         else:
             raise NotImplementedError(f"No generator for {profile.industry.value}")

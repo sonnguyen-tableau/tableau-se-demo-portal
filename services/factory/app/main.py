@@ -11,7 +11,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 
 from .config import get_settings
-from .models import ConfirmRequest, FactoryStartRequest, FactoryStartResponse
+from .models import ConfirmRequest, DirectStartRequest, FactoryStartRequest, FactoryStartResponse
 from .pipeline import FactoryJob
 
 app = FastAPI(title="tableau-ai-portal factory", version="0.1.0")
@@ -58,6 +58,20 @@ async def start_factory(req: FactoryStartRequest) -> FactoryStartResponse:
         admin_email=req.admin_email,
         portal_url=req.portal_url,
     )
+    return FactoryStartResponse(job_id=job_id, sse_url=f"/factory/{job_id}/events")
+
+
+@app.post("/factory/direct", response_model=FactoryStartResponse)
+async def start_direct(req: DirectStartRequest) -> FactoryStartResponse:
+    """Direct mode: skip scrape/profile/confirm, jump straight to generate."""
+    if len(_JOBS) >= _MAX_CONCURRENT_JOBS:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Factory is at capacity ({_MAX_CONCURRENT_JOBS} concurrent). Retry later.",
+        )
+    settings = get_settings()
+    job_id = uuid.uuid4().hex[:12]
+    _JOBS[job_id] = FactoryJob.from_direct(job_id=job_id, req=req, settings=settings)
     return FactoryStartResponse(job_id=job_id, sse_url=f"/factory/{job_id}/events")
 
 
