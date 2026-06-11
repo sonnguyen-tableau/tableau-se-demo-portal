@@ -10,14 +10,14 @@ WORKDIR /app
 # Install uv for fast dependency install
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Use system Python so uv doesn't create a venv (simpler in Docker)
-ENV UV_SYSTEM_PYTHON=1
-
 # Copy dependency files first for layer caching
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies (no dev extras, no playwright)
+# Install dependencies into a venv (uv default)
 RUN uv sync --frozen --no-dev
+
+# Put the venv on PATH so uvicorn is found at runtime
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy application code
 COPY app/ ./app/
@@ -29,4 +29,4 @@ EXPOSE 8000
 
 # Railway overrides PORT via env var; fall back to 8000 for local dev
 ENV PORT=8000
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port $PORT"]

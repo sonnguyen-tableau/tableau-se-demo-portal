@@ -4,9 +4,15 @@ import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { archiveTenant, deleteTenant, getTenant, upsertTenant } from "@/lib/tenants";
 import { audit } from "@/lib/audit";
+import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function isFactoryAuthorized(req: Request): boolean {
+  const secret = env.FACTORY_PROVISION_SECRET;
+  return !!secret && req.headers.get("x-factory-secret") === secret;
+}
 
 const patchSchema = z.object({
   name: z.string().min(1).max(120).optional(),
@@ -22,7 +28,10 @@ export async function PATCH(
 ): Promise<Response> {
   const session = await auth();
   const ctx = tenantFromSession(session);
-  if (!session?.user || !ctx?.isInternal) {
+  if (!session?.user && !isFactoryAuthorized(req)) {
+    return new NextResponse("forbidden", { status: 403 });
+  }
+  if (session?.user && !ctx?.isInternal) {
     return new NextResponse("forbidden", { status: 403 });
   }
   const { slug } = await context.params;
@@ -40,7 +49,7 @@ export async function PATCH(
     const t = await archiveTenant(slug);
     audit.emit({
       kind: "chat.start",
-      userId: session.user.email ?? "(none)",
+      userId: session?.user?.email ?? "(factory)",
       tenantId: slug,
       messageHash: `admin.archive`,
       messageLength: 0,
