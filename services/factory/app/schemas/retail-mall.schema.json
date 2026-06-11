@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "retail-mall.schema.json",
+  "title": "VinCommerce Retail & Mall Leasing data contract",
+  "description": "Field-name contract for the retail-mall industry. Covers two sub-verticals: supermarket/convenience retail (WinMart/WinMart+) and mall leasing (cho thuê sàn TTTM). Generators must emit matching column names; templates must reference only fields listed here.",
+  "type": "object",
+  "required": [
+    "Stores", "Products", "SalesTransactions", "Inventory",
+    "Malls", "LeasableUnits", "Lessees", "LeaseContracts", "MonthlyRentalRevenue"
+  ],
+  "properties": {
+    "Stores": {
+      "description": "WinMart and WinMart+ store master data",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["StoreId", "StoreName", "StoreType", "Province", "District", "OpenDate", "CloseDate", "AreaSqm", "TenantId"] }
+        }
+      }
+    },
+    "Products": {
+      "description": "SKU master data across all stores",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ProductId", "Sku", "ProductName", "Category", "SubCategory", "Brand", "CostPrice", "SellPrice", "IsPrivateLabel"] }
+        }
+      }
+    },
+    "SalesTransactions": {
+      "description": "Daily store-level sales grain — one row per store/product/day",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["TxId", "TxDate", "StoreId", "ProductId", "Qty", "Revenue", "COGS", "Discount", "TenantId"] }
+        }
+      }
+    },
+    "Inventory": {
+      "description": "Weekly inventory snapshots per store/product",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["SnapshotDate", "StoreId", "ProductId", "StockQty", "DaysOnHand", "TenantId"] }
+        }
+      }
+    },
+    "Malls": {
+      "description": "Shopping mall master data (Vincom centers)",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["MallId", "MallName", "Province", "TotalAreaSqm", "LeasableAreaSqm", "FloorCount", "OpenYear", "TenantId"] }
+        }
+      }
+    },
+    "LeasableUnits": {
+      "description": "Individual leasable units within each mall",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["UnitId", "MallId", "Floor", "AreaSqm", "UnitType", "FacingType", "TenantId"] }
+        }
+      }
+    },
+    "Lessees": {
+      "description": "Tenant/brand master data (the businesses that lease space)",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["LesseeId", "LesseeName", "Brand", "Category", "IsForeign", "TenantId"] }
+        }
+      }
+    },
+    "LeaseContracts": {
+      "description": "Lease contract per unit, with status tracking",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ContractId", "UnitId", "LesseeId", "StartDate", "EndDate", "BaseRentVND", "CAMFeeVND", "DepositMonths", "Status", "IsRenewal", "TenantId"] }
+        }
+      }
+    },
+    "MonthlyRentalRevenue": {
+      "description": "Monthly revenue per active contract — basis for KPI calculations",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["Month", "ContractId", "UnitId", "MallId", "BaseRent", "CAMFee", "Arrears", "TotalRevenue", "TenantId"] }
+        }
+      }
+    }
+  }
+}

@@ -63,9 +63,12 @@ _LOCAL_FIELDS = {"__tenant_filter__"}
 # Templates directory shipped alongside the app.
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
-# Schema directory — packages/factory-schema/ at the repo root.
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-SCHEMAS_DIR = _REPO_ROOT / "packages" / "factory-schema"
+# Schema directory — bundled alongside the app at app/schemas/ (Docker),
+# falls back to the monorepo packages/factory-schema/ for local dev.
+_APP_DIR = Path(__file__).parent
+_SCHEMAS_BUNDLED = _APP_DIR / "schemas"
+_SCHEMAS_REPO = _APP_DIR.parents[2] / "packages" / "factory-schema"
+SCHEMAS_DIR = _SCHEMAS_BUNDLED if _SCHEMAS_BUNDLED.exists() else _SCHEMAS_REPO
 
 # Industry slug → (template filename, schema filename) mapping.
 _INDUSTRY_TO_FILES: dict[str, tuple[str, str]] = {

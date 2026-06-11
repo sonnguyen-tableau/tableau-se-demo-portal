@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "healthcare.schema.json",
+  "title": "Healthcare (provider) data contract — synthetic only",
+  "description": "Real PHI MUST NOT enter this data source. Dashboards built from it display a 'synthetic data' banner.",
+  "type": "object",
+  "required": ["Patients", "Providers", "Departments", "Procedures", "Encounters", "Claims", "Beds"],
+  "properties": {
+    "Patients": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["PatientId", "GenderCode", "AgeBand", "Region", "TenantId"] }
+        }
+      }
+    },
+    "Providers": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ProviderId", "ProviderName", "Specialty", "DepartmentId"] }
+        }
+      }
+    },
+    "Departments": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["DepartmentId", "DepartmentName", "Type"] }
+        }
+      }
+    },
+    "Procedures": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ProcedureId", "ProcedureName", "AvgCharge"] }
+        }
+      }
+    },
+    "Encounters": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": ["EncounterId", "EncounterDate", "PatientId", "ProviderId", "DepartmentId", "ProcedureId", "LengthOfStay_Days", "Readmission_30Day", "OutcomeCode"]
+          }
+        }
+      }
+    },
+    "Claims": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ClaimId", "EncounterId", "Charge", "Payer", "Status"] }
+        }
+      }
+    },
+    "Beds": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["BedId", "DepartmentId", "Type"] }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "retail-banking.schema.json",
+  "title": "Retail Banking data contract",
+  "type": "object",
+  "required": ["Customers", "Branches", "Products", "Accounts", "Loans", "Transactions"],
+  "properties": {
+    "Customers": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": ["CustomerId", "CustomerName", "Segment", "Region", "Tenure_Years", "PrimaryBranchId", "TenantId"]
+          }
+        }
+      }
+    },
+    "Branches": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["BranchId", "BranchName", "Region", "OpenDate", "FteCount"] }
+        }
+      }
+    },
+    "Products": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["ProductId", "ProductName", "BaseInterestRate", "ProductGroup"] }
+        }
+      }
+    },
+    "Accounts": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["AccountId", "CustomerId", "ProductId", "Balance", "OpenDate", "BranchId"] }
+        }
+      }
+    },
+    "Loans": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": ["LoanId", "CustomerId", "ProductId", "Principal", "OutstandingBalance", "InterestRate", "Status", "OriginationDate"]
+          }
+        }
+      }
+    },
+    "Transactions": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "enum": ["TransactionId", "AccountId", "PostedDate", "Amount", "Type", "Channel"] }
+        }
+      }
+    }
+  }
+}

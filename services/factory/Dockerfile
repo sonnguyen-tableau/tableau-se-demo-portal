@@ -19,7 +19,7 @@ RUN uv sync --frozen --no-dev
 # Put the venv on PATH so uvicorn is found at runtime
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Copy application code
+# Copy application code (includes app/schemas/ bundled at build time)
 COPY app/ ./app/
 
 # Create data directory
