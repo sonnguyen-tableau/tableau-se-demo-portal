@@ -17,6 +17,7 @@
     "industry": "retail-banking",
     "createdAt": "2026-06-01T00:00:00.000Z",
     "status": "active",
+    "allowedProjects": ["Demo/Salesforce Bank"],
     "isDefault": true
   }
 ]

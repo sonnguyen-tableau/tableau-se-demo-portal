@@ -88,13 +88,21 @@ export async function GET(req: Request): Promise<Response> {
       (p) => p.name.toLowerCase() === "demo" && !p.parentProjectId,
     );
 
-    // Return only direct children of "Demo", or all top-level if "Demo" not found
-    const projects = demoParent
+    // Demo/* children
+    const demoChildren = demoParent
       ? all
           .filter((p) => p.parentProjectId === demoParent.id)
-          .map((p) => ({ id: p.id, name: p.name, path: `Demo/${p.name}` }))
+          .map((p) => ({ id: p.id, name: p.name, path: `Demo/${p.name}`, group: "Demo" }))
           .sort((a, b) => a.name.localeCompare(b.name))
       : [];
+
+    // All other top-level projects (excluding the Demo folder itself)
+    const topLevel = all
+      .filter((p) => !p.parentProjectId && p.id !== demoParent?.id)
+      .map((p) => ({ id: p.id, name: p.name, path: p.name, group: "Top-level" }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const projects = [...demoChildren, ...topLevel];
 
     return NextResponse.json({ projects, demoParentId: demoParent?.id ?? null });
   } catch (err) {

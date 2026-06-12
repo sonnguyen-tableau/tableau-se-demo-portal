@@ -8,6 +8,7 @@ interface ProjectOption {
   id: string;
   name: string;
   path: string;
+  group?: string;
 }
 
 interface PortalRow {
@@ -17,8 +18,6 @@ interface PortalRow {
   isDefault: boolean;
   allowedProjects: string[];
   expanded: boolean;
-  projects: ProjectOption[];
-  projectsLoading: boolean;
   saving: boolean;
 }
 
@@ -39,8 +38,6 @@ export function PortalCatalogManager({ tenants }: Props): ReactElement {
       isDefault: t.isDefault ?? false,
       allowedProjects: t.allowedProjects ?? [],
       expanded: false,
-      projects: [],
-      projectsLoading: false,
       saving: false,
     })),
   );
@@ -159,7 +156,7 @@ export function PortalCatalogManager({ tenants }: Props): ReactElement {
       return [...prev, {
         slug: t.slug, name: t.name, industry: t.industry ?? "",
         isDefault: t.isDefault ?? false, allowedProjects: t.allowedProjects ?? [],
-        expanded: false, projects: [], projectsLoading: false, saving: false,
+        expanded: false, saving: false,
       }];
     });
   }
@@ -170,19 +167,9 @@ export function PortalCatalogManager({ tenants }: Props): ReactElement {
     setRows((prev) => prev.map((r) => (r.slug === slug ? { ...r, ...patch } : r)));
   }
 
-  async function toggleExpand(slug: string) {
+  function toggleExpand(slug: string) {
     const row = rows.find((r) => r.slug === slug)!;
-    if (row.expanded) { update(slug, { expanded: false }); return; }
-    update(slug, { expanded: true });
-    if (row.projects.length > 0) return;
-    update(slug, { projectsLoading: true });
-    try {
-      const res = await fetch(`/api/admin/tenants/${encodeURIComponent(slug)}/projects`);
-      const data = (await res.json()) as { projects?: ProjectOption[] };
-      update(slug, { projects: data.projects ?? [], projectsLoading: false });
-    } catch {
-      update(slug, { projectsLoading: false });
-    }
+    update(slug, { expanded: !row.expanded });
   }
 
   function toggleProject(slug: string, path: string) {
@@ -463,21 +450,32 @@ export function PortalCatalogManager({ tenants }: Props): ReactElement {
                 </div>
               )}
 
-              {row.projectsLoading ? (
+              {demoLoading ? (
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">Đang tải danh sách folders từ Tableau…</p>
-              ) : row.projects.length > 0 ? (
-                <div className="max-h-56 overflow-y-auto rounded-lg border border-[hsl(var(--border))] divide-y divide-[hsl(var(--border))]">
-                  {row.projects.map((p) => (
-                    <label key={p.id} className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-[hsl(var(--muted))]">
-                      <input
-                        type="checkbox"
-                        checked={row.allowedProjects.includes(p.path)}
-                        onChange={() => toggleProject(row.slug, p.path)}
-                        className="accent-brand"
-                      />
-                      <span className="flex-1 font-mono text-xs">{p.path}</span>
-                    </label>
-                  ))}
+              ) : demoProjects.length > 0 ? (
+                <div className="max-h-56 overflow-y-auto rounded-lg border border-[hsl(var(--border))]">
+                  {(["Demo", "Top-level"] as const).map((group) => {
+                    const items = demoProjects.filter((p) => (p.group ?? "Demo") === group);
+                    if (items.length === 0) return null;
+                    return (
+                      <div key={group}>
+                        <div className="sticky top-0 bg-[hsl(var(--muted))] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                          {group === "Demo" ? "📂 Demo/*" : "📂 Top-level projects"}
+                        </div>
+                        {items.map((p) => (
+                          <label key={p.id} className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-[hsl(var(--muted))] border-t border-[hsl(var(--border))]">
+                            <input
+                              type="checkbox"
+                              checked={row.allowedProjects.includes(p.path)}
+                              onChange={() => toggleProject(row.slug, p.path)}
+                              className="accent-brand"
+                            />
+                            <span className="flex-1 font-mono text-xs">{p.path}</span>
+                          </label>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">

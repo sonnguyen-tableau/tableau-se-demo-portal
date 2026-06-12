@@ -28,6 +28,7 @@ const TENANTS = [
     name: "Salesforce Bank",
     industry: "retail-banking",
     status: "active" as const,
+    allowedProjects: ["Demo/Salesforce Bank"],
     isDefault: true,
   },
 ];
