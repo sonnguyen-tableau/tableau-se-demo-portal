@@ -1,160 +1,253 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { SalesforceBankIcon } from "@/components/SalesforceBankLogo";
-
-const FEATURES = [
-  {
-    icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    ),
-    title: "Dashboard nhúng",
-    desc: "Tableau views với JWT auth, Row-Level Security và giới hạn lượt xem theo tenant.",
-  },
-  {
-    icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.091 3.091z" />
-    ),
-    title: "AI Chat Agent",
-    desc: "Trợ lý phân tích đặt câu hỏi ngôn ngữ tự nhiên, trả về chart Vega-Lite và bảng dữ liệu.",
-  },
-  {
-    icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-    ),
-    title: "Đa khách hàng",
-    desc: "Workspace riêng biệt cho từng tenant với phân quyền và thương hiệu tuỳ chỉnh.",
-  },
-];
+import { tenantFromSession } from "@/lib/tenant";
+import { listTenants } from "@/lib/tenants";
+import type { TenantRecord } from "@/lib/tenants";
 
 export default async function Home() {
   const session = await auth();
 
+  // Not logged in → sign-in
+  if (!session?.user) {
+    redirect("/sign-in");
+  }
+
+  const ctx = tenantFromSession(session);
+
+  // Regular tenant user → straight to their portal
+  if (!ctx?.isInternal) {
+    redirect(`/t/${ctx?.tenantId ?? "salesforce-bank"}`);
+  }
+
+  // Internal admin → hub
+  const tenants = (await listTenants()).filter((t) => t.status === "active");
+
+  return <AdminHub tenants={tenants} email={session.user.email ?? ""} />;
+}
+
+// ── Industry icons ───────────────────────────────────────────────────────────
+
+const INDUSTRY_ICON: Record<string, string> = {
+  "retail-banking": "🏦",
+  "retail-mall": "🏬",
+  "ecommerce": "🛒",
+  "insurance": "🛡️",
+  "healthcare": "🏥",
+  "logistics": "🚚",
+  "manufacturing": "🏭",
+  "telco": "📡",
+};
+
+function industryIcon(industry: string | undefined) {
+  return INDUSTRY_ICON[industry ?? ""] ?? "📊";
+}
+
+// ── Admin Hub ────────────────────────────────────────────────────────────────
+
+function AdminHub({ tenants, email }: { tenants: TenantRecord[]; email: string }) {
   return (
-    <div
-      className="relative flex min-h-dvh flex-col overflow-hidden text-white"
-      style={{
-        background:
-          "linear-gradient(180deg, var(--brand-neutral) 0%, color-mix(in oklab, var(--brand-neutral) 88%, #000 12%) 100%)",
-      }}
-    >
-      {/* Ambient mesh + glows */}
-      <div className="pointer-events-none absolute inset-0 bg-mesh-brand opacity-50 mix-blend-screen" aria-hidden="true" />
-      <div className="pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-brand/25 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute bottom-0 right-1/4 h-80 w-80 rounded-full bg-sf-blue-60/15 blur-3xl" aria-hidden="true" />
-
-      {/* ── Nav ──────────────────────────────────────────────────── */}
-      <nav className="relative flex items-center justify-between border-b border-white/[0.06] px-6 py-4 backdrop-blur-sm sm:px-10">
+    <div className="min-h-dvh bg-sf-neutral-1 flex flex-col">
+      {/* Top bar */}
+      <header className="sticky top-0 z-10 border-b border-sf-neutral-3 bg-white/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.08] ring-1 ring-white/15">
-            <SalesforceBankIcon size={26} />
-          </span>
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sf-blue-60 to-sf-blue-80 text-white font-bold text-sm shadow-elev-1">
+            T
+          </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-body-sm font-bold tracking-tight">Salesforce Bank</span>
-            <span className="text-meta font-medium uppercase tracking-[0.16em] text-sf-blue-40">Analytics Portal</span>
+            <span className="text-body-sm font-bold text-sf-neutral-10">Tableau AI Portal</span>
+            <span className="text-meta text-sf-neutral-5">Admin Hub</span>
           </div>
         </div>
-        {session?.user ? (
-          <div className="flex items-center gap-3">
-            <span className="hidden text-caption text-white/55 sm:block">{session.user.email}</span>
-            <Link
-              href={`/t/${session.user.tenantId}`}
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-sf-blue-60 to-sf-blue-70 px-4 py-2 text-body-sm font-semibold text-white shadow-elev-1 transition-all duration-base ease-smooth hover:shadow-glow-brand active:scale-[0.98]"
-            >
-              Mở Portal
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-        ) : (
-          <Link
-            href="/sign-in"
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-sf-blue-60 to-sf-blue-70 px-4 py-2 text-body-sm font-semibold text-white shadow-elev-1 transition-all duration-base ease-smooth hover:shadow-glow-brand active:scale-[0.98]"
+        <div className="flex items-center gap-4">
+          <span className="text-caption text-sf-neutral-5 hidden sm:block">{email}</span>
+          <a
+            href="/api/auth/signout"
+            className="text-caption text-sf-neutral-5 hover:text-sf-neutral-9 transition-colors"
           >
-            Đăng nhập
-          </Link>
-        )}
-      </nav>
-
-      {/* ── Hero ─────────────────────────────────────────────────── */}
-      <main className="relative flex flex-1 flex-col items-center justify-center px-6 py-20 text-center animate-fade-in">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.05] px-3.5 py-1 text-meta font-semibold uppercase tracking-[0.14em] text-sf-blue-40 backdrop-blur-sm">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inset-0 animate-ping rounded-full bg-sf-blue-40 opacity-60" aria-hidden="true" />
-            <span className="relative h-1.5 w-1.5 rounded-full bg-sf-blue-40" />
-          </span>
-          Powered by Claude AI + Tableau Cloud
+            Đăng xuất
+          </a>
         </div>
+      </header>
 
-        <h1 className="mb-5 max-w-3xl text-display font-extrabold leading-[1.05] tracking-tight">
-          Phân tích dữ liệu thông minh
-          <span className="mt-2 block bg-gradient-to-r from-white via-sf-blue-40 to-cyan-300 bg-clip-text text-transparent">
-            dành cho ngân hàng hiện đại
-          </span>
-        </h1>
-        <p className="mb-10 max-w-xl text-body-lg leading-relaxed text-white/65">
-          Dashboard Tableau nhúng đa khách hàng kết hợp AI Agent được hỗ trợ bởi Claude. Đặt câu hỏi, khám phá dữ liệu, nhận thông tin chi tiết — tất cả trong một nền tảng.
-        </p>
+      <main className="flex-1 mx-auto w-full max-w-5xl px-6 py-10 space-y-12">
 
-        <div className="flex flex-wrap justify-center gap-3">
-          {session?.user ? (
-            <Link
-              href={`/t/${session.user.tenantId}`}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-sf-blue-60 to-sf-blue-70 px-7 py-3 text-body-sm font-bold text-white shadow-elev-2 transition-all duration-base ease-smooth hover:-translate-y-px hover:shadow-glow-brand active:scale-[0.98]"
-            >
-              Mở không gian làm việc
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          ) : (
-            <Link
-              href="/sign-in"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-sf-blue-60 to-sf-blue-70 px-7 py-3 text-body-sm font-bold text-white shadow-elev-2 transition-all duration-base ease-smooth hover:-translate-y-px hover:shadow-glow-brand active:scale-[0.98]"
-            >
-              Bắt đầu ngay
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          )}
-          <Link
-            href="/api/health"
-            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-7 py-3 text-body-sm font-semibold text-white backdrop-blur-sm transition-all duration-base ease-smooth hover:-translate-y-px hover:border-white/20 hover:bg-white/[0.10]"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            Kiểm tra hệ thống
-          </Link>
-        </div>
-
-        {/* Feature cards */}
-        <div className="mt-20 grid w-full max-w-4xl gap-4 text-left sm:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="group relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.04] p-6 backdrop-blur-sm transition-all duration-base ease-smooth hover:-translate-y-1 hover:border-sf-blue-40/30 hover:bg-white/[0.08] hover:shadow-elev-3"
-            >
-              <span
-                className="pointer-events-none absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-gradient-to-r from-transparent via-sf-blue-40 to-transparent transition-transform duration-base ease-smooth group-hover:scale-x-100"
-                aria-hidden="true"
-              />
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sf-blue-60/20 to-sf-blue-40/10 text-sf-blue-40 ring-1 ring-white/10">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
-                  {f.icon}
-                </svg>
-              </div>
-              <h3 className="mb-1.5 text-body-lg font-bold text-white">{f.title}</h3>
-              <p className="text-body-sm leading-relaxed text-white/60">{f.desc}</p>
+        {/* Portals section */}
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-h3 font-bold text-sf-neutral-10">Demo Portals</h2>
+              <p className="text-body-sm text-sf-neutral-5 mt-0.5">
+                {tenants.length} portal đang hoạt động
+              </p>
             </div>
-          ))}
-        </div>
+            <Link
+              href="/admin/portals"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-sf-neutral-3 bg-white px-3.5 py-2 text-body-sm font-medium text-sf-neutral-7 hover:border-sf-neutral-4 hover:bg-sf-neutral-2 transition-colors"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Quản lý
+            </Link>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {tenants.map((t) => (
+              <PortalCard key={t.slug} tenant={t} />
+            ))}
+            <NewPortalCard />
+          </div>
+        </section>
+
+        {/* Admin tools */}
+        <section>
+          <h2 className="text-h3 font-bold text-sf-neutral-10 mb-5">Công cụ quản trị</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <AdminToolCard
+              href="/admin/portals"
+              icon={<path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" />}
+              label="Portal Catalog"
+              desc="Gắn folder Tableau theo từng portal"
+            />
+            <AdminToolCard
+              href="/admin/tenants"
+              icon={<path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />}
+              label="Tenants & Sites"
+              desc="Cấu hình site Tableau, Connected App"
+            />
+            <AdminToolCard
+              href="/factory"
+              icon={<path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />}
+              label="Demo Factory"
+              desc="Tạo portal demo mới từ URL"
+            />
+            <AdminToolCard
+              href="/api/health"
+              icon={<path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />}
+              label="System Health"
+              desc="Kiểm tra trạng thái hệ thống"
+              external
+            />
+          </div>
+        </section>
       </main>
 
-      <footer className="relative border-t border-white/[0.06] py-5 text-center text-meta text-white/40">
-        © 2026 Salesforce Bank — Analytics Portal · Chỉ dùng nội bộ
+      <footer className="border-t border-sf-neutral-3 py-4 text-center text-meta text-sf-neutral-4">
+        Tableau AI Portal · Internal Admin · {new Date().getFullYear()}
       </footer>
     </div>
   );
+}
+
+// ── Portal card ──────────────────────────────────────────────────────────────
+
+function PortalCard({ tenant }: { tenant: TenantRecord }) {
+  const icon = industryIcon(tenant.industry);
+  const folders = tenant.allowedProjects ?? [];
+
+  return (
+    <Link
+      href={`/t/${tenant.slug}`}
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-sf-neutral-3 bg-white p-5 transition-all duration-base ease-smooth hover:-translate-y-0.5 hover:border-sf-blue-70/40 hover:shadow-elev-2"
+    >
+      {/* top-edge shimmer on hover */}
+      <span
+        className="pointer-events-none absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-gradient-to-r from-transparent via-sf-blue-60 to-transparent transition-transform duration-base ease-smooth group-hover:scale-x-100"
+        aria-hidden="true"
+      />
+
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sf-neutral-2 text-2xl ring-1 ring-sf-neutral-3 group-hover:ring-sf-blue-70/30 transition-colors">
+          {icon}
+        </div>
+        {tenant.isDefault && (
+          <span className="shrink-0 rounded-full bg-sf-blue-10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sf-blue-80">
+            Mặc định
+          </span>
+        )}
+      </div>
+
+      <p className="text-body-sm font-bold text-sf-neutral-10 truncate">{tenant.name}</p>
+      <p className="text-caption text-sf-neutral-5 font-mono mt-0.5 mb-3">/t/{tenant.slug}</p>
+
+      {folders.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-1">
+          {folders.slice(0, 2).map((f) => (
+            <span key={f} className="rounded bg-sf-neutral-2 px-1.5 py-0.5 text-[10px] font-mono text-sf-neutral-6">
+              {f.split("/").pop()}
+            </span>
+          ))}
+          {folders.length > 2 && (
+            <span className="rounded bg-sf-neutral-2 px-1.5 py-0.5 text-[10px] text-sf-neutral-5">
+              +{folders.length - 2}
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className="mt-auto pt-3 flex items-center gap-1 text-caption font-semibold text-sf-blue-70 opacity-0 transition-opacity duration-base group-hover:opacity-100">
+        Mở portal
+        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    </Link>
+  );
+}
+
+function NewPortalCard() {
+  return (
+    <Link
+      href="/factory"
+      className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-sf-neutral-3 p-5 text-sf-neutral-4 transition-all duration-base ease-smooth hover:border-sf-blue-70/40 hover:bg-sf-blue-10/40 hover:text-sf-blue-70 min-h-[160px]"
+    >
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-current/20 bg-current/5">
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+      </div>
+      <span className="text-body-sm font-medium">Tạo portal mới</span>
+    </Link>
+  );
+}
+
+// ── Admin tool card ──────────────────────────────────────────────────────────
+
+function AdminToolCard({
+  href,
+  icon,
+  label,
+  desc,
+  external,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  desc: string;
+  external?: boolean;
+}) {
+  const inner = (
+    <div className="group flex flex-col gap-3 rounded-xl border border-sf-neutral-3 bg-white p-4 transition-all duration-base ease-smooth hover:border-sf-blue-70/40 hover:shadow-elev-1 cursor-pointer">
+      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sf-neutral-2 text-sf-neutral-6 group-hover:bg-sf-blue-10 group-hover:text-sf-blue-70 transition-colors">
+        <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
+          {icon}
+        </svg>
+      </div>
+      <div>
+        <p className="text-body-sm font-semibold text-sf-neutral-9">{label}</p>
+        <p className="text-caption text-sf-neutral-5 mt-0.5">{desc}</p>
+      </div>
+    </div>
+  );
+
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer">
+        {inner}
+      </a>
+    );
+  }
+  return <Link href={href}>{inner}</Link>;
 }
