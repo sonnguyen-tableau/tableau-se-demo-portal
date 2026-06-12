@@ -1,8 +1,17 @@
 [
   {
-    "tenantId": "t-a",
+    "tenantId": "vincomretail",
+    "companyName": "Vincom Retail",
+    "primaryColor": "#e30613",
+    "secondaryColor": "#f5a623",
+    "neutralColor": "#1b2a4a",
+    "fontFamily": "Inter",
+    "tone": "professional"
+  },
+  {
+    "tenantId": "salesforce-bank",
     "companyName": "Salesforce Bank",
-    "primaryColor": "#abcdef",
+    "primaryColor": "#0176d3",
     "secondaryColor": "#f5a623",
     "neutralColor": "#032d60",
     "fontFamily": "Inter",

@@ -6,6 +6,7 @@ import { getTenantTheme, themeToCssVariables } from "@/lib/tenant-theme";
 import { getLiveCatalog } from "@/lib/tableau-rest";
 import { getTenant } from "@/lib/tenants";
 import { SalesforceBankIcon } from "@/components/SalesforceBankLogo";
+import { VincomRetailIcon } from "@/components/VincomRetailLogo";
 import { ProjectTree } from "@/components/nav/ProjectTree";
 import { SidebarProvider, SidebarWrapper, SidebarToggle } from "@/components/layout/SidebarShell";
 import { ChatPanelProvider } from "@/components/layout/ChatPanelToggle";
@@ -72,13 +73,17 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
             {theme.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={theme.logoUrl} alt={`${theme.companyName} logo`} className="h-full w-full object-contain" />
+            ) : tenantSlug === "vincomretail" ? (
+              <VincomRetailIcon size={22} />
             ) : (
               <SalesforceBankIcon size={22} />
             )}
           </span>
           <div className="flex flex-col leading-tight min-w-0">
             <span className="text-body-sm font-bold text-white truncate">{theme.companyName}</span>
-            <span className="text-meta font-medium uppercase tracking-[0.16em] text-sf-blue-40">Analytics Portal</span>
+            <span className="text-meta font-medium uppercase tracking-[0.16em] text-sf-blue-40">
+              {tenantSlug === "vincomretail" ? "Retail Intelligence" : "Analytics Portal"}
+            </span>
           </div>
         </div>
 
@@ -169,7 +174,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
         {/* Mobile top bar */}
         <header className="flex items-center justify-between border-b border-sf-neutral-3 bg-white px-4 py-3 lg:hidden shrink-0">
           <div className="flex items-center gap-2">
-            <SalesforceBankIcon size={26} />
+            {tenantSlug === "vincomretail" ? <VincomRetailIcon size={26} /> : <SalesforceBankIcon size={26} />}
             <span className="text-body-sm font-semibold text-sf-neutral-9">{tenantName}</span>
           </div>
           <UserMenu email={userEmail} signOut={handleSignOut} />

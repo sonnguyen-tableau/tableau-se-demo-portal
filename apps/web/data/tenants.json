@@ -1,0 +1,22 @@
+[
+  {
+    "id": "vincomretail",
+    "slug": "vincomretail",
+    "name": "Vincom Retail",
+    "industry": "retail-mall",
+    "sourceUrl": "https://vincom.com.vn/",
+    "createdAt": "2026-06-12T00:00:00.000Z",
+    "status": "active",
+    "allowedProjects": ["Demo/Vincom Retail"],
+    "isDefault": false
+  },
+  {
+    "id": "salesforce-bank",
+    "slug": "salesforce-bank",
+    "name": "Salesforce Bank",
+    "industry": "retail-banking",
+    "createdAt": "2026-06-01T00:00:00.000Z",
+    "status": "active",
+    "isDefault": true
+  }
+]
