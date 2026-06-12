@@ -20,6 +20,10 @@ export default async function TenantsAdminPage() {
       <nav className="flex gap-3 text-sm">
         <span className="font-semibold">Tenants</span>
         <span className="text-[hsl(var(--muted-foreground))]">·</span>
+        <Link href="/admin/portals" className="text-[hsl(var(--muted-foreground))] hover:underline">
+          Portal Catalog
+        </Link>
+        <span className="text-[hsl(var(--muted-foreground))]">·</span>
         <Link href="/admin/sites" className="text-[hsl(var(--muted-foreground))] hover:underline">
           Tableau Sites
         </Link>
