@@ -61,12 +61,12 @@ function AdminHub({ tenants, email }: { tenants: TenantRecord[]; email: string }
         </div>
         <div className="flex items-center gap-4">
           <span className="text-caption text-sf-neutral-5 hidden sm:block">{email}</span>
-          <a
+          <Link
             href="/api/auth/signout"
             className="text-caption text-sf-neutral-5 hover:text-sf-neutral-9 transition-colors"
           >
             Đăng xuất
-          </a>
+          </Link>
         </div>
       </header>
 
