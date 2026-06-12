@@ -5,6 +5,7 @@
     "primaryColor": "#e30613",
     "secondaryColor": "#f5a623",
     "neutralColor": "#1b2a4a",
+    "sidebarTextColor": "#ffffff",
     "fontFamily": "Inter",
     "tone": "professional",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/2/29/Logo_vincom.png"
@@ -15,6 +16,7 @@
     "primaryColor": "#0176d3",
     "secondaryColor": "#f5a623",
     "neutralColor": "#032d60",
+    "sidebarTextColor": "#ffffff",
     "fontFamily": "Inter",
     "tone": "professional"
   }

@@ -6,7 +6,10 @@ import type { ReactNode } from "react";
 
 export function NavLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="mb-1 mt-1 px-3 text-meta font-semibold uppercase tracking-[0.12em] text-white/40">
+    <p
+      className="mb-1 mt-1 px-3 text-meta font-semibold uppercase tracking-[0.12em]"
+      style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 40%, transparent)" }}
+    >
       {children}
     </p>
   );
@@ -29,10 +32,13 @@ export function NavLink({ href, icon, badge, exact, children }: NavLinkProps) {
       href={href}
       aria-current={active ? "page" : undefined}
       className={`group relative flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-body-sm font-medium transition-all duration-base ease-smooth ${
-        active
-          ? "bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
-          : "text-white/65 hover:bg-white/[0.06] hover:text-white"
+        active ? "bg-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]" : "hover:bg-white/[0.06]"
       }`}
+      style={{
+        color: active
+          ? "var(--sidebar-text, #fff)"
+          : "color-mix(in srgb, var(--sidebar-text, #fff) 65%, transparent)",
+      }}
     >
       {/* Active indicator */}
       <span
@@ -42,7 +48,12 @@ export function NavLink({ href, icon, badge, exact, children }: NavLinkProps) {
         aria-hidden="true"
       />
       <svg
-        className={`h-[18px] w-[18px] shrink-0 transition-colors ${active ? "text-sf-blue-40" : "text-white/55 group-hover:text-white/85"}`}
+        className="h-[18px] w-[18px] shrink-0 transition-colors"
+        style={{
+          color: active
+            ? "var(--sidebar-text, #fff)"
+            : "color-mix(in srgb, var(--sidebar-text, #fff) 55%, transparent)",
+        }}
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"

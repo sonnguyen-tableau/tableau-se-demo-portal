@@ -15,6 +15,7 @@ export interface TenantTheme {
   primaryColor: string;
   secondaryColor: string;
   neutralColor: string;
+  sidebarTextColor: string;
   fontFamily: string;
   logoUrl?: string | undefined;
   tone: Tone;
@@ -27,6 +28,7 @@ export const DEFAULT_THEME: Omit<TenantTheme, "tenantId"> = {
   primaryColor: "#0176d3",
   secondaryColor: "#f5a623",
   neutralColor: "#032d60",
+  sidebarTextColor: "#ffffff",
   fontFamily: "Inter",
   tone: "professional",
 };
@@ -98,6 +100,7 @@ export async function setTenantTheme(
     primaryColor: pickHex(input.primaryColor, existing.primaryColor),
     secondaryColor: pickHex(input.secondaryColor, existing.secondaryColor),
     neutralColor: pickHex(input.neutralColor, existing.neutralColor),
+    sidebarTextColor: pickHex(input.sidebarTextColor, existing.sidebarTextColor),
     fontFamily: (input.fontFamily ?? existing.fontFamily).slice(0, 80),
     tone: isTone(input.tone) ? input.tone : existing.tone,
     ...(input.logoUrl !== undefined
@@ -151,10 +154,14 @@ export async function getTenantDesignMd(tenantId: string): Promise<string | null
 // ── CSS variable helpers ─────────────────────────────────────────────────────
 
 export function themeToCssVariables(theme: TenantTheme): string {
+  const textColor = theme.sidebarTextColor ?? "#ffffff";
   return [
     `--brand-primary: ${theme.primaryColor};`,
     `--brand-secondary: ${theme.secondaryColor};`,
     `--brand-neutral: ${theme.neutralColor};`,
+    `--sidebar-text: ${textColor};`,
+    `--sidebar-text-muted: ${textColor}99;`,
+    `--sidebar-text-dim: ${textColor}66;`,
     `--font-sans: ${theme.fontFamily}, Inter, system-ui, sans-serif;`,
   ].join(" ");
 }

@@ -80,8 +80,8 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
             )}
           </span>
           <div className="flex flex-col leading-tight min-w-0">
-            <span className="text-body-sm font-bold text-white truncate">{theme.companyName}</span>
-            <span className="text-meta font-medium uppercase tracking-[0.16em] text-sf-blue-40">
+            <span className="text-body-sm font-bold truncate" style={{ color: "var(--sidebar-text, #fff)" }}>{theme.companyName}</span>
+            <span className="text-meta font-medium uppercase tracking-[0.16em]" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 50%, transparent)" }}>
               {tenantSlug === "vincomretail" ? "Retail Intelligence" : "Analytics Portal"}
             </span>
           </div>
@@ -89,8 +89,8 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
 
         {/* Tenant badge */}
         <div className="mx-4 mt-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5 backdrop-blur-sm">
-          <p className="text-meta font-semibold uppercase tracking-[0.14em] text-sf-blue-40">Workspace</p>
-          <p className="mt-0.5 text-body-sm font-semibold text-white truncate">{tenantName}</p>
+          <p className="text-meta font-semibold uppercase tracking-[0.14em]" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 50%, transparent)" }}>Workspace</p>
+          <p className="mt-0.5 text-body-sm font-semibold truncate" style={{ color: "var(--sidebar-text, #fff)" }}>{tenantName}</p>
         </div>
 
         {/* Nav */}
@@ -150,8 +150,8 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
 
         {/* Footer signature */}
         <div className="px-5 py-4 border-t border-white/[0.06]">
-          <p className="text-meta text-white/40 leading-relaxed">
-            Powered by <span className="font-semibold text-white/70">Tableau</span> + <span className="font-semibold text-white/70">Claude</span>
+          <p className="text-meta leading-relaxed" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 40%, transparent)" }}>
+            Powered by <span className="font-semibold" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 70%, transparent)" }}>Tableau</span> + <span className="font-semibold" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 70%, transparent)" }}>Claude</span>
           </p>
         </div>
       </SidebarWrapper>

@@ -134,7 +134,7 @@ export function ThemeEditor({ initial, tenantId }: Props) {
           <section className="space-y-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-sf-neutral-6">Màu sắc</h3>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <ColorField
                 label="Màu chính"
                 hint="Nút, link, accent"
@@ -148,10 +148,16 @@ export function ThemeEditor({ initial, tenantId }: Props) {
                 onChange={(v) => set("secondaryColor", v)}
               />
               <ColorField
-                label="Màu nền tối"
-                hint="Sidebar, header"
+                label="Màu nền sidebar"
+                hint="Nền tối sidebar"
                 value={form.neutralColor}
                 onChange={(v) => set("neutralColor", v)}
+              />
+              <ColorField
+                label="Màu chữ sidebar"
+                hint="Chữ trên nền sidebar"
+                value={form.sidebarTextColor ?? "#ffffff"}
+                onChange={(v) => set("sidebarTextColor", v)}
               />
             </div>
           </section>
@@ -276,10 +282,10 @@ function Preview({ theme }: { theme: TenantTheme }) {
           </div>
         )}
         <div>
-          <p className="text-xs font-bold text-white leading-tight" style={{ fontFamily: theme.fontFamily }}>
+          <p className="text-xs font-bold leading-tight" style={{ fontFamily: theme.fontFamily, color: theme.sidebarTextColor ?? "#ffffff" }}>
             {theme.companyName || "Tên công ty"}
           </p>
-          <p className="text-[10px] text-white/50 uppercase tracking-widest">Analytics Portal</p>
+          <p className="text-[10px] uppercase tracking-widest" style={{ color: `${theme.sidebarTextColor ?? "#ffffff"}80` }}>Analytics Portal</p>
         </div>
       </div>
 
@@ -291,7 +297,7 @@ function Preview({ theme }: { theme: TenantTheme }) {
             className="rounded px-2 py-1.5 text-xs"
             style={{
               backgroundColor: i === 1 ? theme.primaryColor + "33" : "transparent",
-              color: i === 1 ? "white" : "rgba(255,255,255,0.6)",
+              color: i === 1 ? (theme.sidebarTextColor ?? "#ffffff") : `${theme.sidebarTextColor ?? "#ffffff"}99`,
               fontFamily: theme.fontFamily,
             }}
           >
