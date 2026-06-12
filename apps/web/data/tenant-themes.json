@@ -18,6 +18,7 @@
     "neutralColor": "#032d60",
     "sidebarTextColor": "#ffffff",
     "fontFamily": "Inter",
-    "tone": "professional"
+    "tone": "professional",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Salesforce.com_logo.svg/320px-Salesforce.com_logo.svg.png"
   }
 ]

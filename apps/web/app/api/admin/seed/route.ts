@@ -54,6 +54,7 @@ const THEMES = [
     sidebarTextColor: "#ffffff",
     fontFamily: "Inter",
     tone: "professional" as const,
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Salesforce.com_logo.svg/320px-Salesforce.com_logo.svg.png",
   },
 ];
 
