@@ -27,6 +27,13 @@ const schema = z.object({
     .string()
     .transform((v) => v === "true" || v === "1")
     .default("false"),
+  /**
+   * Fallback Tableau user email for embed JWTs when the session user does not
+   * exist on the Tableau site. All demo/guest users share this identity for
+   * embedding while keeping their own session for portal access.
+   * Example: TABLEAU_EMBED_USER=son.nguyen@salesforce.com
+   */
+  TABLEAU_EMBED_USER: z.string().email().optional(),
 
   // Service-account (used by MCP sidecar; not required in Phase 1)
   TABLEAU_PAT_NAME: z.string().optional(),

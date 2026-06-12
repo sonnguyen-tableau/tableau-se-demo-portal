@@ -80,6 +80,10 @@ export async function POST(req: Request): Promise<Response> {
     impressionsCap: status.cap,
   });
 
+  // Use TABLEAU_EMBED_USER as sub when set — allows demo users whose emails
+  // don't exist on the Tableau site to embed without ODA or user provisioning.
+  const embedSub = env.TABLEAU_EMBED_USER ?? session.user.email;
+
   const token = await mintTableauJwt(
     {
       clientId: site.connectedAppClientId,
@@ -87,7 +91,7 @@ export async function POST(req: Request): Promise<Response> {
       secretValue: site.connectedAppSecretValue,
     },
     {
-      sub: session.user.email,
+      sub: embedSub,
       scopes: parsed.data.scopes,
       tenantId,
       ...(session.user.region ? { region: session.user.region } : {}),
