@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
-import { getTenant } from "@/lib/tenants";
 import { setTenantTheme } from "@/lib/tenant-theme";
 
 export const runtime = "nodejs";
@@ -27,8 +26,6 @@ export async function PUT(
     return new NextResponse("forbidden", { status: 403 });
   }
   const { slug } = await context.params;
-  const tenant = await getTenant(slug);
-  if (!tenant) return new NextResponse("not found", { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = themeSchema.safeParse(body);

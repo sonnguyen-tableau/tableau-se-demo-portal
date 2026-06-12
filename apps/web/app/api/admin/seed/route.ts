@@ -41,6 +41,7 @@ const THEMES = [
     neutralColor: "#1b2a4a",
     fontFamily: "Inter",
     tone: "professional" as const,
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/2/29/Logo_vincom.png",
   },
   {
     tenantId: "salesforce-bank",
