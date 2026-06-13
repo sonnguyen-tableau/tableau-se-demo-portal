@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { getLiveCatalog } from "@/lib/tableau-rest";
+import { getTenant } from "@/lib/tenants";
 import { env } from "@/lib/env";
 import { isTableauConfigured } from "@/lib/tableau-config";
 import { getSiteForTenant, resolvedSiteViewUrl } from "@/lib/tenant-site";
@@ -27,7 +28,8 @@ export default async function ViewEmbedPage({ params }: PageProps) {
 
   const { tenantSlug, workbookSlug, viewSlug } = await params;
 
-  const catalog = await getLiveCatalog(ctx?.tenantId);
+  const tenantRecord = await getTenant(tenantSlug);
+  const catalog = await getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects);
   const dashboard = catalog.dashboards.find(
     (d) => d.workbookSlug === workbookSlug && d.viewSlug === viewSlug,
   );
@@ -57,6 +59,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   let token: string;
   try {
     await enforceImpressionBudget(ctx.tenantId);
+    const embedSub = env.TABLEAU_EMBED_USER ?? session.user.email ?? "";
     token = await mintTableauJwt(
       {
         clientId: site.connectedAppClientId,
@@ -64,7 +67,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
         secretValue: site.connectedAppSecretValue,
       },
       {
-        sub: session.user.email ?? "",
+        sub: embedSub,
         scopes: ["tableau:views:embed"],
         tenantId: ctx.tenantId,
         ...(ctx.region ? { region: ctx.region } : {}),

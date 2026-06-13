@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { getLiveCatalog } from "@/lib/tableau-rest";
+import { getTenant } from "@/lib/tenants";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string; workbookSlug: string }>;
@@ -15,7 +16,8 @@ export default async function WorkbookPage({ params }: PageProps) {
   if (!session?.user) notFound();
   const ctx = tenantFromSession(session);
 
-  const catalog = await getLiveCatalog(ctx?.tenantId);
+  const tenantRecord = await getTenant(tenantSlug);
+  const catalog = await getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects);
   const views = catalog.dashboards
     .filter((d) => d.workbookSlug === workbookSlug)
     .sort((a, b) => a.viewName.localeCompare(b.viewName, "vi"));

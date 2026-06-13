@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { getLiveCatalog, type LiveProject } from "@/lib/tableau-rest";
+import { getTenant } from "@/lib/tenants";
 import { getVisibleWorkbookIds } from "@/lib/catalog-filter";
 
 interface PageProps {
@@ -33,8 +34,9 @@ export default async function DashboardsIndex({ params }: PageProps) {
   const ctx = tenantFromSession(session);
   const userEmail = session?.user?.email ?? "";
 
+  const tenantRecord = await getTenant(tenantSlug);
   const [catalog, visibleIds] = await Promise.all([
-    getLiveCatalog(ctx?.tenantId),
+    getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects),
     getVisibleWorkbookIds(userEmail),
   ]);
 

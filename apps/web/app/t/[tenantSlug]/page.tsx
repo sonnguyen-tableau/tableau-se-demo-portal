@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { getImpressionStatus } from "@/lib/billing";
 import { getLiveCatalog } from "@/lib/tableau-rest";
+import { getTenant } from "@/lib/tenants";
 import { getRecentViews, getPopularViews } from "@/lib/view-history";
 
 interface PageProps {
@@ -15,9 +16,10 @@ export default async function TenantHome({ params }: PageProps) {
   const { tenantSlug } = await params;
   const email = session?.user?.email ?? "";
 
+  const tenantRecord = await getTenant(tenantSlug);
   const [impressions, catalog, recentViews, popularRaw] = await Promise.all([
     ctx ? getImpressionStatus(ctx.tenantId) : Promise.resolve(null),
-    getLiveCatalog(ctx?.tenantId),
+    getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects),
     getRecentViews(email),
     getPopularViews(6),
   ]);
