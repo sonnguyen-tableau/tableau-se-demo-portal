@@ -107,6 +107,7 @@ export async function POST(req: Request): Promise<Response> {
       token,
       expiresIn: JWT_TTL_SECONDS,
       tenantId,
+      embedSub,
       impressionStatus: status,
       siteUrl: resolvedSiteOrigin(site),
       siteName: site.tableauSiteName,
