@@ -97,10 +97,10 @@ export async function getLiveCatalog(tenantId?: string, allowedProjects?: string
   const cacheKey = site.tableauSiteName;
 
   const cached = _cacheBysite.get(cacheKey);
-  if (cached && now - cached.ts < CACHE_TTL_MS) return cached.catalog;
+  if (cached && now - cached.ts < CACHE_TTL_MS) return filterCatalog(cached.catalog, allowedProjects);
 
   const inFlight = _inFlightBySite.get(cacheKey);
-  if (inFlight) return inFlight;
+  if (inFlight) return inFlight.then((c) => filterCatalog(c, allowedProjects));
 
   if (!env.TABLEAU_PAT_NAME || !env.TABLEAU_PAT_SECRET) {
     return { projects: [], dashboards: [], fetchedAt: now };
