@@ -97,10 +97,13 @@ async function writeAllToFile(store: Map<string, TenantRecord>): Promise<void> {
 export async function listTenants(): Promise<TenantRecord[]> {
   if (hasKv()) {
     const index = await readIndexFromKv();
-    const records = await Promise.all(index.map(readFromKv));
-    return records
-      .filter((t): t is TenantRecord => t !== null)
-      .sort((a, b) => a.name.localeCompare(b.name));
+    if (index.length > 0) {
+      const records = await Promise.all(index.map(readFromKv));
+      return records
+        .filter((t): t is TenantRecord => t !== null)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+    // KV index empty — fall back to bundled data/tenants.json
   }
   const store = await readAllFromFile();
   return [...store.values()].sort((a, b) => a.name.localeCompare(b.name));
@@ -108,7 +111,10 @@ export async function listTenants(): Promise<TenantRecord[]> {
 
 export async function getTenant(slug: string): Promise<TenantRecord | undefined> {
   if (hasKv()) {
-    return (await readFromKv(slug)) ?? undefined;
+    const fromKv = await readFromKv(slug);
+    if (fromKv !== null) return fromKv;
+    // KV miss — fall back to bundled data/tenants.json so allowedProjects works
+    // even before the first seed run.
   }
   const store = await readAllFromFile();
   return store.get(slug);

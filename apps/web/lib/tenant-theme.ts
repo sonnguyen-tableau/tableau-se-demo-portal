@@ -84,7 +84,9 @@ async function writeAllToFile(store: Map<string, TenantTheme>): Promise<void> {
 
 export async function getTenantTheme(tenantId: string): Promise<TenantTheme> {
   if (hasKv()) {
-    return (await readFromKv(tenantId)) ?? { tenantId, ...DEFAULT_THEME };
+    const fromKv = await readFromKv(tenantId);
+    if (fromKv !== null) return fromKv;
+    // KV miss — fall back to bundled data/tenant-themes.json
   }
   const store = await readAllFromFile();
   return store.get(tenantId) ?? { tenantId, ...DEFAULT_THEME };
