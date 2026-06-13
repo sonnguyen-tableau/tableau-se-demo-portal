@@ -157,9 +157,9 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
       </SidebarWrapper>
 
       {/* ── Main ──────────────────────────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
+      <div className="flex flex-1 flex-col min-w-0 h-full">
         {/* Desktop top bar */}
-        <header className="hidden lg:flex items-center gap-4 border-b border-sf-neutral-3 bg-white/95 px-5 py-2.5 shrink-0 backdrop-blur-sm">
+        <header className="hidden lg:flex items-center gap-4 border-b border-sf-neutral-3 bg-white/95 px-5 py-2.5 shrink-0 backdrop-blur-sm relative z-20">
           <SidebarToggle />
           <div className="h-6 w-px bg-sf-neutral-3" />
           <Breadcrumb tenantSlug={tenantSlug} tenantName={tenantName} />
