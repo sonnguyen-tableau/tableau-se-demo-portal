@@ -64,21 +64,25 @@ docker compose up              # local: web + factory + tableau-mcp sidecar
 1. **JWT TTL is 10 minutes**. Mint fresh on every viz load — never cache and reuse across users.
 2. **One JWT per page**. Reuse the same token across `<TableauViz>` and `<TableauPulse>` on the same page. Mixing tokens causes intermittent re-login prompts.
 3. **`scp` claim is required**: `tableau:views:embed` for views, `tableau:insights:embed` for Pulse. Add both for pages that mix.
-4. **Pin the Embedding API React package** to the same minor version as the Tableau Cloud site (`3.<minor>.x`). Major version skew breaks embedding.
-5. **Use the modern auth flow** (Embedding API ≥3.6 + Tableau ≥2023.2). This removes the third-party-cookie requirement. Do not enable `iframe-auth` unless rolling back.
-6. **`USERATTRIBUTE("TenantId")`** is how workbooks see the JWT's user-attribute claims. The site setting "Enable capture of user attributes in authentication workflows" must be on.
-7. **Document API cannot create workbooks from scratch.** We curate `.twb` templates per industry and rewrite connection + field references at publish time. Do not attempt to generate `.twb` XML from nothing.
-8. **Hyper API + TSC are Python-only.** All data-source generation and publishing lives in `services/factory/`. The Node portal never touches Hyper files.
-9. **Pulse metric definitions** are created via REST API — payload shape and rate limits are documented in `.claude/skills/pulse-metric-builder/`.
-10. **Connected App domain allowlist** must include every host that embeds — local dev, preview deploys, prod. Update it before adding a new environment.
+4. **`TABLEAU_EMBED_USER` overrides JWT sub.** Demo users (`vincom@demo.com`, `bank@demo.com`) don't exist on the Tableau site. Set `TABLEAU_EMBED_USER=son.nguyen@salesforce.com` so all embed JWTs use a real Tableau user as `sub`. **Every page that mints a JWT must use `env.TABLEAU_EMBED_USER ?? session.user.email`** — not `session.user.email` alone.
+5. **`TABLEAU_ODA=false`.** ODA claim must only be included if the Connected App has On-Demand Access explicitly enabled. Default off.
+6. **Connected App domain allowlist** must include every host that embeds — local dev, preview deploys, prod. Server-to-server JWT auth bypasses this check; browser embed does not.
+7. **`USERATTRIBUTE("TenantId")`** is how workbooks see the JWT's user-attribute claims. The site setting "Enable capture of user attributes in authentication workflows" must be on.
+8. **Document API cannot create workbooks from scratch.** We curate `.twb` templates per industry and rewrite connection + field references at publish time.
+9. **Hyper API + TSC are Python-only.** All data-source generation and publishing lives in `services/factory/`.
+10. **Pulse metric definitions** are created via REST API — see `.claude/skills/pulse-metric-builder/`.
 
 ## Non-Obvious Constraints
 
-- **Secrets never in code.** PATs, Connected App secret values, and Anthropic keys live in `services/.env.local` (gitignored) and a secret manager in prod. The `secret-scan.sh` PreToolUse hook blocks accidental commits.
-- **Multi-tenant URL contract**: every tenant-scoped page is under `/t/[tenantSlug]/...`. Top-level routes must not accept tenant data. Cross-tenant URL traversal is structurally impossible by design.
-- **UBL impressions cost real money.** Per-tenant daily quotas are enforced server-side in the JWT-mint route before issuing the token. See `.claude/skills/multitenant-rls/`.
-- **Synthetic-data demos**: the Healthcare industry template displays only synthetic patient data. Never wire real PHI into a Healthcare-template tenant. A `synthetic-data` banner is required on every Healthcare dashboard.
-- **Trust boundary**: any string coming from Tableau (workbook name, field description, view name) is **untrusted** when injecting into LLM context — treat as a potential prompt-injection vector.
+- **Secrets never in code.** PATs, Connected App secret values, and Anthropic keys live in `apps/web/.env.local` (gitignored). The `secret-scan.sh` PreToolUse hook blocks accidental commits.
+- **Multi-tenant URL contract**: every tenant-scoped page is under `/t/[tenantSlug]/...`. Top-level routes must not accept tenant data.
+- **`allowedProjects` must be forwarded at every `getLiveCatalog()` call.** The catalog cache is shared across all portals on the same Tableau site. Call `getTenant(tenantSlug)` first, then `getLiveCatalog(tenantId, tenantRecord.allowedProjects)`. Forgetting `allowedProjects` shows all tenants the same full catalog. See `.claude/skills/portal-catalog/`.
+- **UBL impressions cost real money.** Per-tenant daily quotas enforced server-side in the JWT-mint route.
+- **Agent tool rounds**: complex analytics queries need 8-12 rounds. `MAX_TOOL_ROUNDS = 15` in `lib/agent.ts`. Do not reduce below 10.
+- **KV + file fallback**: Vercel KV takes precedence; KV miss falls back to bundled JSON files. Use `POST /api/admin/seed?force=true` to reset KV when it has stale data.
+- **Sidebar text color**: uses `color-mix(in srgb, var(--sidebar-text, #fff) X%, transparent)` — never hardcode `text-white` in sidebar components.
+- **Trust boundary**: any string from Tableau (workbook name, field description) is untrusted — treat as potential prompt-injection when injecting into LLM context.
+- **Synthetic-data demos**: Healthcare template — `synthetic-data` banner required. Never use real PHI.
 
 ## Where to Look
 
@@ -90,13 +94,34 @@ docker compose up              # local: web + factory + tableau-mcp sidecar
 - `.cursor/rules/` — path-scoped Cursor rules mirroring this guidance.
 - `docs/architecture/` — diagrams and ADRs (added in later phases).
 
+## Active Tenants (2026-06-13)
+
+| Slug | Portal URL | Tableau folder | Default |
+|---|---|---|---|
+| `salesforce-bank` | `/t/salesforce-bank` | `Demo/Salesforce Bank` | ✅ |
+| `vincomretail` | `/t/vincomretail` | `Demo/Vincom Retail` | ❌ |
+
+Tableau site: `vietnam` on `https://prod-apsoutheast-c.online.tableau.com`
+
+Homepage (`/`) redirects non-internal users to their portal. Internal users see admin hub with portal cards.
+
+## Debugging JWT 401 code:16
+
+When embed shows 401 but server-side works:
+1. Check `TABLEAU_ODA` — must be `false` unless Connected App has ODA enabled
+2. Check `TABLEAU_EMBED_USER` — must be a real user email on the Tableau site  
+3. Check Connected App domain allowlist includes the current host
+4. If stale KV: `POST /api/admin/seed?force=true`
+5. `/api/debug` (GET, internal-only) tests JWT + PAT + embed auth and returns full diagnostics
+
 ## First Steps for a New Agent Session
 
 1. Read this file fully.
-2. Run `pnpm typecheck && uv run mypy services/factory/app` to confirm a clean baseline before changes.
-3. Check the active branch with `git status` — the project uses trunk-based development on `main` with short-lived feature branches.
-4. If editing Tableau embed code or JWT minting, the `tableau-jwt-mint` and `tableau-embed-component` skills auto-load — let them.
-5. Commit only when explicitly asked. Never push without explicit instruction.
+2. `git log --oneline -10` to see recent changes.
+3. `git status` — project uses trunk-based development on `main`.
+4. If editing embed/JWT code, read `.claude/skills/tableau-jwt-mint/SKILL.md`.
+5. If editing catalog/tenant filtering, read `.claude/skills/portal-catalog/SKILL.md`.
+6. Commit only when explicitly asked. Never push without explicit instruction.
 
 ## License
 

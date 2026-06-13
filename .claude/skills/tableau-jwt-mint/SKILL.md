@@ -146,15 +146,49 @@ export async function POST(req: NextRequest) {
 }
 ```
 
+## TABLEAU_EMBED_USER — demo user pattern
+
+Demo portals have users (`vincom@demo.com`, `bank@demo.com`) that **do not exist** on the Tableau site. Embedding with their email as `sub` causes **401 code:16**.
+
+Solution: `TABLEAU_EMBED_USER=son.nguyen@salesforce.com` in env. This real Tableau user acts as the embed identity for all demo sessions.
+
+**Every code path that mints a JWT must use this pattern:**
+```ts
+const embedSub = env.TABLEAU_EMBED_USER ?? session.user.email ?? "";
+// then: sub: embedSub
+```
+
+This applies to:
+- `/api/tableau/token/route.ts` — the client-side token refresh endpoint
+- `dashboards/[wb]/[view]/page.tsx` — server-side initial token mint
+
+Forgetting `TABLEAU_EMBED_USER` in page.tsx while having it in route.ts means: initial load gets 401, retry via `/api/tableau/token` succeeds, user sees brief error flash.
+
+## TABLEAU_ODA — must be false unless explicitly enabled
+
+`TABLEAU_ODA=true` adds `"https://tableau.com/oda": "true"` to the JWT. Tableau rejects this with 401 code:16 if the Connected App does not have On-Demand Access enabled.
+
+Default: `TABLEAU_ODA=false` (env schema transforms `"false"` → `false`).
+
+## Diagnosing 401 code:16
+
+Server-to-server JWT signin (REST API) bypasses domain allowlist checks. Browser embed does not. When server passes but browser fails:
+
+1. Check domain allowlist on Connected App (includes prod URL, preview URLs, localhost:3000)
+2. Check `TABLEAU_ODA` — must match Connected App ODA setting
+3. Check `TABLEAU_EMBED_USER` is set and is a real user on the site
+4. Use `/api/debug` (GET, internal-only) — runs all three checks server-side and returns full diagnostics
+
 ## Common mistakes (causes silent failures)
 
-1. **Caching JWTs across users.** Every call must mint fresh; the `sub` claim must match the actual user. Caching causes Tableau to log every user in as whoever held the cached token.
-2. **Different tokens for `<TableauViz>` and `<TableauPulse>` on the same page.** Causes intermittent re-login prompts. Mint once, pass both components the same `token` prop.
-3. **Missing `scp`.** Tableau returns a generic "authentication failed" with no detail.
+1. **Caching JWTs across users.** Every call must mint fresh; `sub` must match the actual user.
+2. **Different tokens for `<TableauViz>` and `<TableauPulse>` on the same page.** Causes intermittent re-login prompts. Mint once, pass same token to both.
+3. **Missing `scp`.** Tableau returns generic "authentication failed" with no detail.
 4. **TTL > 10 minutes.** Tableau silently rejects. Stay ≤ 600 seconds.
 5. **Wrong `kid`.** If you rotate the Connected App secret, both `kid` and `TABLEAU_CONNECTED_APP_SECRET_VALUE` must update atomically.
-6. **Forgetting the user-attribute site setting.** `USERATTRIBUTE("TenantId")` will return null and data policies silently allow everything. This is a SECURITY incident — verify the setting whenever onboarding a new Tableau site.
-7. **Algorithm mismatch.** Connected Apps with Direct Trust use HS256 (shared secret). Do not switch to RS256 without also reconfiguring the Connected App.
+6. **Using `session.user.email` as `sub` without checking `TABLEAU_EMBED_USER`.** Demo users don't exist on the Tableau site — always check `env.TABLEAU_EMBED_USER` first.
+7. **`TABLEAU_ODA=true` without ODA enabled on Connected App.** 401 code:16 in browser, passes in server tests.
+8. **Forgetting the user-attribute site setting.** `USERATTRIBUTE("TenantId")` returns null silently — security incident.
 
 ## Verifying a minted JWT
 
