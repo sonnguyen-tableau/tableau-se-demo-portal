@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { getTenant } from "@/lib/tenants";
-import { getLiveCatalog } from "@/lib/tableau-rest";
+import { getLiveCatalog, getCachedWorkbooks } from "@/lib/tableau-rest";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,21 +24,32 @@ export async function GET(req: Request): Promise<Response> {
     return NextResponse.json({ error: `Tenant '${slug}' not found` }, { status: 404 });
   }
 
-  const catalog = await getLiveCatalog(tenantRecord.id, tenantRecord.allowedProjects);
+  // Fetch full (unfiltered) catalog first to warm the cache and expose raw workbooks
+  const fullCatalog = await getLiveCatalog(tenantRecord.id);
+  const allWorkbooks = getCachedWorkbooks();
+
+  // Then fetch filtered catalog
+  const filtered = await getLiveCatalog(tenantRecord.id, tenantRecord.allowedProjects);
 
   return NextResponse.json({
     tenantRecord,
     allowedProjects: tenantRecord.allowedProjects ?? [],
-    catalogSummary: {
-      projectCount: catalog.projects.length,
-      dashboardCount: catalog.dashboards.length,
-      projects: catalog.projects.map((p) => ({ id: p.id, name: p.name, parentProjectId: p.parentProjectId })),
-      dashboardSample: catalog.dashboards.slice(0, 5).map((d) => ({
-        workbookName: d.workbookName,
-        viewName: d.viewName,
-        projectName: d.projectName,
-      })),
+    filteredCatalog: {
+      projectCount: filtered.projects.length,
+      dashboardCount: filtered.dashboards.length,
+      projects: filtered.projects.map((p) => ({ id: p.id, name: p.name, parentProjectId: p.parentProjectId })),
     },
-    fetchedAt: catalog.fetchedAt,
+    allWorkbooksOnSite: allWorkbooks.map((wb) => ({
+      name: wb.name,
+      projectName: wb.projectName,
+      projectId: wb.projectId,
+      contentUrl: wb.contentUrl,
+    })),
+    allProjectsOnSite: fullCatalog.projects.map((p) => ({
+      id: p.id,
+      name: p.name,
+      parentProjectId: p.parentProjectId,
+    })),
+    fetchedAt: filtered.fetchedAt,
   });
 }
