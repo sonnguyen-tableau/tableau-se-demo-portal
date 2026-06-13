@@ -65,17 +65,33 @@ export async function POST(req: Request): Promise<Response> {
     return new NextResponse("forbidden", { status: 403 });
   }
 
+  const { searchParams } = new URL(req.url);
+  const force = searchParams.get("force") === "true";
+
   const results: string[] = [];
 
   for (const t of TENANTS) {
+    if (force) {
+      // Delete from KV first so upsert writes exactly TENANTS values with no merge
+      try {
+        const { kv } = await import("@vercel/kv");
+        await kv.del(`tenant:${t.slug}`);
+      } catch { /* local dev — no KV */ }
+    }
     await upsertTenant(t);
     results.push(`tenant:${t.slug}`);
   }
 
   for (const th of THEMES) {
+    if (force) {
+      try {
+        const { kv } = await import("@vercel/kv");
+        await kv.del(`tenant-theme:${th.tenantId}`);
+      } catch { /* local dev */ }
+    }
     await setTenantTheme(th);
     results.push(`theme:${th.tenantId}`);
   }
 
-  return NextResponse.json({ ok: true, seeded: results });
+  return NextResponse.json({ ok: true, force, seeded: results });
 }

@@ -1,16 +1,14 @@
 /**
  * GET /api/debug — internal-only diagnostic endpoint.
- * Returns JWT config, tenant records, and env var status.
  * DELETE this file after debugging.
  */
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
-import { getTenant, listTenants } from "@/lib/tenants";
-import { getTenantTheme } from "@/lib/tenant-theme";
 import { env } from "@/lib/env";
-import { join } from "path";
-import { readFile } from "fs/promises";
+import { tableauOrigin } from "@/lib/tableau-config";
+import { mintTableauJwt } from "@portal/tableau-jwt";
+import { randomUUID } from "node:crypto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,42 +18,92 @@ export async function GET(): Promise<Response> {
   const ctx = tenantFromSession(session);
   if (!ctx?.isInternal) return new NextResponse("forbidden", { status: 403 });
 
-  // 1. Env vars
-  const envStatus = {
-    TABLEAU_CONNECTED_APP_CLIENT_ID: env.TABLEAU_CONNECTED_APP_CLIENT_ID?.slice(0, 8) + "...",
-    TABLEAU_CONNECTED_APP_SECRET_ID: env.TABLEAU_CONNECTED_APP_SECRET_ID?.slice(0, 8) + "...",
-    TABLEAU_CONNECTED_APP_SECRET_VALUE: env.TABLEAU_CONNECTED_APP_SECRET_VALUE ? "SET" : "MISSING",
-    TABLEAU_SITE_NAME: env.TABLEAU_SITE_NAME,
-    TABLEAU_EMBED_USER: env.TABLEAU_EMBED_USER ?? "NOT SET",
-    TABLEAU_ODA: env.TABLEAU_ODA,
-    KV_REST_API_URL: process.env.KV_REST_API_URL ? "SET" : "NOT SET",
-    PORTAL_ENV: env.PORTAL_ENV,
-  };
+  const clientId = env.TABLEAU_CONNECTED_APP_CLIENT_ID ?? "";
+  const secretId = env.TABLEAU_CONNECTED_APP_SECRET_ID ?? "";
+  const secretValue = env.TABLEAU_CONNECTED_APP_SECRET_VALUE ?? "";
+  const siteName = env.TABLEAU_SITE_NAME ?? "";
+  const embedUser = env.TABLEAU_EMBED_USER ?? session.user?.email ?? "";
+  const origin = tableauOrigin();
 
-  // 2. File system check
-  const cwd = process.cwd();
-  let fileData: Record<string, unknown> = {};
+  // 1. Mint a test JWT and decode it
+  let jwtPayload: unknown = null;
+  let jwtError: string | null = null;
+  let token: string | null = null;
   try {
-    const raw = await readFile(join(cwd, "data", "tenants.json"), "utf-8");
-    fileData = { tenantsJson: JSON.parse(raw), cwd };
+    token = await mintTableauJwt(
+      { clientId, secretId, secretValue },
+      { sub: embedUser, scopes: ["tableau:views:embed"], tenantId: "debug" },
+    );
+    const parts = token.split(".");
+    jwtPayload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
   } catch (e) {
-    fileData = { error: String(e), cwd };
+    jwtError = String(e);
   }
 
-  // 3. Tenant records via lib (KV or file)
-  const tenants = await listTenants();
-  const sfBank = await getTenant("salesforce-bank");
-  const vincom = await getTenant("vincomretail");
-  const sfTheme = await getTenantTheme("salesforce-bank");
-  const vincomTheme = await getTenantTheme("vincomretail");
+  // 2. Test Tableau PAT sign-in (proves network + PAT is valid)
+  let tableauSignIn: unknown = null;
+  if (env.TABLEAU_PAT_NAME && env.TABLEAU_PAT_SECRET) {
+    try {
+      const res = await fetch(`${origin}/api/3.20/auth/signin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          credentials: {
+            personalAccessTokenName: env.TABLEAU_PAT_NAME,
+            personalAccessTokenSecret: env.TABLEAU_PAT_SECRET,
+            site: { contentUrl: siteName },
+          },
+        }),
+      });
+      const body = await res.json();
+      tableauSignIn = { status: res.status, ok: res.ok, body };
+      // Sign out immediately
+      if (res.ok) {
+        const t = (body as { credentials?: { token?: string } }).credentials?.token;
+        if (t) void fetch(`${origin}/api/3.20/auth/signout`, { method: "POST", headers: { "X-Tableau-Auth": t } });
+      }
+    } catch (e) {
+      tableauSignIn = { error: String(e) };
+    }
+  }
+
+  // 3. Test embed JWT against Tableau — try to fetch user info with it
+  let embedAuthTest: unknown = null;
+  if (token) {
+    try {
+      // Tableau doesn't have a direct "validate JWT" endpoint, but we can
+      // try to sign-in with the connected-app JWT via trusted auth
+      const res = await fetch(`${origin}/api/3.20/auth/signin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          credentials: {
+            jwt: token,
+            site: { contentUrl: siteName },
+          },
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      embedAuthTest = { status: res.status, ok: res.ok, body };
+    } catch (e) {
+      embedAuthTest = { error: String(e) };
+    }
+  }
 
   return NextResponse.json({
-    envStatus,
-    fileData,
-    tenants,
-    detail: {
-      salesforceBank: { tenant: sfBank, theme: sfTheme },
-      vincomretail: { tenant: vincom, theme: vincomTheme },
+    config: {
+      clientId: clientId.slice(0, 8) + "...",
+      secretId: secretId.slice(0, 8) + "...",
+      secretValue: secretValue ? `SET (${secretValue.length} chars)` : "MISSING",
+      siteName,
+      embedUser,
+      oda: env.TABLEAU_ODA,
+      origin,
     },
+    jwtPayload,
+    jwtError,
+    tableauSignIn,
+    embedAuthTest,
+    _jti: randomUUID(), // confirms endpoint ran fresh
   });
 }
