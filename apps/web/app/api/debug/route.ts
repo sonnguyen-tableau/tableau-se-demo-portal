@@ -22,7 +22,7 @@ export async function GET(): Promise<Response> {
   const secretId = env.TABLEAU_CONNECTED_APP_SECRET_ID ?? "";
   const secretValue = env.TABLEAU_CONNECTED_APP_SECRET_VALUE ?? "";
   const siteName = env.TABLEAU_SITE_NAME ?? "";
-  const embedUser = env.TABLEAU_EMBED_USER ?? session.user?.email ?? "";
+  const embedUser = env.TABLEAU_EMBED_USER ?? session?.user?.email ?? "";
   const origin = tableauOrigin();
 
   // 1. Mint a test JWT and decode it
@@ -35,7 +35,7 @@ export async function GET(): Promise<Response> {
       { sub: embedUser, scopes: ["tableau:views:embed"], tenantId: "debug" },
     );
     const parts = token.split(".");
-    jwtPayload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
+    jwtPayload = JSON.parse(Buffer.from(parts[1] ?? "", "base64url").toString());
   } catch (e) {
     jwtError = String(e);
   }
