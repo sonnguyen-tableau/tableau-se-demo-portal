@@ -37,7 +37,7 @@ export default async function DashboardsIndex({ params }: PageProps) {
   const tenantRecord = await getTenant(tenantSlug);
   const [catalog, visibleIds] = await Promise.all([
     getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects),
-    getVisibleWorkbookIds(userEmail),
+    getVisibleWorkbookIds(userEmail, ctx?.tenantId, tenantRecord?.allowedProjects),
   ]);
 
   const dashboards = visibleIds

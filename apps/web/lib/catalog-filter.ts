@@ -59,7 +59,11 @@ export async function getHiddenWorkbookIds(): Promise<Set<string>> {
  *
  * Returns null when no filtering is needed (user sees all non-hidden workbooks).
  */
-export async function getVisibleWorkbookIds(userEmail: string, tenantId?: string): Promise<Set<string> | null> {
+export async function getVisibleWorkbookIds(
+  userEmail: string,
+  tenantId?: string,
+  allowedProjects?: string[],
+): Promise<Set<string> | null> {
   if (!userEmail) return null;
 
   let hidden: Set<string>;
@@ -81,7 +85,7 @@ export async function getVisibleWorkbookIds(userEmail: string, tenantId?: string
   // We need the full workbook list to compute the intersection.
   // getLiveCatalog() ensures the cache is warm.
   const { getLiveCatalog } = await import("@/lib/tableau-rest");
-  const catalog = await getLiveCatalog(tenantId);
+  const catalog = await getLiveCatalog(tenantId, allowedProjects);
   const all = catalog.dashboards.map((d) => d.workbookId);
 
   const visible = new Set(
