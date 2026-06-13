@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { getTenant } from "@/lib/tenants";
 import { getLiveCatalog, getCachedWorkbooks } from "@/lib/tableau-rest";
+import { getHiddenWorkbookIds } from "@/lib/catalog-filter";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,9 +28,14 @@ export async function GET(req: Request): Promise<Response> {
   // Fetch full (unfiltered) catalog first to warm the cache and expose raw workbooks
   const fullCatalog = await getLiveCatalog(tenantRecord.id);
   const allWorkbooks = getCachedWorkbooks();
+  const hiddenIds = await getHiddenWorkbookIds();
 
   // Then fetch filtered catalog
   const filtered = await getLiveCatalog(tenantRecord.id, tenantRecord.allowedProjects);
+
+  // Workbooks in allowed projects, cross-referenced against hidden list
+  const allowedProjectIds = new Set(filtered.projects.map((p) => p.id));
+  const workbooksInAllowedProjects = allWorkbooks.filter((wb) => allowedProjectIds.has(wb.projectId));
 
   return NextResponse.json({
     tenantRecord,
@@ -39,11 +45,12 @@ export async function GET(req: Request): Promise<Response> {
       dashboardCount: filtered.dashboards.length,
       projects: filtered.projects.map((p) => ({ id: p.id, name: p.name, parentProjectId: p.parentProjectId })),
     },
-    allWorkbooksOnSite: allWorkbooks.map((wb) => ({
+    hiddenWorkbookIds: [...hiddenIds],
+    workbooksInAllowedProjects: workbooksInAllowedProjects.map((wb) => ({
+      id: wb.id,
       name: wb.name,
       projectName: wb.projectName,
-      projectId: wb.projectId,
-      contentUrl: wb.contentUrl,
+      isHidden: hiddenIds.has(wb.id),
     })),
     allProjectsOnSite: fullCatalog.projects.map((p) => ({
       id: p.id,
