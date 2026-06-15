@@ -312,7 +312,13 @@ function buildRichContent(
 
   for (const block of content) {
     if (block.type === "image" && typeof block.data === "string") {
-      const mimeType = typeof block.mimeType === "string" ? block.mimeType : "image/png";
+      const raw = typeof block.mimeType === "string" ? block.mimeType.toLowerCase() : "";
+      const ALLOWED = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+      const mimeType = ALLOWED.has(raw)
+        ? raw
+        : raw === "image/jpg"
+          ? "image/jpeg"
+          : "image/png";
       events.push({ type: "tool_image", mimeType, data: block.data });
       anthropicContent.push({
         type: "image",
