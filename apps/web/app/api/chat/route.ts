@@ -5,10 +5,13 @@ import { tenantFromSession } from "@/lib/tenant";
 import { buildSystemPrompt, type VizContext } from "@/lib/system-prompt";
 import { runAgentTurn, type AgentEvent } from "@/lib/agent";
 import { allowedToolNames, openTableauMcp } from "@/lib/mcp-client";
+import { wrapMcpWithCatalogFilter } from "@/lib/mcp-catalog-guard";
 import { audit, shortHash } from "@/lib/audit";
 import { checkAndRecord } from "@/lib/rate-limit";
 import { getSiteForTenant } from "@/lib/tenant-site";
 import { getTenantDesignMd } from "@/lib/tenant-theme";
+import { getTenant } from "@/lib/tenants";
+import { getLiveCatalog } from "@/lib/tableau-rest";
 
 const CHAT_RATE_LIMIT = { windowSeconds: 60, max: 12 } as const;
 
@@ -151,21 +154,50 @@ export async function POST(req: Request): Promise<Response> {
           send({ type: "open", tools: [] });
         }
 
-        const [designMd] = await Promise.all([getTenantDesignMd(ctx.tenantId)]);
+        const [designMd, tenantRecord] = await Promise.all([
+          getTenantDesignMd(ctx.tenantId),
+          getTenant(ctx.tenantId),
+        ]);
+
+        const allowedProjects = tenantRecord?.allowedProjects ?? [];
+
+        // Build catalog-scoped allowlists for the guard and system prompt
+        let allowedWorkbookIds = new Set<string>();
+        let allowedWorkbookNames: string[] = [];
+        if (allowedProjects.length > 0) {
+          const catalog = await getLiveCatalog(ctx.tenantId, allowedProjects);
+          const wbMap = new Map<string, string>();
+          for (const d of catalog.dashboards) {
+            wbMap.set(d.workbookId, d.workbookName);
+          }
+          allowedWorkbookIds = new Set(wbMap.keys());
+          allowedWorkbookNames = [...new Set(wbMap.values())].sort();
+        }
+
+        const guardedMcp = mcp
+          ? wrapMcpWithCatalogFilter(mcp, { allowedProjectNames: allowedProjects, allowedWorkbookIds })
+          : undefined;
+
         const systemPrompt = buildSystemPrompt({
           tenant: ctx,
           ...(parsed.data.vizContext ? { viz: parsed.data.vizContext as VizContext } : {}),
-          toolNames: mcp ? mcp.tools.map((t) => t.name) : allowedToolNames(),
+          toolNames: guardedMcp
+            ? guardedMcp.tools.map((t) => t.name)
+            : mcp
+              ? mcp.tools.map((t) => t.name)
+              : allowedToolNames(),
           designMd,
+          ...(allowedWorkbookNames.length > 0 ? { allowedWorkbookNames } : {}),
         });
 
+        const activeMcp = guardedMcp ?? mcp;
         for await (const event of runAgentTurn({
           apiKey: anthropicKey,
           systemPrompt,
           userMessage: parsed.data.message,
           history: parsed.data.history,
           enableVizTools: true,
-          ...(mcp ? { mcp } : {}),
+          ...(activeMcp ? { mcp: activeMcp } : {}),
         })) {
           send(event);
           if (event.type === "tool_use") {
