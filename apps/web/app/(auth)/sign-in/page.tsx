@@ -166,29 +166,6 @@ export default async function SignInPage({ searchParams }: PageProps) {
             </button>
           </form>
 
-          {env.PORTAL_ENV === "dev" && (
-            <div className="mt-8 rounded-xl border border-sf-neutral-3 bg-sf-neutral-1 p-4">
-              <p className="mb-2.5 text-caption font-semibold uppercase tracking-widest text-sf-neutral-5">
-                Dev accounts
-              </p>
-              <div className="space-y-1.5">
-                {[
-                  { email: "admin@portal.com", role: "Admin" },
-                  { email: "bank@demo.com", role: "Salesforce Bank" },
-                  { email: "vincom@demo.com", role: "Vincom Retail" },
-                ].map((u) => (
-                  <div key={u.email} className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-caption text-sf-neutral-6">{u.email}</span>
-                    <span className="rounded-full bg-sf-neutral-2 px-2 py-px text-[10px] font-medium text-sf-neutral-5 border border-sf-neutral-3">
-                      {u.role}
-                    </span>
-                  </div>
-                ))}
-                <p className="mt-1.5 text-[10px] text-sf-neutral-4">Password: <span className="font-mono">dev</span></p>
-              </div>
-            </div>
-          )}
-
           <p className="mt-6 text-center text-meta text-sf-neutral-4">
             Bằng việc đăng nhập, bạn đồng ý với chính sách bảo mật nội bộ.
           </p>
