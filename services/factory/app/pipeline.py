@@ -335,6 +335,9 @@ class FactoryJob:
                     tenant_slug=self.tenant_slug,
                     datasource_name=published_name,
                     settings=s,
+                    # Publish the workbook into the SAME project as its datasource
+                    # so Tableau Cloud's connection check doesn't fail with 403132.
+                    project_name=published_project,
                 )
                 yield await emit(
                     Stage.workbook,

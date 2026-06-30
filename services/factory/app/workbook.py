@@ -237,9 +237,16 @@ def publish_workbook(
     *,
     tenant_slug: str,
     settings: Settings,
+    project_name: str | None = None,
 ) -> WorkbookResult:
-    """Publish a .twb to the tenant project. Reuses the publish stage's auth."""
-    project_name = f"tenant-{tenant_slug}"
+    """Publish a .twb to the project. Reuses the publish stage's auth.
+
+    `project_name` defaults to `tenant-{slug}` for backward compat, but callers
+    should pass the same project that the datasource was published into so the
+    workbook->datasource connection check (Tableau Cloud error 403132) doesn't
+    fail with "Forbidden retail-* failed to establish a connection".
+    """
+    project_name = project_name or f"tenant-{tenant_slug}"
     if not tableau_configured(settings):
         return WorkbookResult(
             workbook_id="",
@@ -267,13 +274,41 @@ def publish_workbook(
 
     with server.auth.sign_in(auth):
         all_projects, _ = server.projects.get()
-        project = next((p for p in all_projects if p.name == project_name), None)
-        if project is None:
-            project = server.projects.create(
-                TSC.ProjectItem(name=project_name, description=f"Auto-created for {tenant_slug}")
-            )
+        # Support nested project paths like "Demo/MediaMart" — find leaf by
+        # walking parent_id chain so we land in the same folder as the datasource.
+        if "/" in project_name:
+            parts = [p.strip() for p in project_name.split("/") if p.strip()]
+            parent_id: str | None = None
+            leaf_id: str | None = None
+            for part in parts:
+                found = None
+                for p in all_projects:
+                    pid = getattr(p, "parent_id", None) or getattr(p, "parentProjectId", None)
+                    if p.name == part and pid == parent_id:
+                        found = p
+                        break
+                if found is None:
+                    new_proj = TSC.ProjectItem(name=part, description=f"Auto-created for {tenant_slug}")  # type: ignore[no-untyped-call]
+                    if parent_id:
+                        new_proj.parent_id = parent_id  # type: ignore[attr-defined]
+                    created = server.projects.create(new_proj)
+                    all_projects, _ = server.projects.get()
+                    parent_id = created.id
+                    leaf_id = created.id
+                else:
+                    parent_id = found.id
+                    leaf_id = found.id
+            assert leaf_id is not None
+            target_project_id = leaf_id
+        else:
+            project = next((p for p in all_projects if p.name == project_name), None)
+            if project is None:
+                project = server.projects.create(
+                    TSC.ProjectItem(name=project_name, description=f"Auto-created for {tenant_slug}")
+                )
+            target_project_id = project.id
 
-        wb_item = TSC.WorkbookItem(project_id=project.id, name=workbook_path.stem)
+        wb_item = TSC.WorkbookItem(project_id=target_project_id, name=workbook_path.stem)
         published = server.workbooks.publish(
             wb_item,
             str(workbook_path),
@@ -296,18 +331,24 @@ def run_workbook_stage(
     tenant_slug: str,
     datasource_name: str,
     settings: Settings,
+    project_name: str | None = None,
 ) -> WorkbookResult:
     """Top-level orchestrator: pick template → validate → rewrite → publish.
 
+    If `project_name` is passed, the workbook is published into that project
+    (e.g. "Demo/MediaMart") so it sits next to its datasource — avoiding the
+    Tableau Cloud 403132 cross-project connection check error. Falls back to
+    "tenant-{slug}" for backward compatibility.
+
     Cleans up the rewrite tempdir on success or failure.
     """
-    project_name = f"tenant-{tenant_slug}"
+    effective_project = project_name or f"tenant-{tenant_slug}"
     template = template_path_for(industry)
     if template is None:
         return WorkbookResult(
             workbook_id="",
             workbook_name="",
-            project_name=project_name,
+            project_name=effective_project,
             skipped=True,
             reason=f"No .twb template authored for industry '{industry}' yet.",
         )
@@ -319,6 +360,11 @@ def run_workbook_stage(
         rewritten = rewrite_for_tenant(
             template, datasource_name=datasource_name, out_dir=work_dir
         )
-        return publish_workbook(rewritten, tenant_slug=tenant_slug, settings=settings)
+        return publish_workbook(
+            rewritten,
+            tenant_slug=tenant_slug,
+            settings=settings,
+            project_name=effective_project,
+        )
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
