@@ -16,6 +16,7 @@ from app.generators.banking import BankingParameters, generate_banking
 from app.generators.healthcare import HealthcareParameters, generate_healthcare
 from app.generators.logistics import LogisticsParameters, generate_logistics
 from app.generators.manufacturing import ManufacturingParameters, generate_manufacturing
+from app.generators.mediamart import MediaMartParameters, generate_mediamart
 from app.generators.retail import RetailParameters, generate_retail
 
 SCHEMA_DIR = Path(__file__).resolve().parents[3] / "packages" / "factory-schema"
@@ -67,6 +68,12 @@ CASES = [
         "logistics",
         lambda: generate_logistics(
             LogisticsParameters(tenant_id="t", start_date=START, end_date=END)
+        ).all_tables(),
+    ),
+    (
+        "retail-mediamart",
+        lambda: generate_mediamart(
+            MediaMartParameters(tenant_id="t", start_date=START, end_date=END)
         ).all_tables(),
     ),
 ]

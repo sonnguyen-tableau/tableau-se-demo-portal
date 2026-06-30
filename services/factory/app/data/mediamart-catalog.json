@@ -1,0 +1,177 @@
+{
+  "source": "Scraped from mediamart.vn (Feb 2026). Curated by the factory scrape workflow.",
+  "company_name": "MediaMart",
+  "tagline": "Siêu thị điện máy - Giá tốt mỗi ngày",
+  "categories": [
+    {
+      "category_en": "Television",
+      "category_vi": "Tivi",
+      "brands": ["Samsung", "Sony", "LG", "TCL", "Xiaomi", "Skyworth", "Casper", "Sharp"],
+      "sample_products": [
+        "Coex Android TV 32FH5000Y 32 inch HD",
+        "Coex Android TV 43UT7002X 43 inch 2K",
+        "Samsung QLED 4K QA55Q6F Smart TV 55 inch",
+        "Samsung Crystal UHD 4K 55U8500 Smart TV 55 inch",
+        "Samsung QLED 4K QA65Q6FAA Smart TV 65 inch",
+        "LG Smart TV UHD AI 4K 43UA8450PSA 43 inch ThinQ AI",
+        "LG Smart TV UHD AI 4K 65UA8450PSA 65 inch ThinQ AI",
+        "TCL Google TV 4K 55P638 55 inch",
+        "LG QNED AI 4K 55QNED70ASA Smart TV 55 inch",
+        "Sony BRAVIA 3 LED Google TV 4K K-55S30 55 inch",
+        "Samsung Neo QLED Mini LED 4K 75QN85F Smart AI TV 75 inch",
+        "Coex Google TV QLED 4K 65QA9000XG 65 inch"
+      ]
+    },
+    {
+      "category_en": "Smartphone",
+      "category_vi": "Điện thoại",
+      "brands": ["Apple", "Samsung", "Oppo", "Xiaomi", "Realme", "Vivo", "ZTE nubia", "Masstel"],
+      "sample_products": [
+        "Apple iPhone 17 Pro Max 256GB (Cam Vũ Trụ)",
+        "Apple iPhone Air 256GB (Vàng Nhạt)",
+        "Apple iPhone 13 128GB Black",
+        "Samsung Galaxy A17 4G A175F 8+128GB Đen",
+        "Samsung Galaxy A16 4G A165F 4+128GB Xanh",
+        "Samsung Galaxy A16 4G A165F 4+128GB Đen",
+        "Samsung Galaxy A07 4G A075F 4+128GB Tím",
+        "Samsung Galaxy A07 4G A075F 8+256GB Đen",
+        "Oppo Reno12 F 5G 12GB 256GB",
+        "Xiaomi Redmi Note 14 Pro 8GB 256GB",
+        "Realme C75 8GB 256GB",
+        "Vivo Y19s 6GB 128GB"
+      ]
+    },
+    {
+      "category_en": "Laptop",
+      "category_vi": "Laptop",
+      "brands": ["Apple", "Dell", "Acer", "HP", "Lenovo", "Asus", "MSI"],
+      "sample_products": [
+        "Acer Aspire Go 15 AG15-72P-54GY Core 5 16GB 512GB SSD",
+        "Acer Aspire Lite 15 AL15-46P-R73C Ryzen 3 8GB 512GB SSD",
+        "Dell 15 DC15250 DC5I5897W1 Core i5 16GB 512GB SSD",
+        "Lenovo V15 G5 IRL 83HF00BYVN Core i5 16GB 512GB SSD",
+        "Dell Pro 14 Essential PV14250 71084489 Core 5 16GB 1TB SSD",
+        "HP OmniBook 5 AI 16-af1048TU BZ7Q9PA 16GB 512GB SSD",
+        "Asus ExpertBook P1503CVA-S71707W Core i5 16GB",
+        "Asus Vivobook Go E1504FA-BQ1150W Ryzen 5 16GB 512GB SSD",
+        "Acer Gaming Aspire 7 A715-59G-55MD Core i5 16GB 512GB SSD",
+        "Lenovo Gaming LOQ 15IAX9E 83LK0079VN Core i5 16GB 512GB SSD",
+        "HP OmniBook 7 14-fr0033TU C1MN2PA Core Ultra 5 16GB 512GB SSD",
+        "Lenovo Gaming LOQ 15ARP10E 83S0004FVN Ryzen 7 16GB 512GB SSD"
+      ]
+    },
+    {
+      "category_en": "Audio",
+      "category_vi": "Tai nghe / Loa",
+      "brands": ["Sony", "JBL", "Logitech", "Bose", "Marshall", "Harman Kardon"],
+      "sample_products": [
+        "Sony WF-SP900/YM E True Wireless Sports Earbuds Yellow",
+        "Sony WI-XB400/BZ E Wireless In-Ear Headphones",
+        "Sony WI-1000XM2/SCE Noise-Cancelling Neckband Earphones",
+        "Sony WF-SP900/BM E True Wireless Bluetooth Earbuds Black",
+        "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
+        "JBL Live Beam 3 True Wireless Earbuds Black",
+        "JBL Live Beam 3 True Wireless Earbuds Blue",
+        "JBL Tune 510BT On-Ear Wireless Bluetooth Headphones",
+        "Bose QuietComfort Ultra Wireless Headphones",
+        "Marshall Stanmore III Bluetooth Speaker",
+        "Harman Kardon Aura Studio 3 Wireless Speaker",
+        "Logitech G733 Wireless Gaming Headset"
+      ]
+    },
+    {
+      "category_en": "Home Appliance",
+      "category_vi": "Đồ gia dụng",
+      "brands": ["Panasonic", "Samsung", "LG", "Hitachi", "Toshiba", "Sharp", "Electrolux", "Aqua"],
+      "sample_products": [
+        "Coex Inverter 430 Lít RS-4007MIB Side by Side 2 cửa",
+        "Coex Inverter 525 Lít RS-4006MIB Side by Side 2 cửa",
+        "Samsung Inverter 583 Lít Side By Side RS57DG400EM9SV",
+        "Samsung Inverter 488 Lít RF48A4000B4/SV Multi 4 cửa",
+        "LG Inverter 4 Cửa 400 Lít F40BG Multi Door",
+        "LG Inverter 580 Lít Multi Door 4 Cửa F56BG",
+        "Toshiba Inverter 312 Lít GR-RT416WE-PMV(58)-MM",
+        "Toshiba Inverter 249 Lít GR-RT325WE-PMV(06)-MG",
+        "Hitachi Inverter 210 Lít HRTN5230MUVN",
+        "Hitachi Inverter 4 Cửa 466 Lít HR4N7522DSDXVN",
+        "Panasonic Inverter 325 Lít NR-BC361VGMV",
+        "Aqua Inverter 506 Lít Multi Door AQR-M570XA"
+      ]
+    },
+    {
+      "category_en": "Kitchen Appliance",
+      "category_vi": "Thiết bị nhà bếp",
+      "brands": ["Panasonic", "Sharp", "Toshiba", "Cuckoo", "Sunhouse", "Philips", "Tefal", "Bluestone"],
+      "sample_products": [
+        "Nồi cơm điện tử 1.8L Sharp KS-COM193EV-BK 790W",
+        "Nồi cơm điện cơ 1L Coex CR-3474 400W",
+        "Nồi cơm điện tử đa năng 0.8L Coex CR-3468A 330W",
+        "Nồi cơm điện cơ 1.8L Cuckoo CR-1021 Korean 650W",
+        "Nồi cơm điện tử 1.8L Toshiba RC-18DH1NV/18DH2PV(W) 760W",
+        "Nồi cơm điện cơ 6.3L Cuckoo CR-3555 1460W",
+        "Nồi cơm cao tần 1.5L Coex CR-3469IH",
+        "Nồi cơm điện tử 1.8L Panasonic SR-CP188NRA/M 765W",
+        "Nồi cơm điện cơ 1.8L Panasonic SR-MVN18LRAX 630W",
+        "Nồi cơm điện tử 1.8L Toshiba RC-18NTFV(W) 800W",
+        "Nồi cơm điện tử 1.8L Cuckoo CRP-G1015M 1150W",
+        "Nồi cơm điện cơ 10L Coex CR-3427 3000W"
+      ]
+    },
+    {
+      "category_en": "Camera",
+      "category_vi": "Máy ảnh",
+      "brands": ["Canon", "Sony", "Nikon", "Fujifilm", "Panasonic"],
+      "sample_products": [
+        "Canon PowerShot G7X Mark III Black 20.1MP",
+        "Canon PowerShot G5X Mark II 20.1MP",
+        "Canon EOS 1DX Mark III Body Professional DSLR",
+        "Canon EOS 6D Mark II Body Full-Frame DSLR",
+        "Canon EOS R5 Body 45MP Full-Frame Mirrorless",
+        "Canon EOS R6 Body 20.1MP Full-Frame Mirrorless",
+        "Canon EOS R6 Kit RF 24-105mm USM Mirrorless",
+        "Canon EOS R6 Mark II Body 24.2MP Mirrorless",
+        "Canon EOS R7 Body 32.5MP APS-C Mirrorless",
+        "Canon EOS R7 Kit RF-S 18-150mm STM APS-C",
+        "Canon EOS R8 Body 24.2MP Full-Frame Mirrorless"
+      ]
+    },
+    {
+      "category_en": "Gaming",
+      "category_vi": "Máy chơi game",
+      "brands": ["Sony", "Microsoft", "Nintendo", "Asus", "Logitech", "Razer"],
+      "sample_products": [
+        "Sony PlayStation 5 Slim Disc Edition 1TB",
+        "Sony PlayStation 5 Digital Edition 825GB",
+        "Sony PlayStation 5 Pro 2TB",
+        "Microsoft Xbox Series X 1TB",
+        "Microsoft Xbox Series S 512GB",
+        "Nintendo Switch OLED Model 64GB White",
+        "Nintendo Switch Lite 32GB Turquoise",
+        "Sony DualSense Wireless Controller PS5",
+        "Microsoft Xbox Wireless Controller Carbon Black",
+        "Asus ROG Ally Z1 Extreme 512GB Handheld",
+        "Logitech G29 Driving Force Racing Wheel",
+        "Razer Kishi V2 Mobile Gaming Controller"
+      ]
+    },
+    {
+      "category_en": "Accessory",
+      "category_vi": "Phụ kiện",
+      "brands": ["Apple", "Samsung", "Sony", "Xiaomi", "Anker", "JBL", "Logitech", "Baseus"],
+      "sample_products": [
+        "Apple AirPods Pro 2 USB-C Active Noise Cancelling",
+        "Samsung Galaxy Buds2 Pro Wireless Earbuds Graphite",
+        "Anker PowerCore 20000mAh PD 22.5W Power Bank",
+        "Xiaomi Mi Power Bank 3 Pro 20000mAh 50W",
+        "Sony WH-1000XM5 Wireless Noise Cancelling",
+        "JBL Tune 510BT On-Ear Wireless Bluetooth",
+        "Logitech MX Master 3S Wireless Performance Mouse",
+        "Baseus 65W GaN5 Pro USB-C Fast Charger 3-Port",
+        "Belkin BoostCharge Pro 3-in-1 MagSafe Wireless 15W",
+        "Ugreen Nexode 100W 4-Port GaN USB-C Charger",
+        "Apple 20W USB-C Power Adapter with USB-C to Lightning",
+        "Energizer Max AA Alkaline Batteries 4-Pack"
+      ]
+    }
+  ]
+}

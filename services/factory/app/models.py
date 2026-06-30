@@ -12,6 +12,7 @@ class Industry(StrEnum):
     retail = "retail-ecommerce"
     banking = "retail-banking"
     mall = "retail-mall"
+    mediamart = "retail-mediamart"
     manufacturing = "manufacturing"
     healthcare = "healthcare"
     logistics = "logistics"
@@ -157,6 +158,12 @@ class GeneratorParams(BaseModel):
     n_lanes: int | None = None
     n_vehicles: int | None = None
     n_customers: int | None = None
+
+    # Retail MediaMart — consumer-electronics in Vietnam (Tier + Churn + Loyalty + OOS)
+    n_customers_mediamart: int | None = None
+    n_stores_mediamart: int | None = None
+    n_products_mediamart: int | None = None
+    oos_rate_pct: float | None = None
 
 
 class DirectStartRequest(BaseModel):

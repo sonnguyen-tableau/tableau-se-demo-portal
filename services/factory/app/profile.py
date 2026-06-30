@@ -12,7 +12,9 @@ from .scrape import ScrapeResult
 PROFILE_SYSTEM_PROMPT = (
     "You are an analyst that profiles a B2B/B2C company from its public website. "
     "Return a single JSON object matching the supplied schema EXACTLY. "
-    "Choose `industry` from: retail-ecommerce, retail-banking, manufacturing, healthcare, logistics. "
+    "Choose `industry` from: retail-ecommerce, retail-banking, retail-mall, retail-mediamart, manufacturing, healthcare, logistics. "
+    "Pick `retail-mediamart` ONLY for Vietnamese consumer-electronics multi-store retailers "
+    "(e.g. MediaMart, FPT Shop, Dien May Xanh, Nguyen Kim, Pico). "
     "Be conservative: if the site doesn't clearly map to one, pick the closest match and add a low-confidence note in `sub_vertical`. "
     "Do not invent specific numbers; use realistic ranges for `growth_trend_pct` (-20 to +50)."
 )
@@ -31,6 +33,8 @@ PROFILE_SCHEMA = {
             "enum": [
                 "retail-ecommerce",
                 "retail-banking",
+                "retail-mall",
+                "retail-mediamart",
                 "manufacturing",
                 "healthcare",
                 "logistics",

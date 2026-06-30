@@ -78,6 +78,8 @@ if not SCHEMAS_DIR.exists():
 _INDUSTRY_TO_FILES: dict[str, tuple[str, str]] = {
     "retail-ecommerce": ("retail-ecommerce.twb", "retail-ecommerce.schema.json"),
     "retail-banking": ("retail-banking.twb", "retail-banking.schema.json"),
+    "retail-mall": ("retail-mall.twb", "retail-mall.schema.json"),
+    "retail-mediamart": ("retail-mediamart.twb", "retail-mediamart.schema.json"),
     "manufacturing": ("manufacturing.twb", "manufacturing.schema.json"),
     "healthcare": ("healthcare.twb", "healthcare.schema.json"),
     "logistics": ("logistics.twb", "logistics.schema.json"),

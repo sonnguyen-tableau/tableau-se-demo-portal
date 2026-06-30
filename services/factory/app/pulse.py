@@ -55,6 +55,11 @@ _INDUSTRY_FIELD_MAP: dict[str, dict[str, str]] = {
         "count_field": "ContractId",
         "time_field": "Month",
     },
+    "retail-mediamart": {
+        "currency_field": "LineTotal",
+        "count_field": "OrderId",
+        "time_field": "OrderDate",
+    },
     "manufacturing": {
         "currency_field": "Revenue",
         "count_field": "OrderId",
@@ -75,6 +80,16 @@ _INDUSTRY_FIELD_MAP: dict[str, dict[str, str]] = {
 # Allowed dimensions/granularities vary by industry.
 _INDUSTRY_DIMENSIONS: dict[str, list[str]] = {
     "retail-mall": ["MallId", "UnitType", "Category", "Province"],
+    "retail-mediamart": [
+        "Tier",
+        "Category",
+        "Brand",
+        "City",
+        "Province",
+        "Region",
+        "ChannelName",
+        "PaymentMethod",
+    ],
 }
 
 _DEFAULT_DIMENSIONS = ["Region", "Channel", "Segment", "Category"]

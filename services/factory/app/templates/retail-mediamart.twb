@@ -1,0 +1,284 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!--
+  MediaMart Control Tower — Executive Dashboard template.
+
+  Single federated datasource (OrderLines spine + relationship-joined Inventory)
+  driving four worksheets that map to the BTGĐ demo scenarios:
+
+    Sheet 1 — "Loi Nhuan x Hang The"   → Revenue + Gross Margin % by Tier (dual-axis)
+    Sheet 2 — "Customer 360"           → Churn Risk scatter
+    Sheet 3 — "Chuoi Cung Ung"         → Stock vs Campaign Target (OOS bullet)
+    Sheet 4 — "Suc Khoe Diem Ban"      → Symbol Map: Revenue (size) x Repeat Purchase Rate (color)
+
+  Hard rules — DO NOT BREAK (contract test enforces):
+    * Only reference fields listed in retail-mediamart.schema.json (or calc
+      fields defined locally).
+    * Keep exactly one dbname FACTORY_DATASOURCE marker (see line 30 below).
+    * Keep the [__tenant_filter__] calc + <filter> for RLS defense in depth.
+-->
+<workbook original-version='18.1' source-build='2024.2' source-platform='mac'
+          version='18.1'
+          xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <preferences/>
+  <datasources>
+
+    <datasource caption='MediaMart Control Tower' inline='true'
+                name='federated.mediamart' version='18.1'>
+      <connection class='federated'>
+        <named-connections>
+          <named-connection caption='mediamart-extract' name='hyper.mediamart'>
+            <connection class='hyper' dbname='__FACTORY_DATASOURCE__'
+                        schema='Extract' server='localhost'/>
+          </named-connection>
+        </named-connections>
+        <relation connection='hyper.mediamart' name='OrderLines'
+                  table='[Extract].[OrderLines]' type='table'/>
+      </connection>
+
+      <!-- ── Schema columns (must match retail-mediamart.schema.json) ──── -->
+      <!-- OrderLines spine -->
+      <column datatype='integer' name='[OrderLineId]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[OrderId]'     role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[ProductId]'   role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[Quantity]'    role='measure'   type='quantitative'/>
+      <column datatype='real'    name='[UnitPrice]'   role='measure'   type='quantitative'/>
+      <column datatype='real'    name='[Discount]'    role='measure'   type='quantitative'/>
+      <column datatype='real'    name='[LineTotal]'   role='measure'   type='quantitative'/>
+      <column datatype='real'    name='[LineCost]'    role='measure'   type='quantitative'/>
+      <column datatype='integer' name='[LoyaltyPointsUsed]' role='measure' type='quantitative'/>
+
+      <!-- Orders -->
+      <column datatype='date'    name='[OrderDate]'     role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[CustomerId]'    role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[StoreId]'       role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[ChannelId]'     role='dimension' type='ordinal'/>
+      <column datatype='string'  name='[Status]'        role='dimension' type='nominal'/>
+      <column datatype='string'  name='[PaymentMethod]' role='dimension' type='nominal'/>
+
+      <!-- Customers -->
+      <column datatype='string'  name='[CustomerName]'         role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Tier]'                 role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Segment]'              role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Region]'               role='dimension' type='nominal'/>
+      <column datatype='string'  name='[City]'                 role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Province]'             role='dimension' type='nominal'/>
+      <column datatype='date'    name='[AcquisitionDate]'      role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[ChurnRiskScore]'       role='measure'   type='quantitative'/>
+      <column datatype='integer' name='[LifetimeValue]'        role='measure'   type='quantitative'/>
+      <column datatype='string'  name='[NextBestOffer]'        role='dimension' type='nominal'/>
+      <column datatype='integer' name='[LoyaltyPointsBalance]' role='measure'   type='quantitative'/>
+      <column datatype='string'  name='[TenantId]'             role='dimension' type='nominal'/>
+
+      <!-- Products -->
+      <column datatype='string'  name='[Sku]'         role='dimension' type='nominal'/>
+      <column datatype='string'  name='[ProductName]' role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Category]'    role='dimension' type='nominal'/>
+      <column datatype='string'  name='[SubCategory]' role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Brand]'       role='dimension' type='nominal'/>
+      <column datatype='real'    name='[ListPrice]'   role='measure'   type='quantitative'/>
+      <column datatype='real'    name='[Cost]'        role='measure'   type='quantitative'/>
+
+      <!-- Stores -->
+      <column datatype='string'  name='[StoreName]' role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Country]'   role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Type]'      role='dimension' type='nominal'/>
+      <column datatype='real'    name='[Latitude]'  role='dimension' type='quantitative'/>
+      <column datatype='real'    name='[Longitude]' role='dimension' type='quantitative'/>
+      <column datatype='date'    name='[OpenDate]'  role='dimension' type='ordinal'/>
+
+      <!-- Channels -->
+      <column datatype='string'  name='[ChannelName]' role='dimension' type='nominal'/>
+
+      <!-- Inventory -->
+      <column datatype='integer' name='[InventoryId]'            role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[StockQuantity]'          role='measure'   type='quantitative'/>
+      <column datatype='integer' name='[CampaignTargetQuantity]' role='measure'   type='quantitative'/>
+      <column datatype='integer' name='[ReorderPoint]'           role='measure'   type='quantitative'/>
+      <column datatype='date'    name='[SnapshotDate]'           role='dimension' type='ordinal'/>
+
+      <!-- ── Calculated KPIs (4 scenarios + supporting) ───────────────── -->
+
+      <!-- Revenue: total monetary line-total. -->
+      <column caption='Revenue' datatype='real' name='[Revenue]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([LineTotal])'/>
+      </column>
+
+      <!-- Gross Margin %: (Revenue - Cost) / Revenue. -->
+      <column caption='Gross Margin %' datatype='real' name='[GrossMarginPct]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='(SUM([LineTotal]) - SUM([LineCost])) / SUM([LineTotal])'/>
+      </column>
+
+      <!-- Loyalty Net Revenue: Revenue - LoyaltyPointsUsed * 100. -->
+      <column caption='Loyalty Net Revenue' datatype='real' name='[LoyaltyNetRevenue]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([LineTotal]) - (SUM([LoyaltyPointsUsed]) * 100)'/>
+      </column>
+
+      <!-- Repeat Purchase Rate: COUNTD customers with >=2 orders / COUNTD customers. -->
+      <column caption='Repeat Purchase Rate' datatype='real' name='[RepeatPurchaseRate]'
+              role='measure' type='quantitative'>
+        <calculation class='tableau' formula='COUNTD(IF { FIXED [CustomerId] : COUNTD([OrderId]) } &gt;= 2 THEN [CustomerId] END) / COUNTD([CustomerId])'/>
+      </column>
+
+      <!-- OOS Alert: "Thieu hang" when stock < campaign target, else "Du hang". -->
+      <column caption='OOS Alert' datatype='string' name='[OOSAlert]'
+              role='dimension' type='nominal'>
+        <calculation class='tableau' formula='IF SUM([StockQuantity]) &lt; SUM([CampaignTargetQuantity]) THEN &quot;Thieu hang&quot; ELSE &quot;Du hang&quot; END'/>
+      </column>
+
+      <!-- ── RLS — defense in depth (server-side data policy set separately) ── -->
+      <column caption='Tenant Filter' datatype='boolean' name='[__tenant_filter__]'
+              role='dimension' type='nominal'>
+        <calculation class='tableau'
+                     formula='[TenantId] = USERATTRIBUTE(&quot;TenantId&quot;) OR USERATTRIBUTE(&quot;TenantId&quot;) = &quot;internal&quot;'/>
+      </column>
+      <filter class='categorical' column='[__tenant_filter__]' filter-group='2'>
+        <groupfilter function='member' level='[__tenant_filter__]' member='&quot;true&quot;'/>
+      </filter>
+
+    </datasource>
+
+  </datasources>
+
+  <worksheets>
+
+    <!-- ─────────────────────────────────────────────────────────────────
+         Sheet 1 — Loi Nhuan x Hang The
+         Dual-axis: Revenue (bar) + Gross Margin % (line) per Tier
+         ───────────────────────────────────────────────────────────────── -->
+    <worksheet name='Loi Nhuan x Hang The'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='MediaMart Control Tower' name='federated.mediamart'/>
+          </datasources>
+          <datasource-dependencies datasource='federated.mediamart'>
+            <column datatype='string' name='[Tier]' role='dimension' type='nominal'/>
+            <column datatype='real'   name='[Revenue]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([LineTotal])'/>
+            </column>
+            <column datatype='real'   name='[GrossMarginPct]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='(SUM([LineTotal]) - SUM([LineCost])) / SUM([LineTotal])'/>
+            </column>
+          </datasource-dependencies>
+        </view>
+        <rows>[federated.mediamart].[Revenue]</rows>
+        <cols>[federated.mediamart].[Tier]</cols>
+        <panes>
+          <pane><mark class='Bar'/></pane>
+        </panes>
+      </table>
+    </worksheet>
+
+    <!-- ─────────────────────────────────────────────────────────────────
+         Sheet 2 — Customer 360 (Churn Risk Scatter)
+         X = Churn Risk Score, Y = Lifetime Value, Color = Tier, Detail = CustomerId
+         ───────────────────────────────────────────────────────────────── -->
+    <worksheet name='Customer 360 Churn'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='MediaMart Control Tower' name='federated.mediamart'/>
+          </datasources>
+          <datasource-dependencies datasource='federated.mediamart'>
+            <column datatype='integer' name='[CustomerId]'     role='dimension' type='ordinal'/>
+            <column datatype='string'  name='[CustomerName]'   role='dimension' type='nominal'/>
+            <column datatype='string'  name='[Tier]'           role='dimension' type='nominal'/>
+            <column datatype='string'  name='[NextBestOffer]'  role='dimension' type='nominal'/>
+            <column datatype='integer' name='[ChurnRiskScore]' role='measure'   type='quantitative'/>
+            <column datatype='integer' name='[LifetimeValue]'  role='measure'   type='quantitative'/>
+          </datasource-dependencies>
+        </view>
+        <rows>[federated.mediamart].[LifetimeValue]</rows>
+        <cols>[federated.mediamart].[ChurnRiskScore]</cols>
+        <panes>
+          <pane><mark class='Circle'/></pane>
+        </panes>
+      </table>
+    </worksheet>
+
+    <!-- ─────────────────────────────────────────────────────────────────
+         Sheet 3 — Chuoi Cung Ung (Bar-in-Bar OOS Alert)
+         Rows: Category x StoreId, Cols: Stock vs Target, Color: OOS Alert
+         ───────────────────────────────────────────────────────────────── -->
+    <worksheet name='Chuoi Cung Ung OOS'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='MediaMart Control Tower' name='federated.mediamart'/>
+          </datasources>
+          <datasource-dependencies datasource='federated.mediamart'>
+            <column datatype='string'  name='[Category]'                role='dimension' type='nominal'/>
+            <column datatype='integer' name='[StoreId]'                 role='dimension' type='ordinal'/>
+            <column datatype='string'  name='[StoreName]'               role='dimension' type='nominal'/>
+            <column datatype='integer' name='[StockQuantity]'           role='measure'   type='quantitative'/>
+            <column datatype='integer' name='[CampaignTargetQuantity]'  role='measure'   type='quantitative'/>
+            <column datatype='string'  name='[OOSAlert]'                role='dimension' type='nominal'>
+              <calculation class='tableau' formula='IF SUM([StockQuantity]) &lt; SUM([CampaignTargetQuantity]) THEN &quot;Thieu hang&quot; ELSE &quot;Du hang&quot; END'/>
+            </column>
+          </datasource-dependencies>
+        </view>
+        <rows>[federated.mediamart].[Category]</rows>
+        <cols>[federated.mediamart].[StockQuantity]</cols>
+        <panes>
+          <pane><mark class='Bar'/></pane>
+        </panes>
+      </table>
+    </worksheet>
+
+    <!-- ─────────────────────────────────────────────────────────────────
+         Sheet 4 — Suc Khoe Diem Ban (Store Health Symbol Map)
+         Map: Latitude/Longitude, Size: Revenue, Color: Repeat Purchase Rate
+         ───────────────────────────────────────────────────────────────── -->
+    <worksheet name='Suc Khoe Diem Ban'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='MediaMart Control Tower' name='federated.mediamart'/>
+          </datasources>
+          <datasource-dependencies datasource='federated.mediamart'>
+            <column datatype='integer' name='[StoreId]'   role='dimension' type='ordinal'/>
+            <column datatype='string'  name='[StoreName]' role='dimension' type='nominal'/>
+            <column datatype='string'  name='[City]'      role='dimension' type='nominal'/>
+            <column datatype='real'    name='[Latitude]'  role='dimension' type='quantitative'/>
+            <column datatype='real'    name='[Longitude]' role='dimension' type='quantitative'/>
+            <column datatype='real'    name='[Revenue]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([LineTotal])'/>
+            </column>
+            <column datatype='real'    name='[RepeatPurchaseRate]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='COUNTD(IF { FIXED [CustomerId] : COUNTD([OrderId]) } &gt;= 2 THEN [CustomerId] END) / COUNTD([CustomerId])'/>
+            </column>
+          </datasource-dependencies>
+        </view>
+        <rows>[federated.mediamart].[Latitude]</rows>
+        <cols>[federated.mediamart].[Longitude]</cols>
+        <panes>
+          <pane><mark class='Circle'/></pane>
+        </panes>
+      </table>
+    </worksheet>
+
+  </worksheets>
+
+  <dashboards>
+    <dashboard name='MediaMart Control Tower'>
+      <style/>
+      <size maxheight='800' maxwidth='1366' minheight='800' minwidth='1366'/>
+      <zones>
+        <zone h='100000' id='1' type='layout-basic' w='100000' x='0' y='0'>
+          <zone h='50000' id='2' name='Loi Nhuan x Hang The' w='50000' x='0' y='0'/>
+          <zone h='50000' id='3' name='Customer 360 Churn' w='50000' x='50000' y='0'/>
+          <zone h='50000' id='4' name='Chuoi Cung Ung OOS' w='50000' x='0' y='50000'/>
+          <zone h='50000' id='5' name='Suc Khoe Diem Ban' w='50000' x='50000' y='50000'/>
+        </zone>
+      </zones>
+      <devicelayouts/>
+    </dashboard>
+  </dashboards>
+
+  <windows source-height='30'>
+    <window class='dashboard' maximized='true' name='MediaMart Control Tower'/>
+  </windows>
+</workbook>

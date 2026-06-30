@@ -72,6 +72,30 @@ _INDUSTRY_GRAPHS: dict[Industry, IndustryGraph] = {
             Rel("Orders", "Channels", "ChannelId"),
         ),
     ),
+    Industry.mediamart: IndustryGraph(
+        # MediaMart Control Tower: same OrderLines spine as retail, plus a
+        # current-snapshot Inventory table joined to Stores (and to Products
+        # via Category, treated as a soft join — Tableau-side relationship
+        # on Category is sufficient for the OOS scenario).
+        fact="OrderLines",
+        tables=(
+            "OrderLines",
+            "Orders",
+            "Customers",
+            "Stores",
+            "Channels",
+            "Products",
+            "Inventory",
+        ),
+        relationships=(
+            Rel("OrderLines", "Orders", "OrderId"),
+            Rel("OrderLines", "Products", "ProductId"),
+            Rel("Orders", "Customers", "CustomerId"),
+            Rel("Orders", "Stores", "StoreId"),
+            Rel("Orders", "Channels", "ChannelId"),
+            Rel("Inventory", "Stores", "StoreId"),
+        ),
+    ),
     Industry.manufacturing: IndustryGraph(
         fact="ProductionRuns",
         tables=("ProductionRuns", "Lines", "Plants", "Products", "Defects", "Suppliers", "Shipments"),

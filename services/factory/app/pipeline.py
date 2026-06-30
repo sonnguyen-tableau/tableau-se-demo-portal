@@ -23,6 +23,7 @@ from .generators.banking import BankingParameters, generate_banking
 from .generators.healthcare import HealthcareParameters, generate_healthcare
 from .generators.logistics import LogisticsParameters, generate_logistics
 from .generators.manufacturing import ManufacturingParameters, generate_manufacturing
+from .generators.mediamart import MediaMartParameters, generate_mediamart
 from .generators.retail import RetailParameters, generate_retail
 from .generators.vincommerce import VinCommerceParameters, generate_vincommerce
 from .hyper import is_available as hyper_available
@@ -570,6 +571,21 @@ class FactoryJob:
                     base_daily_orders=int(_ov("base_daily_orders", 70)),
                     seed=int(_ov("seed", 42)),
                     yoy_growth_pct=float(_ov("yoy_growth_pct", 12.0)),
+                )
+            ).all_tables()
+        elif profile.industry is Industry.mediamart:
+            tables = generate_mediamart(
+                MediaMartParameters(
+                    tenant_id=self.tenant_slug,
+                    start_date=start,
+                    end_date=end,
+                    n_customers=int(_ov("n_customers_mediamart", 4_500)),
+                    n_stores=int(_ov("n_stores_mediamart", 28)),
+                    n_products=int(_ov("n_products_mediamart", 320)),
+                    base_daily_orders=int(_ov("base_daily_orders", 90)),
+                    yoy_growth_pct=float(_ov("yoy_growth_pct", 16.0)),
+                    oos_rate=float(_ov("oos_rate_pct", 25.0)) / 100.0,
+                    seed=int(_ov("seed", 42)),
                 )
             ).all_tables()
         elif profile.industry is Industry.mall:

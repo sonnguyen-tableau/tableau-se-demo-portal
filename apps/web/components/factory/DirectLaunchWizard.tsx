@@ -9,6 +9,7 @@ type Industry =
   | "retail-ecommerce"
   | "retail-banking"
   | "retail-mall"
+  | "retail-mediamart"
   | "manufacturing"
   | "healthcare"
   | "logistics";
@@ -41,6 +42,15 @@ const INDUSTRY_PARAMS: Record<Industry, ParamDef[]> = {
   ],
   "retail-banking": [
     { key: "base_daily_transactions", label: "Giao dịch / ngày (baseline)", type: "int", default: 320, min: 10 },
+    { key: "seed", label: "Random seed", type: "int", default: 42, min: 0 },
+  ],
+  "retail-mediamart": [
+    { key: "n_customers_mediamart", label: "Số khách hàng", type: "int", default: 4500, min: 100, max: 50000, hint: "Tổng số khách trong dim_customers" },
+    { key: "n_stores_mediamart", label: "Số cửa hàng MediaMart", type: "int", default: 28, min: 1, max: 200, hint: "Phân bố 10 thành phố Việt Nam" },
+    { key: "n_products_mediamart", label: "Số SKU sản phẩm", type: "int", default: 320, min: 50, max: 5000 },
+    { key: "base_daily_orders", label: "Đơn hàng / ngày (baseline)", type: "int", default: 90, min: 10 },
+    { key: "yoy_growth_pct", label: "Tăng trưởng YoY (%)", type: "float", default: 16, min: -50, max: 200, hint: "Lạm phát + xu hướng tiêu dùng VN" },
+    { key: "oos_rate_pct", label: "Tỷ lệ Out-of-Stock (%)", type: "percent", default: 25, min: 0, max: 60, hint: "Stock < Campaign Target ở snapshot mới nhất" },
     { key: "seed", label: "Random seed", type: "int", default: 42, min: 0 },
   ],
   "retail-mall": [
@@ -82,6 +92,7 @@ const INDUSTRY_LABELS: Record<Industry, string> = {
   "retail-ecommerce": "Retail / E-commerce",
   "retail-banking": "Retail Banking",
   "retail-mall": "Retail & Mall Leasing (VinCommerce)",
+  "retail-mediamart": "Retail Consumer Electronics (MediaMart)",
   "manufacturing": "Manufacturing / Operations",
   "healthcare": "Healthcare (synthetic)",
   "logistics": "Logistics / Supply Chain",

@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "retail-mediamart.schema.json",
+  "title": "Retail / Consumer Electronics (MediaMart) data contract",
+  "description": "Field-name contract for the MediaMart Control Tower demo. Generator must emit matching column names/types; workbook template must reference only fields listed here.",
+  "type": "object",
+  "required": [
+    "Customers",
+    "Products",
+    "Stores",
+    "Channels",
+    "Orders",
+    "OrderLines",
+    "Inventory"
+  ],
+  "properties": {
+    "Customers": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "CustomerId",
+              "CustomerName",
+              "Tier",
+              "Segment",
+              "Region",
+              "City",
+              "Province",
+              "AcquisitionDate",
+              "ChurnRiskScore",
+              "LifetimeValue",
+              "NextBestOffer",
+              "LoyaltyPointsBalance",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Products": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ProductId",
+              "Sku",
+              "ProductName",
+              "Category",
+              "SubCategory",
+              "Brand",
+              "ListPrice",
+              "Cost"
+            ]
+          }
+        }
+      }
+    },
+    "Stores": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "StoreId",
+              "StoreName",
+              "City",
+              "Province",
+              "Region",
+              "Country",
+              "Type",
+              "Latitude",
+              "Longitude",
+              "OpenDate"
+            ]
+          }
+        }
+      }
+    },
+    "Channels": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ChannelId",
+              "ChannelName"
+            ]
+          }
+        }
+      }
+    },
+    "Orders": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "OrderId",
+              "OrderDate",
+              "CustomerId",
+              "StoreId",
+              "ChannelId",
+              "Status",
+              "PaymentMethod"
+            ]
+          }
+        }
+      }
+    },
+    "OrderLines": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "OrderLineId",
+              "OrderId",
+              "ProductId",
+              "Quantity",
+              "UnitPrice",
+              "Discount",
+              "LineTotal",
+              "LineCost",
+              "LoyaltyPointsUsed"
+            ]
+          }
+        }
+      }
+    },
+    "Inventory": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "InventoryId",
+              "StoreId",
+              "Category",
+              "Brand",
+              "StockQuantity",
+              "CampaignTargetQuantity",
+              "ReorderPoint",
+              "SnapshotDate",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
