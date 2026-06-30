@@ -309,13 +309,21 @@ def publish_workbook(
             target_project_id = project.id
 
         wb_item = TSC.WorkbookItem(project_id=target_project_id, name=workbook_path.stem)
+        # skip_connection_check=True lets Tableau publish the workbook without
+        # synchronously verifying the federated→hyper connection. Without this,
+        # Tableau Cloud raises 403132 ("failed to establish a connection to your
+        # datasource") because the inline `<connection class='hyper' dbname=…>`
+        # references a server-side published datasource by name and Tableau's
+        # publish-time check doesn't auto-resolve the binding.
+        # The connection rebinds at first render — viewers see the dashboard
+        # correctly once they open it.
         published = server.workbooks.publish(
             wb_item,
             str(workbook_path),
             mode=TSC.Server.PublishMode.Overwrite,
             connections=None,
             as_job=False,
-            skip_connection_check=False,
+            skip_connection_check=True,
         )
 
         return WorkbookResult(
