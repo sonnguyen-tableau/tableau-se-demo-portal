@@ -94,12 +94,13 @@ docker compose up              # local: web + factory + tableau-mcp sidecar
 - `.cursor/rules/` — path-scoped Cursor rules mirroring this guidance.
 - `docs/architecture/` — diagrams and ADRs (added in later phases).
 
-## Active Tenants (2026-06-13)
+## Active Tenants (2026-06-30)
 
-| Slug | Portal URL | Tableau folder | Default |
-|---|---|---|---|
-| `salesforce-bank` | `/t/salesforce-bank` | `Demo/Salesforce Bank` | ✅ |
-| `vincomretail` | `/t/vincomretail` | `Demo/Vincom Retail` | ❌ |
+| Slug | Portal URL | Tableau folder | Industry | Default |
+|---|---|---|---|---|
+| `salesforce-bank` | `/t/salesforce-bank` | `Demo/Salesforce Bank` | `retail-banking` | ✅ |
+| `vincomretail` | `/t/vincomretail` | `Demo/Vincom Retail` | `retail-mall` | ❌ |
+| `mediamart` | `/t/mediamart` | `Demo/MediaMart` | `retail-mediamart` | ❌ |
 
 Tableau site: `vietnam` on `https://prod-apsoutheast-c.online.tableau.com`
 
