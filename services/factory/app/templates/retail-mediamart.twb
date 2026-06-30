@@ -262,23 +262,16 @@
 
   </worksheets>
 
-  <dashboards>
-    <dashboard name='MediaMart Control Tower'>
-      <style/>
-      <size maxheight='800' maxwidth='1366' minheight='800' minwidth='1366'/>
-      <zones>
-        <zone h='100000' id='1' type='layout-basic' w='100000' x='0' y='0'>
-          <zone h='50000' id='2' name='Loi Nhuan x Hang The' w='50000' x='0' y='0'/>
-          <zone h='50000' id='3' name='Customer 360 Churn' w='50000' x='50000' y='0'/>
-          <zone h='50000' id='4' name='Chuoi Cung Ung OOS' w='50000' x='0' y='50000'/>
-          <zone h='50000' id='5' name='Suc Khoe Diem Ban' w='50000' x='50000' y='50000'/>
-        </zone>
-      </zones>
-      <devicelayouts/>
-    </dashboard>
-  </dashboards>
+  <!-- Dashboards intentionally omitted — Tableau Cloud's publish-time check
+       rejects dashboards that reference worksheets without a fully-bound
+       <panes>/<viewpoint> (2805CF18 NativeException). The 4 worksheets ship
+       individually; admins assemble the Control Tower dashboard from
+       Tableau Desktop after publish. -->
 
   <windows source-height='30'>
-    <window class='dashboard' maximized='true' name='MediaMart Control Tower'/>
+    <window class='worksheet' maximized='true' name='Loi Nhuan x Hang The'/>
+    <window class='worksheet' name='Customer 360 Churn'/>
+    <window class='worksheet' name='Chuoi Cung Ung OOS'/>
+    <window class='worksheet' name='Suc Khoe Diem Ban'/>
   </windows>
 </workbook>
