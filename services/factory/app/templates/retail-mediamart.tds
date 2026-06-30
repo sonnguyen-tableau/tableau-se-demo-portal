@@ -914,7 +914,7 @@
       <relationship>
         <expression op='='>
           <expression op='[OrderId]' />
-          <expression op='[OrderId (Orders)]' />
+          <expression op='[OrderId]' />
         </expression>
         <first-end-point object-id='OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF' />
         <second-end-point object-id='Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F' />
@@ -922,7 +922,7 @@
       <_.fcp.ObjectModelSharedDimensions.true...relationship>
         <expression op='='>
           <expression op='[ProductId]' />
-          <expression op='[ProductId (Products)]' />
+          <expression op='[ProductId]' />
         </expression>
         <first-end-point object-id='OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF' />
         <second-end-point object-id='Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279' />
@@ -930,7 +930,7 @@
       <_.fcp.ObjectModelSharedDimensions.true...relationship>
         <expression op='='>
           <expression op='[CustomerId]' />
-          <expression op='[CustomerId (Customers)]' />
+          <expression op='[CustomerId]' />
         </expression>
         <first-end-point object-id='Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F' />
         <second-end-point object-id='Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A' />
@@ -938,7 +938,7 @@
       <_.fcp.ObjectModelSharedDimensions.true...relationship>
         <expression op='='>
           <expression op='[StoreId]' />
-          <expression op='[StoreId (Stores)]' />
+          <expression op='[StoreId]' />
         </expression>
         <first-end-point object-id='Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F' />
         <second-end-point object-id='Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91' />
@@ -946,15 +946,15 @@
       <_.fcp.ObjectModelSharedDimensions.true...relationship>
         <expression op='='>
           <expression op='[ChannelId]' />
-          <expression op='[ChannelId (Channels)]' />
+          <expression op='[ChannelId]' />
         </expression>
         <first-end-point object-id='Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F' />
         <second-end-point object-id='Channels (Extract.Channels)_61D79BD0A1F5D2207DCAFF36A03C9CE7' />
       </_.fcp.ObjectModelSharedDimensions.true...relationship>
       <_.fcp.ObjectModelSharedDimensions.true...relationship>
         <expression op='='>
-          <expression op='[StoreId (Inventory)]' />
-          <expression op='[StoreId (Stores)]' />
+          <expression op='[StoreId]' />
+          <expression op='[StoreId]' />
         </expression>
         <first-end-point object-id='Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C' />
         <second-end-point object-id='Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91' />
