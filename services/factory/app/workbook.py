@@ -41,8 +41,18 @@ from pathlib import Path
 from .config import Settings
 from .publish import is_configured as tableau_configured
 
-# Marker the templates use for the dbname attribute the factory rewrites.
+# Markers the templates use for the placeholders the factory rewrites at
+# publish time. The sqlproxy connection pattern needs three substitutions:
+#   - __FACTORY_DATASOURCE__ → published datasource name (dbname + id)
+#   - __TABLEAU_SITE_NAME__  → Tableau Cloud site contentUrl (e.g. "vietnam")
+#   - __TABLEAU_HOST__       → Tableau Cloud host (e.g.
+#                              "prod-apsoutheast-c.online.tableau.com")
+# The contract validator only enforces presence of __FACTORY_DATASOURCE__;
+# the other two are optional (older templates that embed Hyper directly
+# don't need them).
 _DBNAME_PLACEHOLDER = "__FACTORY_DATASOURCE__"
+_SITE_NAME_PLACEHOLDER = "__TABLEAU_SITE_NAME__"
+_HOST_PLACEHOLDER = "__TABLEAU_HOST__"
 
 # Canonical RLS predicate every template must contain. Tableau encodes the
 # inner double-quotes as &quot; inside formula attributes, so accept either
@@ -205,8 +215,18 @@ def rewrite_for_tenant(
     *,
     datasource_name: str,
     out_dir: Path | None = None,
+    tableau_host: str | None = None,
+    tableau_site_name: str | None = None,
 ) -> Path:
     """Produce a tenant-specific .twb pointing at `datasource_name`.
+
+    Three placeholders are substituted:
+      __FACTORY_DATASOURCE__ → datasource_name (dbname + repo id, mandatory)
+      __TABLEAU_SITE_NAME__  → tableau_site_name (repository-location site path)
+      __TABLEAU_HOST__       → tableau_host (sqlproxy connection server)
+
+    The latter two are optional — templates that still embed Hyper directly
+    don't reference them. When provided, every occurrence is replaced.
 
     The output is a sibling .twb in `out_dir` (defaults to a tempdir).
     Returns the path to the rewritten workbook.
@@ -216,13 +236,30 @@ def rewrite_for_tenant(
     out = out_dir / template_path.name
 
     raw = template_path.read_text()
-    rewritten = raw.replace(
+    rewritten = raw
+
+    # Mandatory: __FACTORY_DATASOURCE__ on dbname attributes (single or double
+    # quoted). We use a strict marker-on-attribute search to avoid clobbering
+    # the same string inside surrounding comments.
+    rewritten = rewritten.replace(
         f"dbname='{_DBNAME_PLACEHOLDER}'",
         f"dbname='{datasource_name}'",
     ).replace(
         f'dbname="{_DBNAME_PLACEHOLDER}"',
         f'dbname="{datasource_name}"',
     )
+
+    # For the sqlproxy pattern the same placeholder also appears as
+    # <repository-location id='__FACTORY_DATASOURCE__'/>. Replace any remaining
+    # bare occurrences (now safe because the dbname-quoted forms are gone).
+    rewritten = rewritten.replace(_DBNAME_PLACEHOLDER, datasource_name)
+
+    # Optional: site-name / host substitutions for sqlproxy templates.
+    if tableau_site_name:
+        rewritten = rewritten.replace(_SITE_NAME_PLACEHOLDER, tableau_site_name)
+    if tableau_host:
+        rewritten = rewritten.replace(_HOST_PLACEHOLDER, tableau_host)
+
     if _DBNAME_PLACEHOLDER in rewritten:
         # Extra safety: validate_template should have caught this earlier.
         raise TemplateContractError(
@@ -363,10 +400,23 @@ def run_workbook_stage(
 
     validate_template(template, industry)
 
+    # Extract the Tableau Cloud host from the settings URL so the sqlproxy
+    # template can bind to the right server at first render. e.g.
+    # https://prod-apsoutheast-c.online.tableau.com →
+    # prod-apsoutheast-c.online.tableau.com.
+    tableau_host: str | None = None
+    if settings.tableau_site_url:
+        from urllib.parse import urlparse
+        tableau_host = urlparse(settings.tableau_site_url).hostname
+
     work_dir = Path(tempfile.mkdtemp(prefix="factory-wb-"))
     try:
         rewritten = rewrite_for_tenant(
-            template, datasource_name=datasource_name, out_dir=work_dir
+            template,
+            datasource_name=datasource_name,
+            out_dir=work_dir,
+            tableau_host=tableau_host,
+            tableau_site_name=settings.tableau_site_name,
         )
         return publish_workbook(
             rewritten,

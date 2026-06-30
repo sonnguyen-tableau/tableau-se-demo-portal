@@ -2,8 +2,8 @@
 <!--
   MediaMart Control Tower — Executive Dashboard template.
 
-  Single federated datasource (OrderLines spine + relationship-joined Inventory)
-  driving four worksheets that map to the BTGĐ demo scenarios:
+  Single datasource reference (class='sqlproxy' → published-datasource on
+  Tableau Cloud) driving four worksheets for the BTGĐ demo scenarios:
 
     Sheet 1 — "Loi Nhuan x Hang The"   → Revenue by Tier
     Sheet 2 — "Customer 360"           → Churn Risk scatter
@@ -14,13 +14,17 @@
     * Only reference fields listed in retail-mediamart.schema.json (or calc
       fields defined locally).
     * Keep exactly one dbname FACTORY_DATASOURCE marker (see line below).
-    * Keep the [__tenant_filter__] calc + <filter> for RLS defense in depth.
+    * Keep the [__tenant_filter__] calc for RLS predicate validation
+      (server-side data policy enforces RLS at query time).
 
-  XSD rules (Tableau Desktop strict mode):
-    * <table> child order: view, style, panes, rows, cols.
-    * <view> requires <aggregation/> as the last child.
-    * <filter level='...'> must use pill format '[type:Field:agg]'.
-    * Aggregate-formula calc fields need derivation='User'.
+  Connection pattern (proven working on prod):
+    * <connection class='sqlproxy'> reference to a published-datasource on
+      the same Tableau Cloud site. dbname == datasource name.
+    * <repository-location> records the site path so the viewer knows
+      where to find the datasource.
+    * Factory rewrites dbname + repository-location id with the actual
+      published datasource name at publish time. Site host/name come from
+      TABLEAU_SITE_URL/TABLEAU_SITE_NAME via the workbook.py rewrite step.
 -->
 <workbook original-version='18.1' source-build='2024.2' source-platform='mac'
           version='18.1'
@@ -29,17 +33,13 @@
   <datasources>
 
     <datasource caption='MediaMart Control Tower' inline='true'
-                name='federated.mediamart' version='18.1'>
-      <connection class='federated'>
-        <named-connections>
-          <named-connection caption='mediamart-extract' name='hyper.mediamart'>
-            <connection authentication='auth-none' class='hyper'
-                        dbname='__FACTORY_DATASOURCE__' default-settings='yes'
-                        schema='Extract' server=''/>
-          </named-connection>
-        </named-connections>
-        <relation connection='hyper.mediamart' name='OrderLines'
-                  table='[Extract].[OrderLines]' type='table'/>
+                name='sqlproxy.mediamart' version='18.1'>
+      <repository-location id='__FACTORY_DATASOURCE__'
+                           path='/t/__TABLEAU_SITE_NAME__/datasources'
+                           revision='1.0' site='__TABLEAU_SITE_NAME__'/>
+      <connection channel='https' class='sqlproxy' dbname='__FACTORY_DATASOURCE__'
+                  port='443' server='__TABLEAU_HOST__' username=''>
+        <relation name='sqlproxy' table='[sqlproxy]' type='table'/>
       </connection>
 
       <aliases enabled='yes'/>
@@ -125,12 +125,13 @@
         <calculation class='tableau' formula='IF SUM([StockQuantity]) &lt; SUM([CampaignTargetQuantity]) THEN &quot;Thieu hang&quot; ELSE &quot;Du hang&quot; END'/>
       </column>
 
-      <!-- ── RLS — defense in depth (server-side data policy set separately) ──
+      <!-- ── RLS — defense in depth (server-side data policy enforces RLS) ──
            The [__tenant_filter__] calc field stays so the contract validator
-           passes; the in-workbook <filter> is omitted because Tableau Cloud
-           strict-mode rejects the categorical filter on a boolean USERATTRIBUTE
-           calc field. RLS is still enforced via the Tableau Cloud data policy
-           that the factory's publish stage attaches to the datasource. -->
+           sees the canonical RLS predicate. RLS itself is enforced at the
+           datasource layer by the data policy the factory attaches at publish
+           time, so no in-workbook <filter> is needed (and Tableau Cloud
+           strict-mode rejects categorical filters on boolean USERATTRIBUTE
+           calc fields anyway). -->
       <column caption='Tenant Filter' datatype='boolean'
               name='[__tenant_filter__]' role='dimension' type='nominal'>
         <calculation class='tableau'
@@ -148,9 +149,9 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='MediaMart Control Tower' name='federated.mediamart'/>
+            <datasource caption='MediaMart Control Tower' name='sqlproxy.mediamart'/>
           </datasources>
-          <datasource-dependencies datasource='federated.mediamart'>
+          <datasource-dependencies datasource='sqlproxy.mediamart'>
             <column datatype='string' name='[Tier]' role='dimension' type='nominal'/>
             <column datatype='real' derivation='User' name='[Revenue]' role='measure' type='quantitative'>
               <calculation class='tableau' formula='SUM([LineTotal])'/>
@@ -167,8 +168,8 @@
             <mark class='Bar'/>
           </pane>
         </panes>
-        <rows>[federated.mediamart].[Revenue]</rows>
-        <cols>[federated.mediamart].[Tier]</cols>
+        <rows>[sqlproxy.mediamart].[Revenue]</rows>
+        <cols>[sqlproxy.mediamart].[Tier]</cols>
       </table>
     </worksheet>
 
@@ -177,9 +178,9 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='MediaMart Control Tower' name='federated.mediamart'/>
+            <datasource caption='MediaMart Control Tower' name='sqlproxy.mediamart'/>
           </datasources>
-          <datasource-dependencies datasource='federated.mediamart'>
+          <datasource-dependencies datasource='sqlproxy.mediamart'>
             <column datatype='integer' name='[CustomerId]'     role='dimension' type='ordinal'/>
             <column datatype='string'  name='[CustomerName]'   role='dimension' type='nominal'/>
             <column datatype='string'  name='[Tier]'           role='dimension' type='nominal'/>
@@ -198,8 +199,8 @@
             <mark class='Circle'/>
           </pane>
         </panes>
-        <rows>[federated.mediamart].[LifetimeValue]</rows>
-        <cols>[federated.mediamart].[ChurnRiskScore]</cols>
+        <rows>[sqlproxy.mediamart].[LifetimeValue]</rows>
+        <cols>[sqlproxy.mediamart].[ChurnRiskScore]</cols>
       </table>
     </worksheet>
 
@@ -208,9 +209,9 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='MediaMart Control Tower' name='federated.mediamart'/>
+            <datasource caption='MediaMart Control Tower' name='sqlproxy.mediamart'/>
           </datasources>
-          <datasource-dependencies datasource='federated.mediamart'>
+          <datasource-dependencies datasource='sqlproxy.mediamart'>
             <column datatype='string'  name='[Category]'                role='dimension' type='nominal'/>
             <column datatype='integer' name='[StoreId]'                 role='dimension' type='ordinal'/>
             <column datatype='string'  name='[StoreName]'               role='dimension' type='nominal'/>
@@ -231,8 +232,8 @@
             <mark class='Bar'/>
           </pane>
         </panes>
-        <rows>[federated.mediamart].[Category]</rows>
-        <cols>[federated.mediamart].[StockQuantity]</cols>
+        <rows>[sqlproxy.mediamart].[Category]</rows>
+        <cols>[sqlproxy.mediamart].[StockQuantity]</cols>
       </table>
     </worksheet>
 
@@ -241,9 +242,9 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='MediaMart Control Tower' name='federated.mediamart'/>
+            <datasource caption='MediaMart Control Tower' name='sqlproxy.mediamart'/>
           </datasources>
-          <datasource-dependencies datasource='federated.mediamart'>
+          <datasource-dependencies datasource='sqlproxy.mediamart'>
             <column datatype='integer' name='[StoreId]'   role='dimension' type='ordinal'/>
             <column datatype='string'  name='[StoreName]' role='dimension' type='nominal'/>
             <column datatype='string'  name='[City]'      role='dimension' type='nominal'/>
@@ -267,8 +268,8 @@
             <mark class='Circle'/>
           </pane>
         </panes>
-        <rows>[federated.mediamart].[Latitude]</rows>
-        <cols>[federated.mediamart].[Longitude]</cols>
+        <rows>[sqlproxy.mediamart].[Latitude]</rows>
+        <cols>[sqlproxy.mediamart].[Longitude]</cols>
       </table>
     </worksheet>
 
