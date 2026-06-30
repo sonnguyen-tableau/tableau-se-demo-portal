@@ -19,5 +19,16 @@
     "status": "active",
     "allowedProjects": ["Demo/Salesforce Bank"],
     "isDefault": true
+  },
+  {
+    "id": "mediamart",
+    "slug": "mediamart",
+    "name": "MediaMart",
+    "industry": "retail-mediamart",
+    "sourceUrl": "https://mediamart.vn/",
+    "createdAt": "2026-06-30T00:00:00.000Z",
+    "status": "active",
+    "allowedProjects": ["Demo/MediaMart"],
+    "isDefault": false
   }
 ]

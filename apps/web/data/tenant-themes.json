@@ -20,5 +20,15 @@
     "fontFamily": "Inter",
     "tone": "professional",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Salesforce.com_logo.svg/320px-Salesforce.com_logo.svg.png"
+  },
+  {
+    "tenantId": "mediamart",
+    "companyName": "MediaMart",
+    "primaryColor": "#E50914",
+    "secondaryColor": "#FFD700",
+    "neutralColor": "#0F172A",
+    "sidebarTextColor": "#ffffff",
+    "fontFamily": "Inter",
+    "tone": "professional"
   }
 ]
