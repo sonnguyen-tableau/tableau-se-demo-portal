@@ -85,11 +85,20 @@ if not SCHEMAS_DIR.exists():
         pass
 
 # Industry slug → (template filename, schema filename) mapping.
+#
+# retail-mediamart is intentionally absent: hand-authoring a multi-table
+# Tableau workbook XML against a published sqlproxy datasource is brittle
+# (metadata-records, cols mappings, capability blocks per table — all
+# must match exactly or the viewer renders blank). The pipeline still
+# publishes the datasource + Pulse metrics + brand + tenant record;
+# the dashboard itself is authored once by an admin via Tableau Web
+# Edit / Desktop (5-10 min) and lives in Demo/MediaMart alongside the
+# datasource. allowedProjects=['Demo/MediaMart'] makes any workbook
+# the admin publishes there automatically appear in /t/mediamart.
 _INDUSTRY_TO_FILES: dict[str, tuple[str, str]] = {
     "retail-ecommerce": ("retail-ecommerce.twb", "retail-ecommerce.schema.json"),
     "retail-banking": ("retail-banking.twb", "retail-banking.schema.json"),
     "retail-mall": ("retail-mall.twb", "retail-mall.schema.json"),
-    "retail-mediamart": ("retail-mediamart.twb", "retail-mediamart.schema.json"),
     "manufacturing": ("manufacturing.twb", "manufacturing.schema.json"),
     "healthcare": ("healthcare.twb", "healthcare.schema.json"),
     "logistics": ("logistics.twb", "logistics.schema.json"),
