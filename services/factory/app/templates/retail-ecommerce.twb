@@ -26,8 +26,9 @@
       <connection class='federated'>
         <named-connections>
           <named-connection caption='retail-extract' name='hyper.retail'>
-            <connection class='hyper' dbname='__FACTORY_DATASOURCE__'
-                        schema='Extract' server='localhost'/>
+            <connection authentication='auth-none' class='hyper'
+                        dbname='__FACTORY_DATASOURCE__' default-settings='yes'
+                        schema='Extract' server=''/>
           </named-connection>
         </named-connections>
         <relation connection='hyper.retail' name='Orders'
