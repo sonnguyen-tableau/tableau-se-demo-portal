@@ -34,10 +34,48 @@ from .models import (
     DirectStartRequest,
     GeneratorParams,
     Industry,
+    KpiSpec,
     Stage,
     StageEvent,
     StageStatus,
 )
+
+
+# Per-industry default KPIs for direct mode (where Claude profile is skipped).
+# Picked to match each industry's Pulse field map so Pulse metrics are
+# automatically created without requiring the user to wire them up by hand.
+_DEFAULT_KPIS: dict[Industry, list[KpiSpec]] = {
+    Industry.mediamart: [
+        KpiSpec(name="Revenue", type="currency", favorable_direction="up", time_dim="OrderDate"),
+        KpiSpec(name="Gross Margin", type="percent", favorable_direction="up", time_dim="OrderDate"),
+        KpiSpec(name="Orders", type="number", favorable_direction="up", time_dim="OrderDate"),
+        KpiSpec(name="Loyalty Net Revenue", type="currency", favorable_direction="up", time_dim="OrderDate"),
+    ],
+    Industry.retail: [
+        KpiSpec(name="Revenue", type="currency", favorable_direction="up", time_dim="OrderDate"),
+        KpiSpec(name="Orders", type="number", favorable_direction="up", time_dim="OrderDate"),
+        KpiSpec(name="AOV", type="currency", favorable_direction="up", time_dim="OrderDate"),
+    ],
+    Industry.banking: [
+        KpiSpec(name="Transaction Volume", type="currency", favorable_direction="up", time_dim="TransactionDate"),
+        KpiSpec(name="Transaction Count", type="number", favorable_direction="up", time_dim="TransactionDate"),
+    ],
+    Industry.mall: [
+        KpiSpec(name="Total Revenue", type="currency", favorable_direction="up", time_dim="Month"),
+    ],
+    Industry.manufacturing: [
+        KpiSpec(name="Production Volume", type="number", favorable_direction="up", time_dim="OrderDate"),
+        KpiSpec(name="Revenue", type="currency", favorable_direction="up", time_dim="OrderDate"),
+    ],
+    Industry.healthcare: [
+        KpiSpec(name="Encounters", type="number", favorable_direction="up", time_dim="EncounterDate"),
+        KpiSpec(name="Revenue", type="currency", favorable_direction="up", time_dim="EncounterDate"),
+    ],
+    Industry.logistics: [
+        KpiSpec(name="Shipment Value", type="currency", favorable_direction="up", time_dim="ShipDate"),
+        KpiSpec(name="Shipments", type="number", favorable_direction="up", time_dim="ShipDate"),
+    ],
+}
 from .profile import profile_company
 from .publish import is_configured as tableau_configured
 from .publish import publish_hyper
@@ -107,6 +145,9 @@ class FactoryJob:
             industry=req.industry,
             tagline=req.tagline,
             logo_url=req.logo_url,
+            # Default KPIs per industry so the Pulse stage has something to
+            # publish when direct mode bypasses Claude's profile inference.
+            kpis=list(_DEFAULT_KPIS.get(req.industry, [])),
         )
         return cls(
             job_id=job_id,
