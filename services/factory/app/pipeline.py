@@ -419,7 +419,10 @@ class FactoryJob:
         published_project: str = "",
     ) -> dict[str, object]:
         """Call back to the portal to create the tenant record + apply brand + create admin user."""
+        import logging
         import urllib.parse
+
+        import httpx
 
         if not self.portal_url:
             return {
@@ -431,7 +434,7 @@ class FactoryJob:
         slug = self.tenant_slug
         headers = {"Content-Type": "application/json", "X-Factory-Secret": self._factory_secret()}
 
-        async with __import__("aiohttp").ClientSession() as session:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as session:
             # 1. Upsert tenant record
             tenant_payload: dict[str, object] = {
                 "slug": slug,
@@ -442,29 +445,24 @@ class FactoryJob:
             if self.site_id:
                 tenant_payload["siteId"] = self.site_id
 
-            async with session.post(
-                f"{base}/api/admin/provision/tenant",
-                json=tenant_payload,
-                headers=headers,
-            ) as r:
-                if r.status not in (200, 201):
-                    body = await r.text()
-                    raise RuntimeError(f"tenant upsert failed ({r.status}): {body[:200]}")
+            r = await session.post(
+                f"{base}/api/admin/provision/tenant", json=tenant_payload, headers=headers
+            )
+            if r.status_code not in (200, 201):
+                raise RuntimeError(f"tenant upsert failed ({r.status_code}): {r.text[:200]}")
 
             # 1b. Wire allowedProjects so this tenant only sees its own folder
             if published_project:
                 patch_payload = {"allowedProjects": [published_project]}
-                async with session.patch(
+                r = await session.patch(
                     f"{base}/api/admin/tenants/{urllib.parse.quote(slug)}",
                     json=patch_payload,
                     headers=headers,
-                ) as r:
-                    if r.status not in (200, 201):
-                        import logging
-                        body = await r.text()
-                        logging.getLogger(__name__).warning(
-                            "allowedProjects patch failed (%d): %s", r.status, body[:200]
-                        )
+                )
+                if r.status_code not in (200, 201):
+                    logging.getLogger(__name__).warning(
+                        "allowedProjects patch failed (%d): %s", r.status_code, r.text[:200]
+                    )
 
             # 2. Apply brand theme if extracted
             if theme is not None:
@@ -480,14 +478,11 @@ class FactoryJob:
                     "tone": t.tone,
                     **({"logoUrl": t.logo_url} if t.logo_url else {}),
                 }
-                async with session.put(
-                    f"{base}/api/admin/provision/theme",
-                    json=theme_payload,
-                    headers=headers,
-                ) as r:
-                    if r.status not in (200, 201):
-                        body = await r.text()
-                        raise RuntimeError(f"theme apply failed ({r.status}): {body[:200]}")
+                r = await session.put(
+                    f"{base}/api/admin/provision/theme", json=theme_payload, headers=headers
+                )
+                if r.status_code not in (200, 201):
+                    raise RuntimeError(f"theme apply failed ({r.status_code}): {r.text[:200]}")
 
             # 3. Create admin user if requested
             if self.admin_email:
@@ -500,14 +495,11 @@ class FactoryJob:
                     "tenantName": profile.company_name,
                     "groups": ["admin"],
                 }
-                async with session.put(
-                    f"{base}/api/admin/provision/user",
-                    json=user_payload,
-                    headers=headers,
-                ) as r:
-                    if r.status not in (200, 201):
-                        body = await r.text()
-                        raise RuntimeError(f"user create failed ({r.status}): {body[:200]}")
+                r = await session.put(
+                    f"{base}/api/admin/provision/user", json=user_payload, headers=headers
+                )
+                if r.status_code not in (200, 201):
+                    raise RuntimeError(f"user create failed ({r.status_code}): {r.text[:200]}")
             else:
                 temp_password = None
 
@@ -521,18 +513,16 @@ class FactoryJob:
                     industry=profile.industry.value,
                     theme=t2,
                 )
-                async with session.post(
+                r = await session.post(
                     f"{base}/api/admin/provision/design",
                     json={"tenantId": slug, "content": design_content},
                     headers=headers,
-                ) as r:
-                    if r.status not in (200, 201):
-                        # Non-fatal — log but don't abort the provision stage.
-                        body = await r.text()
-                        import logging
-                        logging.getLogger(__name__).warning(
-                            "design.md storage failed (%d): %s", r.status, body[:200]
-                        )
+                )
+                if r.status_code not in (200, 201):
+                    # Non-fatal — log but don't abort the provision stage.
+                    logging.getLogger(__name__).warning(
+                        "design.md storage failed (%d): %s", r.status_code, r.text[:200]
+                    )
 
         portal_tenant_url = f"{base}/t/{urllib.parse.quote(slug)}"
         result: dict[str, object] = {
