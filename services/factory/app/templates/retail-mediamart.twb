@@ -5,16 +5,22 @@
   Single federated datasource (OrderLines spine + relationship-joined Inventory)
   driving four worksheets that map to the BTGĐ demo scenarios:
 
-    Sheet 1 — "Loi Nhuan x Hang The"   → Revenue + Gross Margin % by Tier (dual-axis)
+    Sheet 1 — "Loi Nhuan x Hang The"   → Revenue by Tier
     Sheet 2 — "Customer 360"           → Churn Risk scatter
-    Sheet 3 — "Chuoi Cung Ung"         → Stock vs Campaign Target (OOS bullet)
-    Sheet 4 — "Suc Khoe Diem Ban"      → Symbol Map: Revenue (size) x Repeat Purchase Rate (color)
+    Sheet 3 — "Chuoi Cung Ung"         → Stock vs Campaign Target
+    Sheet 4 — "Suc Khoe Diem Ban"      → Store Health Symbol Map
 
   Hard rules — DO NOT BREAK (contract test enforces):
     * Only reference fields listed in retail-mediamart.schema.json (or calc
       fields defined locally).
-    * Keep exactly one dbname FACTORY_DATASOURCE marker (see line 30 below).
+    * Keep exactly one dbname FACTORY_DATASOURCE marker (see line below).
     * Keep the [__tenant_filter__] calc + <filter> for RLS defense in depth.
+
+  XSD rules (Tableau Desktop strict mode):
+    * <table> child order: view, style, panes, rows, cols.
+    * <view> requires <aggregation/> as the last child.
+    * <filter level='...'> must use pill format '[type:Field:agg]'.
+    * Aggregate-formula calc fields need derivation='User'.
 -->
 <workbook original-version='18.1' source-build='2024.2' source-platform='mac'
           version='18.1'
@@ -35,8 +41,9 @@
                   table='[Extract].[OrderLines]' type='table'/>
       </connection>
 
+      <aliases enabled='yes'/>
+
       <!-- ── Schema columns (must match retail-mediamart.schema.json) ──── -->
-      <!-- OrderLines spine -->
       <column datatype='integer' name='[OrderLineId]' role='dimension' type='ordinal'/>
       <column datatype='integer' name='[OrderId]'     role='dimension' type='ordinal'/>
       <column datatype='integer' name='[ProductId]'   role='dimension' type='ordinal'/>
@@ -47,7 +54,6 @@
       <column datatype='real'    name='[LineCost]'    role='measure'   type='quantitative'/>
       <column datatype='integer' name='[LoyaltyPointsUsed]' role='measure' type='quantitative'/>
 
-      <!-- Orders -->
       <column datatype='date'    name='[OrderDate]'     role='dimension' type='ordinal'/>
       <column datatype='integer' name='[CustomerId]'    role='dimension' type='ordinal'/>
       <column datatype='integer' name='[StoreId]'       role='dimension' type='ordinal'/>
@@ -55,7 +61,6 @@
       <column datatype='string'  name='[Status]'        role='dimension' type='nominal'/>
       <column datatype='string'  name='[PaymentMethod]' role='dimension' type='nominal'/>
 
-      <!-- Customers -->
       <column datatype='string'  name='[CustomerName]'         role='dimension' type='nominal'/>
       <column datatype='string'  name='[Tier]'                 role='dimension' type='nominal'/>
       <column datatype='string'  name='[Segment]'              role='dimension' type='nominal'/>
@@ -69,7 +74,6 @@
       <column datatype='integer' name='[LoyaltyPointsBalance]' role='measure'   type='quantitative'/>
       <column datatype='string'  name='[TenantId]'             role='dimension' type='nominal'/>
 
-      <!-- Products -->
       <column datatype='string'  name='[Sku]'         role='dimension' type='nominal'/>
       <column datatype='string'  name='[ProductName]' role='dimension' type='nominal'/>
       <column datatype='string'  name='[Category]'    role='dimension' type='nominal'/>
@@ -78,7 +82,6 @@
       <column datatype='real'    name='[ListPrice]'   role='measure'   type='quantitative'/>
       <column datatype='real'    name='[Cost]'        role='measure'   type='quantitative'/>
 
-      <!-- Stores -->
       <column datatype='string'  name='[StoreName]' role='dimension' type='nominal'/>
       <column datatype='string'  name='[Country]'   role='dimension' type='nominal'/>
       <column datatype='string'  name='[Type]'      role='dimension' type='nominal'/>
@@ -86,56 +89,49 @@
       <column datatype='real'    name='[Longitude]' role='dimension' type='quantitative'/>
       <column datatype='date'    name='[OpenDate]'  role='dimension' type='ordinal'/>
 
-      <!-- Channels -->
       <column datatype='string'  name='[ChannelName]' role='dimension' type='nominal'/>
 
-      <!-- Inventory -->
       <column datatype='integer' name='[InventoryId]'            role='dimension' type='ordinal'/>
       <column datatype='integer' name='[StockQuantity]'          role='measure'   type='quantitative'/>
       <column datatype='integer' name='[CampaignTargetQuantity]' role='measure'   type='quantitative'/>
       <column datatype='integer' name='[ReorderPoint]'           role='measure'   type='quantitative'/>
       <column datatype='date'    name='[SnapshotDate]'           role='dimension' type='ordinal'/>
 
-      <!-- ── Calculated KPIs (4 scenarios + supporting) ───────────────── -->
+      <!-- ── Calculated KPIs (derivation='User' for aggregate formulas) ── -->
 
-      <!-- Revenue: total monetary line-total. -->
-      <column caption='Revenue' datatype='real' name='[Revenue]'
-              role='measure' type='quantitative'>
+      <column caption='Revenue' datatype='real' derivation='User'
+              name='[Revenue]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='SUM([LineTotal])'/>
       </column>
 
-      <!-- Gross Margin %: (Revenue - Cost) / Revenue. -->
-      <column caption='Gross Margin %' datatype='real' name='[GrossMarginPct]'
-              role='measure' type='quantitative'>
+      <column caption='Gross Margin %' datatype='real' derivation='User'
+              name='[GrossMarginPct]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='(SUM([LineTotal]) - SUM([LineCost])) / SUM([LineTotal])'/>
       </column>
 
-      <!-- Loyalty Net Revenue: Revenue - LoyaltyPointsUsed * 100. -->
-      <column caption='Loyalty Net Revenue' datatype='real' name='[LoyaltyNetRevenue]'
-              role='measure' type='quantitative'>
+      <column caption='Loyalty Net Revenue' datatype='real' derivation='User'
+              name='[LoyaltyNetRevenue]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='SUM([LineTotal]) - (SUM([LoyaltyPointsUsed]) * 100)'/>
       </column>
 
-      <!-- Repeat Purchase Rate: COUNTD customers with >=2 orders / COUNTD customers. -->
-      <column caption='Repeat Purchase Rate' datatype='real' name='[RepeatPurchaseRate]'
-              role='measure' type='quantitative'>
+      <column caption='Repeat Purchase Rate' datatype='real' derivation='User'
+              name='[RepeatPurchaseRate]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='COUNTD(IF { FIXED [CustomerId] : COUNTD([OrderId]) } &gt;= 2 THEN [CustomerId] END) / COUNTD([CustomerId])'/>
       </column>
 
-      <!-- OOS Alert: "Thieu hang" when stock < campaign target, else "Du hang". -->
-      <column caption='OOS Alert' datatype='string' name='[OOSAlert]'
-              role='dimension' type='nominal'>
+      <column caption='OOS Alert' datatype='string' derivation='User'
+              name='[OOSAlert]' role='dimension' type='nominal'>
         <calculation class='tableau' formula='IF SUM([StockQuantity]) &lt; SUM([CampaignTargetQuantity]) THEN &quot;Thieu hang&quot; ELSE &quot;Du hang&quot; END'/>
       </column>
 
       <!-- ── RLS — defense in depth (server-side data policy set separately) ── -->
-      <column caption='Tenant Filter' datatype='boolean' name='[__tenant_filter__]'
-              role='dimension' type='nominal'>
+      <column caption='Tenant Filter' datatype='boolean'
+              name='[__tenant_filter__]' role='dimension' type='nominal'>
         <calculation class='tableau'
                      formula='[TenantId] = USERATTRIBUTE(&quot;TenantId&quot;) OR USERATTRIBUTE(&quot;TenantId&quot;) = &quot;internal&quot;'/>
       </column>
       <filter class='categorical' column='[__tenant_filter__]' filter-group='2'>
-        <groupfilter function='member' level='[__tenant_filter__]' member='&quot;true&quot;'/>
+        <groupfilter function='member' level='[none:__tenant_filter__:nk]' member='&quot;true&quot;'/>
       </filter>
 
     </datasource>
@@ -144,10 +140,7 @@
 
   <worksheets>
 
-    <!-- ─────────────────────────────────────────────────────────────────
-         Sheet 1 — Loi Nhuan x Hang The
-         Dual-axis: Revenue (bar) + Gross Margin % (line) per Tier
-         ───────────────────────────────────────────────────────────────── -->
+    <!-- Sheet 1 — Loi Nhuan x Hang The: Revenue by Tier -->
     <worksheet name='Loi Nhuan x Hang The'>
       <table>
         <view>
@@ -156,26 +149,27 @@
           </datasources>
           <datasource-dependencies datasource='federated.mediamart'>
             <column datatype='string' name='[Tier]' role='dimension' type='nominal'/>
-            <column datatype='real'   name='[Revenue]' role='measure' type='quantitative'>
+            <column datatype='real' derivation='User' name='[Revenue]' role='measure' type='quantitative'>
               <calculation class='tableau' formula='SUM([LineTotal])'/>
             </column>
-            <column datatype='real'   name='[GrossMarginPct]' role='measure' type='quantitative'>
-              <calculation class='tableau' formula='(SUM([LineTotal]) - SUM([LineCost])) / SUM([LineTotal])'/>
-            </column>
           </datasource-dependencies>
+          <aggregation value='true'/>
         </view>
+        <style/>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto'/>
+            </view>
+            <mark class='Bar'/>
+          </pane>
+        </panes>
         <rows>[federated.mediamart].[Revenue]</rows>
         <cols>[federated.mediamart].[Tier]</cols>
-        <panes>
-          <pane><mark class='Bar'/></pane>
-        </panes>
       </table>
     </worksheet>
 
-    <!-- ─────────────────────────────────────────────────────────────────
-         Sheet 2 — Customer 360 (Churn Risk Scatter)
-         X = Churn Risk Score, Y = Lifetime Value, Color = Tier, Detail = CustomerId
-         ───────────────────────────────────────────────────────────────── -->
+    <!-- Sheet 2 — Customer 360: Churn Risk scatter -->
     <worksheet name='Customer 360 Churn'>
       <table>
         <view>
@@ -190,19 +184,23 @@
             <column datatype='integer' name='[ChurnRiskScore]' role='measure'   type='quantitative'/>
             <column datatype='integer' name='[LifetimeValue]'  role='measure'   type='quantitative'/>
           </datasource-dependencies>
+          <aggregation value='true'/>
         </view>
+        <style/>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto'/>
+            </view>
+            <mark class='Circle'/>
+          </pane>
+        </panes>
         <rows>[federated.mediamart].[LifetimeValue]</rows>
         <cols>[federated.mediamart].[ChurnRiskScore]</cols>
-        <panes>
-          <pane><mark class='Circle'/></pane>
-        </panes>
       </table>
     </worksheet>
 
-    <!-- ─────────────────────────────────────────────────────────────────
-         Sheet 3 — Chuoi Cung Ung (Bar-in-Bar OOS Alert)
-         Rows: Category x StoreId, Cols: Stock vs Target, Color: OOS Alert
-         ───────────────────────────────────────────────────────────────── -->
+    <!-- Sheet 3 — Chuoi Cung Ung: Stock vs Campaign Target -->
     <worksheet name='Chuoi Cung Ung OOS'>
       <table>
         <view>
@@ -215,23 +213,27 @@
             <column datatype='string'  name='[StoreName]'               role='dimension' type='nominal'/>
             <column datatype='integer' name='[StockQuantity]'           role='measure'   type='quantitative'/>
             <column datatype='integer' name='[CampaignTargetQuantity]'  role='measure'   type='quantitative'/>
-            <column datatype='string'  name='[OOSAlert]'                role='dimension' type='nominal'>
+            <column datatype='string'  derivation='User' name='[OOSAlert]' role='dimension' type='nominal'>
               <calculation class='tableau' formula='IF SUM([StockQuantity]) &lt; SUM([CampaignTargetQuantity]) THEN &quot;Thieu hang&quot; ELSE &quot;Du hang&quot; END'/>
             </column>
           </datasource-dependencies>
+          <aggregation value='true'/>
         </view>
-        <rows>[federated.mediamart].[Category]</rows>
-        <cols>[federated.mediamart].[StockQuantity]</cols>
+        <style/>
         <panes>
-          <pane><mark class='Bar'/></pane>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto'/>
+            </view>
+            <mark class='Bar'/>
+          </pane>
         </panes>
+        <rows>[federated.mediamart].[Category]</rows>
+        <cols>sum([federated.mediamart].[StockQuantity])</cols>
       </table>
     </worksheet>
 
-    <!-- ─────────────────────────────────────────────────────────────────
-         Sheet 4 — Suc Khoe Diem Ban (Store Health Symbol Map)
-         Map: Latitude/Longitude, Size: Revenue, Color: Repeat Purchase Rate
-         ───────────────────────────────────────────────────────────────── -->
+    <!-- Sheet 4 — Suc Khoe Diem Ban: Store Health Symbol Map -->
     <worksheet name='Suc Khoe Diem Ban'>
       <table>
         <view>
@@ -244,34 +246,43 @@
             <column datatype='string'  name='[City]'      role='dimension' type='nominal'/>
             <column datatype='real'    name='[Latitude]'  role='dimension' type='quantitative'/>
             <column datatype='real'    name='[Longitude]' role='dimension' type='quantitative'/>
-            <column datatype='real'    name='[Revenue]' role='measure' type='quantitative'>
+            <column datatype='real' derivation='User' name='[Revenue]' role='measure' type='quantitative'>
               <calculation class='tableau' formula='SUM([LineTotal])'/>
             </column>
-            <column datatype='real'    name='[RepeatPurchaseRate]' role='measure' type='quantitative'>
+            <column datatype='real' derivation='User' name='[RepeatPurchaseRate]' role='measure' type='quantitative'>
               <calculation class='tableau' formula='COUNTD(IF { FIXED [CustomerId] : COUNTD([OrderId]) } &gt;= 2 THEN [CustomerId] END) / COUNTD([CustomerId])'/>
             </column>
           </datasource-dependencies>
+          <aggregation value='true'/>
         </view>
+        <style/>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto'/>
+            </view>
+            <mark class='Circle'/>
+          </pane>
+        </panes>
         <rows>[federated.mediamart].[Latitude]</rows>
         <cols>[federated.mediamart].[Longitude]</cols>
-        <panes>
-          <pane><mark class='Circle'/></pane>
-        </panes>
       </table>
     </worksheet>
 
   </worksheets>
 
-  <!-- Dashboards intentionally omitted — Tableau Cloud's publish-time check
-       rejects dashboards that reference worksheets without a fully-bound
-       <panes>/<viewpoint> (2805CF18 NativeException). The 4 worksheets ship
-       individually; admins assemble the Control Tower dashboard from
-       Tableau Desktop after publish. -->
-
   <windows source-height='30'>
-    <window class='worksheet' maximized='true' name='Loi Nhuan x Hang The'/>
-    <window class='worksheet' name='Customer 360 Churn'/>
-    <window class='worksheet' name='Chuoi Cung Ung OOS'/>
-    <window class='worksheet' name='Suc Khoe Diem Ban'/>
+    <window class='worksheet' maximized='true' name='Loi Nhuan x Hang The'>
+      <cards/>
+    </window>
+    <window class='worksheet' name='Customer 360 Churn'>
+      <cards/>
+    </window>
+    <window class='worksheet' name='Chuoi Cung Ung OOS'>
+      <cards/>
+    </window>
+    <window class='worksheet' name='Suc Khoe Diem Ban'>
+      <cards/>
+    </window>
   </windows>
 </workbook>
