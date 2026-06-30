@@ -141,6 +141,7 @@ _INDUSTRY_GRAPHS: dict[Industry, IndustryGraph] = {
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 _INDUSTRY_TO_TDS_TEMPLATE: dict[Industry, str] = {
     Industry.banking: "retail-banking.tds",
+    Industry.mediamart: "retail-mediamart.tds",
 }
 
 # Sentinel substituted by the factory at packaging time.

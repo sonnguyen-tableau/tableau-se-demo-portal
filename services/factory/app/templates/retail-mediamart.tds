@@ -1,0 +1,964 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!--
+  Object Model template for retail-mediamart (Tableau 2020.2+).
+  Exposes 7 tables (OrderLines fact + 6 dim/inventory) to Tableau Cloud
+  as a proper multi-table relationships canvas instead of flat 'Migrated Data'.
+  Factory rewrites __FACTORY_DATASOURCE__ to the in-zip path at packaging time.
+-->
+<datasource formatted-name='federated.mediamart' inline='true' source-platform='mac' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <document-format-change-manifest>
+    <ObjectModelEncapsulateLegacy />
+    <ObjectModelExtractV2 />
+    <_.fcp.ObjectModelSharedDimensions.true...ObjectModelSharedDimensions />
+    <ObjectModelTableType />
+    <SchemaViewerObjectModel />
+  </document-format-change-manifest>
+  <connection class='federated'>
+    <named-connections>
+      <named-connection caption='retail-mediamart' name='hyper.mediamart'>
+        <connection authentication='auth-none' author-locale='en_US' class='hyper' dbname='__FACTORY_DATASOURCE__' default-settings='yes' server='' sslmode='' username='tableau_internal_user' />
+      </named-connection>
+    </named-connections>
+    <relation type='collection'>
+      <relation connection='hyper.mediamart' name='OrderLines' table='[Extract].[OrderLines]' type='table' />
+      <relation connection='hyper.mediamart' name='Orders' table='[Extract].[Orders]' type='table' />
+      <_.fcp.ObjectModelSharedDimensions.true...relation connection='hyper.mediamart' name='Customers' table='[Extract].[Customers]' type='table' />
+      <_.fcp.ObjectModelSharedDimensions.true...relation connection='hyper.mediamart' name='Stores' table='[Extract].[Stores]' type='table' />
+      <_.fcp.ObjectModelSharedDimensions.true...relation connection='hyper.mediamart' name='Channels' table='[Extract].[Channels]' type='table' />
+      <_.fcp.ObjectModelSharedDimensions.true...relation connection='hyper.mediamart' name='Products' table='[Extract].[Products]' type='table' />
+      <_.fcp.ObjectModelSharedDimensions.true...relation connection='hyper.mediamart' name='Inventory' table='[Extract].[Inventory]' type='table' />
+    </relation>
+    <cols>
+      <map key='[AcquisitionDate]' value='[Customers].[AcquisitionDate]' />
+      <map key='[Brand (Inventory)]' value='[Inventory].[Brand]' />
+      <map key='[Brand]' value='[Products].[Brand]' />
+      <map key='[CampaignTargetQuantity]' value='[Inventory].[CampaignTargetQuantity]' />
+      <map key='[Category (Inventory)]' value='[Inventory].[Category]' />
+      <map key='[Category]' value='[Products].[Category]' />
+      <map key='[ChannelId (Channels)]' value='[Channels].[ChannelId]' />
+      <map key='[ChannelId]' value='[Orders].[ChannelId]' />
+      <map key='[ChannelName]' value='[Channels].[ChannelName]' />
+      <map key='[ChurnRiskScore]' value='[Customers].[ChurnRiskScore]' />
+      <map key='[City (Customers)]' value='[Customers].[City]' />
+      <map key='[City]' value='[Stores].[City]' />
+      <map key='[Cost]' value='[Products].[Cost]' />
+      <map key='[Country]' value='[Stores].[Country]' />
+      <map key='[CustomerId (Customers)]' value='[Customers].[CustomerId]' />
+      <map key='[CustomerId]' value='[Orders].[CustomerId]' />
+      <map key='[CustomerName]' value='[Customers].[CustomerName]' />
+      <map key='[Discount]' value='[OrderLines].[Discount]' />
+      <map key='[InventoryId]' value='[Inventory].[InventoryId]' />
+      <map key='[Latitude]' value='[Stores].[Latitude]' />
+      <map key='[LifetimeValue]' value='[Customers].[LifetimeValue]' />
+      <map key='[LineCost]' value='[OrderLines].[LineCost]' />
+      <map key='[LineTotal]' value='[OrderLines].[LineTotal]' />
+      <map key='[ListPrice]' value='[Products].[ListPrice]' />
+      <map key='[Longitude]' value='[Stores].[Longitude]' />
+      <map key='[LoyaltyPointsBalance]' value='[Customers].[LoyaltyPointsBalance]' />
+      <map key='[LoyaltyPointsUsed]' value='[OrderLines].[LoyaltyPointsUsed]' />
+      <map key='[NextBestOffer]' value='[Customers].[NextBestOffer]' />
+      <map key='[OpenDate]' value='[Stores].[OpenDate]' />
+      <map key='[OrderDate]' value='[Orders].[OrderDate]' />
+      <map key='[OrderId (Orders)]' value='[Orders].[OrderId]' />
+      <map key='[OrderId]' value='[OrderLines].[OrderId]' />
+      <map key='[OrderLineId]' value='[OrderLines].[OrderLineId]' />
+      <map key='[PaymentMethod]' value='[Orders].[PaymentMethod]' />
+      <map key='[ProductId (Products)]' value='[Products].[ProductId]' />
+      <map key='[ProductId]' value='[OrderLines].[ProductId]' />
+      <map key='[ProductName]' value='[Products].[ProductName]' />
+      <map key='[Province (Customers)]' value='[Customers].[Province]' />
+      <map key='[Province]' value='[Stores].[Province]' />
+      <map key='[Quantity]' value='[OrderLines].[Quantity]' />
+      <map key='[Region (Stores)]' value='[Stores].[Region]' />
+      <map key='[Region]' value='[Customers].[Region]' />
+      <map key='[ReorderPoint]' value='[Inventory].[ReorderPoint]' />
+      <map key='[Segment]' value='[Customers].[Segment]' />
+      <map key='[Sku]' value='[Products].[Sku]' />
+      <map key='[SnapshotDate]' value='[Inventory].[SnapshotDate]' />
+      <map key='[Status]' value='[Orders].[Status]' />
+      <map key='[StockQuantity]' value='[Inventory].[StockQuantity]' />
+      <map key='[StoreId (Inventory)]' value='[Inventory].[StoreId]' />
+      <map key='[StoreId (Stores)]' value='[Stores].[StoreId]' />
+      <map key='[StoreId]' value='[Orders].[StoreId]' />
+      <map key='[StoreName]' value='[Stores].[StoreName]' />
+      <map key='[SubCategory]' value='[Products].[SubCategory]' />
+      <map key='[TenantId (Inventory)]' value='[Inventory].[TenantId]' />
+      <map key='[TenantId]' value='[Customers].[TenantId]' />
+      <map key='[Tier]' value='[Customers].[Tier]' />
+      <map key='[Type]' value='[Stores].[Type]' />
+      <map key='[UnitPrice]' value='[OrderLines].[UnitPrice]' />
+    </cols>
+    <metadata-records>
+      <metadata-record class='column'>
+        <remote-name>OrderLineId</remote-name>
+        <remote-type>20</remote-type>
+        <local-name>[OrderLineId]</local-name>
+        <parent-name>[OrderLines]</parent-name>
+        <remote-alias>OrderLineId</remote-alias>
+        <ordinal>0</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>OrderId</remote-name>
+        <remote-type>20</remote-type>
+        <local-name>[OrderId]</local-name>
+        <parent-name>[OrderLines]</parent-name>
+        <remote-alias>OrderId</remote-alias>
+        <ordinal>1</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>ProductId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[ProductId]</local-name>
+        <parent-name>[OrderLines]</parent-name>
+        <remote-alias>ProductId</remote-alias>
+        <ordinal>2</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>Quantity</remote-name>
+        <remote-type>2</remote-type>
+        <local-name>[Quantity]</local-name>
+        <parent-name>[OrderLines]</parent-name>
+        <remote-alias>Quantity</remote-alias>
+        <ordinal>3</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>UnitPrice</remote-name>
+        <remote-type>5</remote-type>
+        <local-name>[UnitPrice]</local-name>
+        <parent-name>[OrderLines]</parent-name>
+        <remote-alias>UnitPrice</remote-alias>
+        <ordinal>4</ordinal>
+        <local-type>real</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>Discount</remote-name>
+        <remote-type>5</remote-type>
+        <local-name>[Discount]</local-name>
+        <parent-name>[OrderLines]</parent-name>
+        <remote-alias>Discount</remote-alias>
+        <ordinal>5</ordinal>
+        <local-type>real</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>LineTotal</remote-name>
+        <remote-type>5</remote-type>
+        <local-name>[LineTotal]</local-name>
+        <parent-name>[OrderLines]</parent-name>
+        <remote-alias>LineTotal</remote-alias>
+        <ordinal>6</ordinal>
+        <local-type>real</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>LineCost</remote-name>
+        <remote-type>5</remote-type>
+        <local-name>[LineCost]</local-name>
+        <parent-name>[OrderLines]</parent-name>
+        <remote-alias>LineCost</remote-alias>
+        <ordinal>7</ordinal>
+        <local-type>real</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>LoyaltyPointsUsed</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[LoyaltyPointsUsed]</local-name>
+        <parent-name>[OrderLines]</parent-name>
+        <remote-alias>LoyaltyPointsUsed</remote-alias>
+        <ordinal>8</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>OrderId</remote-name>
+        <remote-type>20</remote-type>
+        <local-name>[OrderId (Orders)]</local-name>
+        <parent-name>[Orders]</parent-name>
+        <remote-alias>OrderId</remote-alias>
+        <ordinal>9</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>OrderDate</remote-name>
+        <remote-type>135</remote-type>
+        <local-name>[OrderDate]</local-name>
+        <parent-name>[Orders]</parent-name>
+        <remote-alias>OrderDate</remote-alias>
+        <ordinal>10</ordinal>
+        <local-type>datetime</local-type>
+        <aggregation>Year</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>CustomerId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[CustomerId]</local-name>
+        <parent-name>[Orders]</parent-name>
+        <remote-alias>CustomerId</remote-alias>
+        <ordinal>11</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>StoreId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[StoreId]</local-name>
+        <parent-name>[Orders]</parent-name>
+        <remote-alias>StoreId</remote-alias>
+        <ordinal>12</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>ChannelId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[ChannelId]</local-name>
+        <parent-name>[Orders]</parent-name>
+        <remote-alias>ChannelId</remote-alias>
+        <ordinal>13</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>Status</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Status]</local-name>
+        <parent-name>[Orders]</parent-name>
+        <remote-alias>Status</remote-alias>
+        <ordinal>14</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F]</object-id>
+      </metadata-record>
+      <metadata-record class='column'>
+        <remote-name>PaymentMethod</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[PaymentMethod]</local-name>
+        <parent-name>[Orders]</parent-name>
+        <remote-alias>PaymentMethod</remote-alias>
+        <ordinal>15</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F]</object-id>
+      </metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>CustomerId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[CustomerId (Customers)]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>CustomerId</remote-alias>
+        <ordinal>16</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>CustomerName</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[CustomerName]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>CustomerName</remote-alias>
+        <ordinal>17</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Tier</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Tier]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>Tier</remote-alias>
+        <ordinal>18</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Segment</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Segment]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>Segment</remote-alias>
+        <ordinal>19</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Region</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Region]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>Region</remote-alias>
+        <ordinal>20</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>City</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[City (Customers)]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>City</remote-alias>
+        <ordinal>21</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Province</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Province (Customers)]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>Province</remote-alias>
+        <ordinal>22</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>AcquisitionDate</remote-name>
+        <remote-type>135</remote-type>
+        <local-name>[AcquisitionDate]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>AcquisitionDate</remote-alias>
+        <ordinal>23</ordinal>
+        <local-type>datetime</local-type>
+        <aggregation>Year</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>ChurnRiskScore</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[ChurnRiskScore]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>ChurnRiskScore</remote-alias>
+        <ordinal>24</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>LifetimeValue</remote-name>
+        <remote-type>20</remote-type>
+        <local-name>[LifetimeValue]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>LifetimeValue</remote-alias>
+        <ordinal>25</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>NextBestOffer</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[NextBestOffer]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>NextBestOffer</remote-alias>
+        <ordinal>26</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>LoyaltyPointsBalance</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[LoyaltyPointsBalance]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>LoyaltyPointsBalance</remote-alias>
+        <ordinal>27</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>TenantId</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[TenantId]</local-name>
+        <parent-name>[Customers]</parent-name>
+        <remote-alias>TenantId</remote-alias>
+        <ordinal>28</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>StoreId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[StoreId (Stores)]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>StoreId</remote-alias>
+        <ordinal>29</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>StoreName</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[StoreName]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>StoreName</remote-alias>
+        <ordinal>30</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>City</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[City]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>City</remote-alias>
+        <ordinal>31</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Province</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Province]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>Province</remote-alias>
+        <ordinal>32</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Region</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Region (Stores)]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>Region</remote-alias>
+        <ordinal>33</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Country</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Country]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>Country</remote-alias>
+        <ordinal>34</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Type</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Type]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>Type</remote-alias>
+        <ordinal>35</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Latitude</remote-name>
+        <remote-type>5</remote-type>
+        <local-name>[Latitude]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>Latitude</remote-alias>
+        <ordinal>36</ordinal>
+        <local-type>real</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Longitude</remote-name>
+        <remote-type>5</remote-type>
+        <local-name>[Longitude]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>Longitude</remote-alias>
+        <ordinal>37</ordinal>
+        <local-type>real</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>OpenDate</remote-name>
+        <remote-type>135</remote-type>
+        <local-name>[OpenDate]</local-name>
+        <parent-name>[Stores]</parent-name>
+        <remote-alias>OpenDate</remote-alias>
+        <ordinal>38</ordinal>
+        <local-type>datetime</local-type>
+        <aggregation>Year</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>ChannelId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[ChannelId (Channels)]</local-name>
+        <parent-name>[Channels]</parent-name>
+        <remote-alias>ChannelId</remote-alias>
+        <ordinal>39</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Channels (Extract.Channels)_61D79BD0A1F5D2207DCAFF36A03C9CE7]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>ChannelName</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[ChannelName]</local-name>
+        <parent-name>[Channels]</parent-name>
+        <remote-alias>ChannelName</remote-alias>
+        <ordinal>40</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Channels (Extract.Channels)_61D79BD0A1F5D2207DCAFF36A03C9CE7]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>ProductId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[ProductId (Products)]</local-name>
+        <parent-name>[Products]</parent-name>
+        <remote-alias>ProductId</remote-alias>
+        <ordinal>41</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Sku</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Sku]</local-name>
+        <parent-name>[Products]</parent-name>
+        <remote-alias>Sku</remote-alias>
+        <ordinal>42</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>ProductName</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[ProductName]</local-name>
+        <parent-name>[Products]</parent-name>
+        <remote-alias>ProductName</remote-alias>
+        <ordinal>43</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Category</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Category]</local-name>
+        <parent-name>[Products]</parent-name>
+        <remote-alias>Category</remote-alias>
+        <ordinal>44</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>SubCategory</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[SubCategory]</local-name>
+        <parent-name>[Products]</parent-name>
+        <remote-alias>SubCategory</remote-alias>
+        <ordinal>45</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Brand</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Brand]</local-name>
+        <parent-name>[Products]</parent-name>
+        <remote-alias>Brand</remote-alias>
+        <ordinal>46</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>ListPrice</remote-name>
+        <remote-type>5</remote-type>
+        <local-name>[ListPrice]</local-name>
+        <parent-name>[Products]</parent-name>
+        <remote-alias>ListPrice</remote-alias>
+        <ordinal>47</ordinal>
+        <local-type>real</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Cost</remote-name>
+        <remote-type>5</remote-type>
+        <local-name>[Cost]</local-name>
+        <parent-name>[Products]</parent-name>
+        <remote-alias>Cost</remote-alias>
+        <ordinal>48</ordinal>
+        <local-type>real</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>InventoryId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[InventoryId]</local-name>
+        <parent-name>[Inventory]</parent-name>
+        <remote-alias>InventoryId</remote-alias>
+        <ordinal>49</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>StoreId</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[StoreId (Inventory)]</local-name>
+        <parent-name>[Inventory]</parent-name>
+        <remote-alias>StoreId</remote-alias>
+        <ordinal>50</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Category</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Category (Inventory)]</local-name>
+        <parent-name>[Inventory]</parent-name>
+        <remote-alias>Category</remote-alias>
+        <ordinal>51</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>Brand</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[Brand (Inventory)]</local-name>
+        <parent-name>[Inventory]</parent-name>
+        <remote-alias>Brand</remote-alias>
+        <ordinal>52</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>StockQuantity</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[StockQuantity]</local-name>
+        <parent-name>[Inventory]</parent-name>
+        <remote-alias>StockQuantity</remote-alias>
+        <ordinal>53</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>CampaignTargetQuantity</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[CampaignTargetQuantity]</local-name>
+        <parent-name>[Inventory]</parent-name>
+        <remote-alias>CampaignTargetQuantity</remote-alias>
+        <ordinal>54</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>ReorderPoint</remote-name>
+        <remote-type>3</remote-type>
+        <local-name>[ReorderPoint]</local-name>
+        <parent-name>[Inventory]</parent-name>
+        <remote-alias>ReorderPoint</remote-alias>
+        <ordinal>55</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>SnapshotDate</remote-name>
+        <remote-type>135</remote-type>
+        <local-name>[SnapshotDate]</local-name>
+        <parent-name>[Inventory]</parent-name>
+        <remote-alias>SnapshotDate</remote-alias>
+        <ordinal>56</ordinal>
+        <local-type>datetime</local-type>
+        <aggregation>Year</aggregation>
+        <contains-null>true</contains-null>
+        <object-id>[Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+      <_.fcp.ObjectModelSharedDimensions.true...metadata-record class='column'>
+        <remote-name>TenantId</remote-name>
+        <remote-type>129</remote-type>
+        <local-name>[TenantId (Inventory)]</local-name>
+        <parent-name>[Inventory]</parent-name>
+        <remote-alias>TenantId</remote-alias>
+        <ordinal>57</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+        <collation flag='0' name='binary' />
+        <object-id>[Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C]</object-id>
+      </_.fcp.ObjectModelSharedDimensions.true...metadata-record>
+    </metadata-records>
+  </connection>
+  <aliases enabled='yes' />
+  <column caption='Order Line Id' datatype='integer' name='[OrderLineId]' role='dimension' type='ordinal' />
+  <column caption='Order Id' datatype='integer' name='[OrderId]' role='dimension' type='ordinal' />
+  <column caption='Product Id' datatype='integer' name='[ProductId]' role='dimension' type='ordinal' />
+  <column caption='Quantity' datatype='integer' name='[Quantity]' role='measure' type='quantitative' />
+  <column caption='Unit Price' datatype='real' name='[UnitPrice]' role='measure' type='quantitative' />
+  <column caption='Discount' datatype='real' name='[Discount]' role='measure' type='quantitative' />
+  <column caption='Line Total' datatype='real' name='[LineTotal]' role='measure' type='quantitative' />
+  <column caption='Line Cost' datatype='real' name='[LineCost]' role='measure' type='quantitative' />
+  <column caption='Loyalty Points Used' datatype='integer' name='[LoyaltyPointsUsed]' role='measure' type='quantitative' />
+  <column caption='Order Id' datatype='integer' name='[OrderId (Orders)]' role='dimension' type='ordinal' />
+  <column caption='Order Date' datatype='datetime' name='[OrderDate]' role='dimension' type='ordinal' />
+  <column caption='Customer Id' datatype='integer' name='[CustomerId]' role='dimension' type='ordinal' />
+  <column caption='Store Id' datatype='integer' name='[StoreId]' role='dimension' type='ordinal' />
+  <column caption='Channel Id' datatype='integer' name='[ChannelId]' role='dimension' type='ordinal' />
+  <column caption='Status' datatype='string' name='[Status]' role='dimension' type='nominal' />
+  <column caption='Payment Method' datatype='string' name='[PaymentMethod]' role='dimension' type='nominal' />
+  <column caption='Customer Id' datatype='integer' name='[CustomerId (Customers)]' role='dimension' type='ordinal' />
+  <column caption='Customer Name' datatype='string' name='[CustomerName]' role='dimension' type='nominal' />
+  <column caption='Tier' datatype='string' name='[Tier]' role='dimension' type='nominal' />
+  <column caption='Segment' datatype='string' name='[Segment]' role='dimension' type='nominal' />
+  <column caption='Region' datatype='string' name='[Region]' role='dimension' type='nominal' />
+  <column caption='City' datatype='string' name='[City (Customers)]' role='dimension' type='nominal' />
+  <column caption='Province' datatype='string' name='[Province (Customers)]' role='dimension' type='nominal' />
+  <column caption='Acquisition Date' datatype='datetime' name='[AcquisitionDate]' role='dimension' type='ordinal' />
+  <column caption='Churn Risk Score' datatype='integer' name='[ChurnRiskScore]' role='measure' type='quantitative' />
+  <column caption='Lifetime Value' datatype='integer' name='[LifetimeValue]' role='measure' type='quantitative' />
+  <column caption='Next Best Offer' datatype='string' name='[NextBestOffer]' role='dimension' type='nominal' />
+  <column caption='Loyalty Points Balance' datatype='integer' name='[LoyaltyPointsBalance]' role='measure' type='quantitative' />
+  <column caption='Tenant Id' datatype='string' name='[TenantId]' role='dimension' type='ordinal' />
+  <column caption='Store Id' datatype='integer' name='[StoreId (Stores)]' role='dimension' type='ordinal' />
+  <column caption='Store Name' datatype='string' name='[StoreName]' role='dimension' type='nominal' />
+  <column caption='City' datatype='string' name='[City]' role='dimension' type='nominal' />
+  <column caption='Province' datatype='string' name='[Province]' role='dimension' type='nominal' />
+  <column caption='Region' datatype='string' name='[Region (Stores)]' role='dimension' type='nominal' />
+  <column caption='Country' datatype='string' name='[Country]' role='dimension' type='nominal' />
+  <column caption='Type' datatype='string' name='[Type]' role='dimension' type='nominal' />
+  <column caption='Latitude' datatype='real' name='[Latitude]' role='measure' type='quantitative' />
+  <column caption='Longitude' datatype='real' name='[Longitude]' role='measure' type='quantitative' />
+  <column caption='Open Date' datatype='datetime' name='[OpenDate]' role='dimension' type='ordinal' />
+  <column caption='Channel Id' datatype='integer' name='[ChannelId (Channels)]' role='dimension' type='ordinal' />
+  <column caption='Channel Name' datatype='string' name='[ChannelName]' role='dimension' type='nominal' />
+  <column caption='Product Id' datatype='integer' name='[ProductId (Products)]' role='dimension' type='ordinal' />
+  <column caption='Sku' datatype='string' name='[Sku]' role='dimension' type='nominal' />
+  <column caption='Product Name' datatype='string' name='[ProductName]' role='dimension' type='nominal' />
+  <column caption='Category' datatype='string' name='[Category]' role='dimension' type='nominal' />
+  <column caption='Sub Category' datatype='string' name='[SubCategory]' role='dimension' type='nominal' />
+  <column caption='Brand' datatype='string' name='[Brand]' role='dimension' type='nominal' />
+  <column caption='List Price' datatype='real' name='[ListPrice]' role='measure' type='quantitative' />
+  <column caption='Cost' datatype='real' name='[Cost]' role='measure' type='quantitative' />
+  <column caption='Inventory Id' datatype='integer' name='[InventoryId]' role='dimension' type='ordinal' />
+  <column caption='Store Id' datatype='integer' name='[StoreId (Inventory)]' role='dimension' type='ordinal' />
+  <column caption='Category' datatype='string' name='[Category (Inventory)]' role='dimension' type='nominal' />
+  <column caption='Brand' datatype='string' name='[Brand (Inventory)]' role='dimension' type='nominal' />
+  <column caption='Stock Quantity' datatype='integer' name='[StockQuantity]' role='measure' type='quantitative' />
+  <column caption='Campaign Target Quantity' datatype='integer' name='[CampaignTargetQuantity]' role='measure' type='quantitative' />
+  <column caption='Reorder Point' datatype='integer' name='[ReorderPoint]' role='measure' type='quantitative' />
+  <column caption='Snapshot Date' datatype='datetime' name='[SnapshotDate]' role='dimension' type='ordinal' />
+  <column caption='Tenant Id' datatype='string' name='[TenantId (Inventory)]' role='dimension' type='ordinal' />
+  <layout dim-ordering='alphabetic' measure-ordering='alphabetic' show-structure='true' />
+  <object-graph>
+    <objects>
+      <object caption='OrderLines' id='OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF'>
+        <properties context=''>
+          <relation connection='hyper.mediamart' name='OrderLines' table='[Extract].[OrderLines]' type='table' />
+        </properties>
+      </object>
+      <object caption='Orders' id='Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F'>
+        <properties context=''>
+          <relation connection='hyper.mediamart' name='Orders' table='[Extract].[Orders]' type='table' />
+        </properties>
+      </object>
+      <_.fcp.ObjectModelSharedDimensions.true...object caption='Customers' id='Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A'>
+        <properties context=''>
+          <relation connection='hyper.mediamart' name='Customers' table='[Extract].[Customers]' type='table' />
+        </properties>
+      </_.fcp.ObjectModelSharedDimensions.true...object>
+      <_.fcp.ObjectModelSharedDimensions.true...object caption='Stores' id='Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91'>
+        <properties context=''>
+          <relation connection='hyper.mediamart' name='Stores' table='[Extract].[Stores]' type='table' />
+        </properties>
+      </_.fcp.ObjectModelSharedDimensions.true...object>
+      <_.fcp.ObjectModelSharedDimensions.true...object caption='Channels' id='Channels (Extract.Channels)_61D79BD0A1F5D2207DCAFF36A03C9CE7'>
+        <properties context=''>
+          <relation connection='hyper.mediamart' name='Channels' table='[Extract].[Channels]' type='table' />
+        </properties>
+      </_.fcp.ObjectModelSharedDimensions.true...object>
+      <_.fcp.ObjectModelSharedDimensions.true...object caption='Products' id='Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279'>
+        <properties context=''>
+          <relation connection='hyper.mediamart' name='Products' table='[Extract].[Products]' type='table' />
+        </properties>
+      </_.fcp.ObjectModelSharedDimensions.true...object>
+      <_.fcp.ObjectModelSharedDimensions.true...object caption='Inventory' id='Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C'>
+        <properties context=''>
+          <relation connection='hyper.mediamart' name='Inventory' table='[Extract].[Inventory]' type='table' />
+        </properties>
+      </_.fcp.ObjectModelSharedDimensions.true...object>
+    </objects>
+    <relationships>
+      <relationship>
+        <expression op='='>
+          <expression op='[OrderId]' />
+          <expression op='[OrderId (Orders)]' />
+        </expression>
+        <first-end-point object-id='OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF' />
+        <second-end-point object-id='Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F' />
+      </relationship>
+      <_.fcp.ObjectModelSharedDimensions.true...relationship>
+        <expression op='='>
+          <expression op='[ProductId]' />
+          <expression op='[ProductId (Products)]' />
+        </expression>
+        <first-end-point object-id='OrderLines (Extract.OrderLines)_8C727A7C6D1DC46471E9CD8698A67CAF' />
+        <second-end-point object-id='Products (Extract.Products)_63A5074554828410DCAFAE42DBA8D279' />
+      </_.fcp.ObjectModelSharedDimensions.true...relationship>
+      <_.fcp.ObjectModelSharedDimensions.true...relationship>
+        <expression op='='>
+          <expression op='[CustomerId]' />
+          <expression op='[CustomerId (Customers)]' />
+        </expression>
+        <first-end-point object-id='Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F' />
+        <second-end-point object-id='Customers (Extract.Customers)_FB77A7456457C3D8B97B928631EE212A' />
+      </_.fcp.ObjectModelSharedDimensions.true...relationship>
+      <_.fcp.ObjectModelSharedDimensions.true...relationship>
+        <expression op='='>
+          <expression op='[StoreId]' />
+          <expression op='[StoreId (Stores)]' />
+        </expression>
+        <first-end-point object-id='Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F' />
+        <second-end-point object-id='Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91' />
+      </_.fcp.ObjectModelSharedDimensions.true...relationship>
+      <_.fcp.ObjectModelSharedDimensions.true...relationship>
+        <expression op='='>
+          <expression op='[ChannelId]' />
+          <expression op='[ChannelId (Channels)]' />
+        </expression>
+        <first-end-point object-id='Orders (Extract.Orders)_9F73E0A12C8793B98A9E716203CEE59F' />
+        <second-end-point object-id='Channels (Extract.Channels)_61D79BD0A1F5D2207DCAFF36A03C9CE7' />
+      </_.fcp.ObjectModelSharedDimensions.true...relationship>
+      <_.fcp.ObjectModelSharedDimensions.true...relationship>
+        <expression op='='>
+          <expression op='[StoreId (Inventory)]' />
+          <expression op='[StoreId (Stores)]' />
+        </expression>
+        <first-end-point object-id='Inventory (Extract.Inventory)_7F877D85203D3C28CE4669D5D89B979C' />
+        <second-end-point object-id='Stores (Extract.Stores)_D94E53C1AECB1263A6FC9BDB44BABE91' />
+      </_.fcp.ObjectModelSharedDimensions.true...relationship>
+    </relationships>
+  </object-graph>
+</datasource>
