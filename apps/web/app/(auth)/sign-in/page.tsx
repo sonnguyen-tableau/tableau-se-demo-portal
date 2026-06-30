@@ -175,6 +175,7 @@ export default async function SignInPage({ searchParams }: PageProps) {
                 {[
                   { email: "bank@demo.com", role: "Salesforce Bank" },
                   { email: "vincom@demo.com", role: "Vincom Retail" },
+                  { email: "mediamart@demo.com", role: "MediaMart" },
                 ].map((u) => (
                   <div key={u.email} className="flex items-center justify-between gap-2">
                     <span className="font-mono text-caption text-sf-neutral-6">{u.email}</span>
