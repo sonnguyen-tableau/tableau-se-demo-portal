@@ -33,6 +33,10 @@ const generatorParamsSchema = z.object({
   n_lanes: z.number().int().optional(),
   n_vehicles: z.number().int().optional(),
   n_customers: z.number().int().optional(),
+  n_customers_mediamart: z.number().int().optional(),
+  n_stores_mediamart: z.number().int().optional(),
+  n_products_mediamart: z.number().int().optional(),
+  oos_rate_pct: z.number().min(0).max(100).optional(),
 }).passthrough();
 
 const brandSchema = z.object({
@@ -47,7 +51,7 @@ const brandSchema = z.object({
 const requestSchema = z.object({
   company_name: z.string().min(1).max(120),
   company_url: z.string().url().max(2048),
-  industry: z.enum(["retail-ecommerce", "retail-banking", "retail-mall", "manufacturing", "healthcare", "logistics"]),
+  industry: z.enum(["retail-ecommerce", "retail-banking", "retail-mall", "retail-mediamart", "manufacturing", "healthcare", "logistics"]),
   tagline: z.string().max(280).optional(),
   logo_url: z.string().url().max(2048).optional(),
   generator_params: generatorParamsSchema.default({}),

@@ -22,6 +22,8 @@ const profileSchema = z.object({
   industry: z.enum([
     "retail-ecommerce",
     "retail-banking",
+    "retail-mall",
+    "retail-mediamart",
     "manufacturing",
     "healthcare",
     "logistics",

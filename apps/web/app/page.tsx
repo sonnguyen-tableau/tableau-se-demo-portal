@@ -31,6 +31,8 @@ export default async function Home() {
 const INDUSTRY_ICON: Record<string, string> = {
   "retail-banking": "🏦",
   "retail-mall": "🏬",
+  "retail-mediamart": "📺",
+  "retail-ecommerce": "🛒",
   "ecommerce": "🛒",
   "insurance": "🛡️",
   "healthcare": "🏥",
