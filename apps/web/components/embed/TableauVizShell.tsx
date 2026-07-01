@@ -138,6 +138,10 @@ export function TableauVizShell({ src, initialToken, height = "700px", viewMeta 
       viz["token"] = token;
       viz["toolbar"] = "bottom";
       viz["hideTabs"] = true;
+      // Force desktop layout regardless of container width — otherwise Tableau
+      // auto-picks Phone (min-height 700) when container drops below ~1400px,
+      // producing a stacked scroll view instead of the intended dashboard grid.
+      viz["device"] = "desktop";
       el.style.cssText = `width:100%;height:${height};`;
 
       el.addEventListener("firstinteractive", () => {
