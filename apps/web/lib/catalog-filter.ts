@@ -84,8 +84,14 @@ export async function getVisibleWorkbookIds(
 
   // We need the full workbook list to compute the intersection.
   // getLiveCatalog() ensures the cache is warm.
+  //
+  // NOTE: pass tenantId but NOT allowedProjects here — the dashboards page
+  // (page.tsx) already intersects visibleIds with the catalog it fetched
+  // separately (with allowedProjects applied). If we pass allowedProjects
+  // to both call sites we get a double-filter that can zero out the result
+  // when the catalog cache is stale w.r.t. the allowedProjects config.
   const { getLiveCatalog } = await import("@/lib/tableau-rest");
-  const catalog = await getLiveCatalog(tenantId, allowedProjects);
+  const catalog = await getLiveCatalog(tenantId);
   const all = catalog.dashboards.map((d) => d.workbookId);
 
   const visible = new Set(

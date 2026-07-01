@@ -28,7 +28,7 @@
     "sourceUrl": "https://mediamart.vn/",
     "createdAt": "2026-06-30T00:00:00.000Z",
     "status": "active",
-    "allowedProjects": ["Demo/MediaMart"],
+    "allowedProjects": ["Demo/MediaMart", "MediaMart"],
     "isDefault": false
   }
 ]

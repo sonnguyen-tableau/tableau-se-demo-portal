@@ -37,7 +37,7 @@ const TENANTS = [
     industry: "retail-mediamart",
     sourceUrl: "https://mediamart.vn/",
     status: "active" as const,
-    allowedProjects: ["Demo/MediaMart"],
+    allowedProjects: ["Demo/MediaMart", "MediaMart"],
     isDefault: false,
   },
 ];
@@ -112,6 +112,15 @@ export async function POST(req: Request): Promise<Response> {
     await setTenantTheme(th);
     results.push(`theme:${th.tenantId}`);
   }
+
+  // Bust the in-memory Tableau catalog cache so newly seeded tenants
+  // with allowedProjects pointing at Cloud folders are recomputed on
+  // the next request (rather than serving a 5-min stale snapshot).
+  try {
+    const { invalidateCatalogCache } = await import("@/lib/tableau-rest");
+    invalidateCatalogCache();
+    results.push("cache:invalidated");
+  } catch { /* module not loaded — skip */ }
 
   return NextResponse.json({ ok: true, force, seeded: results });
 }
