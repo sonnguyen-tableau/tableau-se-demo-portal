@@ -43,19 +43,38 @@ _TIER_CHURN_MEAN_STD: tuple[tuple[str, int, int], ...] = (
 # Tier mix: realistic retail pyramid (most customers Standard/Silver).
 _TIER_PROBS: tuple[float, ...] = (0.04, 0.10, 0.18, 0.30, 0.38)
 
-# Vietnam cities: (city, province, lat, lon, store_weight).
-# Weight drives how many stores end up here when n_stores >= len(cities).
+# MediaMart operates ONLY in North + North-Central Vietnam (28 provinces).
+# Source: mediamart.vn/he-thong-sieu-thi — 332 stores across 34 provinces.
+# Weights = actual store count ratios (Hanoi 56, Thanh Hoa 33, ...).
 _VN_CITIES: tuple[tuple[str, str, float, float, int], ...] = (
-    ("Hanoi", "Hanoi", 21.0285, 105.8542, 6),
-    ("Ho Chi Minh City", "TP HCM", 10.7769, 106.7009, 7),
-    ("Da Nang", "Da Nang", 16.0544, 108.2022, 3),
-    ("Hai Phong", "Hai Phong", 20.8449, 106.6881, 2),
-    ("Can Tho", "Can Tho", 10.0452, 105.7469, 2),
-    ("Nha Trang", "Khanh Hoa", 12.2388, 109.1967, 2),
-    ("Hue", "Thua Thien Hue", 16.4637, 107.5909, 1),
-    ("Vung Tau", "Ba Ria-Vung Tau", 10.346, 107.0843, 1),
-    ("Bien Hoa", "Dong Nai", 10.9472, 106.8420, 1),
-    ("Buon Ma Thuot", "Dak Lak", 12.6797, 108.0378, 1),
+    ("Hanoi", "Ha Noi", 21.0285, 105.8542, 56),
+    ("Thanh Hoa", "Thanh Hoa", 19.8069, 105.7851, 33),
+    ("Ha Long", "Quang Ninh", 20.9515, 107.0748, 17),
+    ("Bac Giang", "Bac Giang", 21.2731, 106.1946, 16),
+    ("Vinh", "Nghe An", 18.679, 105.6813, 16),
+    ("Hai Phong", "Hai Phong", 20.8449, 106.6881, 14),
+    ("Nam Dinh", "Nam Dinh", 20.4388, 106.1621, 14),
+    ("Ninh Binh", "Ninh Binh", 20.2506, 105.9744, 14),
+    ("Viet Tri", "Phu Tho", 21.3227, 105.4024, 13),
+    ("Hai Duong", "Hai Duong", 20.9373, 106.3146, 13),
+    ("Thai Nguyen", "Thai Nguyen", 21.5942, 105.8481, 11),
+    ("Hung Yen", "Hung Yen", 20.6464, 106.0511, 11),
+    ("Thai Binh", "Thai Binh", 20.4463, 106.3366, 11),
+    ("Bac Ninh", "Bac Ninh", 21.1861, 106.0763, 9),
+    ("Vinh Yen", "Vinh Phuc", 21.3089, 105.6049, 8),
+    ("Yen Bai", "Yen Bai", 21.7168, 104.8986, 7),
+    ("Ha Tinh", "Ha Tinh", 18.3428, 105.9057, 7),
+    ("Hoa Binh", "Hoa Binh", 20.8133, 105.3383, 6),
+    ("Lao Cai", "Lao Cai", 22.4809, 103.9755, 6),
+    ("Phu Ly", "Ha Nam", 20.5411, 105.9229, 6),
+    ("Tuyen Quang", "Tuyen Quang", 21.8237, 105.2179, 5),
+    ("Dong Hoi", "Quang Binh", 17.4825, 106.6005, 5),
+    ("Dong Ha", "Quang Tri", 16.8163, 107.1003, 5),
+    ("Ha Giang", "Ha Giang", 22.8025, 104.9784, 4),
+    ("Son La", "Son La", 21.3256, 103.9188, 4),
+    ("Lang Son", "Lang Son", 21.8537, 106.761, 3),
+    ("Bac Kan", "Bac Kan", 22.147, 105.8348, 2),
+    ("Lai Chau", "Lai Chau", 22.3964, 103.4703, 1),
 )
 
 # Next-Best-Offer pool — realistic MediaMart promotion catalog.
@@ -268,28 +287,12 @@ def _build_stores(
 
 
 def _vn_region(province: str) -> str:
-    """Coarse North/Central/South split for VN consumer-electronics analytics."""
-    north = {
-        "Hanoi",
-        "Hai Phong",
-        "Bac Ninh",
-        "Quang Ninh",
-        "Hai Duong",
-        "Vinh Phuc",
-        "Phu Tho",
-    }
-    central = {
-        "Da Nang",
-        "Thua Thien Hue",
-        "Khanh Hoa",
-        "Quang Nam",
-        "Dak Lak",
-    }
-    if province in north:
-        return "North"
-    if province in central:
-        return "Central"
-    return "South"
+    """Region for VN Bac Bo + Bac Trung Bo (MediaMart-only footprint)."""
+    north_central = {"Thanh Hoa", "Nghe An", "Ha Tinh", "Quang Binh", "Quang Tri"}
+    if province in north_central:
+        return "North Central"
+    # All other MediaMart provinces are North
+    return "North"
 
 
 def _build_products(
