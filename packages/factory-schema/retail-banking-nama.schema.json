@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "retail-banking-nama.schema.json",
+  "title": "Retail Banking (Nam A Bank) data contract",
+  "description": "Field-name contract for the Nam A Bank Command Center demo. Generator must emit matching column names; workbook template must reference only fields listed here.",
+  "type": "object",
+  "required": [
+    "Customers",
+    "Branches",
+    "Products",
+    "Accounts",
+    "Loans",
+    "Transactions",
+    "DigitalEvents",
+    "RiskScores",
+    "NBORecommendations"
+  ],
+  "properties": {
+    "Customers": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "CustomerId",
+              "CustomerName",
+              "Segment",
+              "SegmentVN",
+              "Gender",
+              "Age",
+              "MonthlyIncomeM",
+              "Region",
+              "City",
+              "Province",
+              "PrimaryBranchId",
+              "AcquisitionDate",
+              "TenureYears",
+              "DigitalActive",
+              "HappyComboEnrolled",
+              "HappyLadyEligible",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Branches": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "BranchId",
+              "BranchName",
+              "BranchType",
+              "City",
+              "Province",
+              "Region",
+              "Country",
+              "Latitude",
+              "Longitude",
+              "OpenDate",
+              "FteCount",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Products": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ProductId",
+              "ProductName",
+              "ProductGroup",
+              "ProductSubGroup",
+              "BaseInterestRate",
+              "BaseFee"
+            ]
+          }
+        }
+      }
+    },
+    "Accounts": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "AccountId",
+              "CustomerId",
+              "ProductId",
+              "Balance",
+              "OpenDate",
+              "BranchId",
+              "Status",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Loans": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "LoanId",
+              "CustomerId",
+              "ProductId",
+              "Principal",
+              "OutstandingBalance",
+              "InterestRate",
+              "Status",
+              "DaysPastDue",
+              "TermMonths",
+              "CollateralValue",
+              "OriginationDate",
+              "BranchId",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Transactions": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "TransactionId",
+              "AccountId",
+              "PostedDate",
+              "Amount",
+              "Type",
+              "Channel",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "DigitalEvents": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "EventId",
+              "CustomerId",
+              "EventDate",
+              "Channel",
+              "EventType",
+              "Outcome",
+              "ChannelCost",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "RiskScores": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ScoreId",
+              "CustomerId",
+              "ScoreDate",
+              "PdScore",
+              "RiskBand",
+              "TopReason",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "NBORecommendations": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "RecommendationId",
+              "CustomerId",
+              "OfferName",
+              "OfferCategory",
+              "EstimatedRevenue",
+              "ConfidenceScore",
+              "GeneratedDate",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

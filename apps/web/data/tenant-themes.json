@@ -31,5 +31,16 @@
     "fontFamily": "Inter",
     "tone": "professional",
     "logoUrl": "/tenants/mediamart-logo.png"
+  },
+  {
+    "tenantId": "nam-a-bank",
+    "companyName": "Nam A Bank",
+    "primaryColor": "#0072BC",
+    "secondaryColor": "#F58220",
+    "neutralColor": "#1A1A1A",
+    "sidebarTextColor": "#ffffff",
+    "fontFamily": "Inter",
+    "tone": "professional",
+    "logoUrl": "/tenants/nam-a-bank-logo.png"
   }
 ]

@@ -40,6 +40,15 @@ const TENANTS = [
     allowedProjects: ["Demo/MediaMart", "MediaMart"],
     isDefault: false,
   },
+  {
+    slug: "nam-a-bank",
+    name: "Nam A Bank",
+    industry: "retail-banking",
+    sourceUrl: "https://www.namabank.com.vn/",
+    status: "active" as const,
+    allowedProjects: ["Demo/Nam A Bank"],
+    isDefault: false,
+  },
 ];
 
 const THEMES = [
@@ -75,6 +84,17 @@ const THEMES = [
     fontFamily: "Inter",
     tone: "professional" as const,
     logoUrl: "/tenants/mediamart-logo.png",
+  },
+  {
+    tenantId: "nam-a-bank",
+    companyName: "Nam A Bank",
+    primaryColor: "#0072BC",
+    secondaryColor: "#F58220",
+    neutralColor: "#1A1A1A",
+    sidebarTextColor: "#ffffff",
+    fontFamily: "Inter",
+    tone: "professional" as const,
+    logoUrl: "/tenants/nam-a-bank-logo.png",
   },
 ];
 
