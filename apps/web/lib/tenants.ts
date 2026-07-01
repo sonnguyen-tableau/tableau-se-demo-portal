@@ -95,18 +95,24 @@ async function writeAllToFile(store: Map<string, TenantRecord>): Promise<void> {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 export async function listTenants(): Promise<TenantRecord[]> {
+  // Merge KV + file: file gives the baseline set of tenants shipped with the
+  // deploy; KV overrides per-slug when the admin has edited a record. Without
+  // the merge, tenants added to the seed file after the initial KV populate
+  // (e.g. `mediamart` on 2026-06-30) never appear until an explicit re-seed.
+  const fileStore = await readAllFromFile();
+  const merged = new Map<string, TenantRecord>(fileStore);
+
   if (hasKv()) {
     const index = await readIndexFromKv();
     if (index.length > 0) {
       const records = await Promise.all(index.map(readFromKv));
-      return records
-        .filter((t): t is TenantRecord => t !== null)
-        .sort((a, b) => a.name.localeCompare(b.name));
+      for (const r of records) {
+        if (r !== null) merged.set(r.slug, r);
+      }
     }
-    // KV index empty — fall back to bundled data/tenants.json
   }
-  const store = await readAllFromFile();
-  return [...store.values()].sort((a, b) => a.name.localeCompare(b.name));
+
+  return [...merged.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getTenant(slug: string): Promise<TenantRecord | undefined> {
