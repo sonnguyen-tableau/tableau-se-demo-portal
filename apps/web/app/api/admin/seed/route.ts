@@ -31,6 +31,15 @@ const TENANTS = [
     allowedProjects: ["Demo/Salesforce Bank"],
     isDefault: true,
   },
+  {
+    slug: "mediamart",
+    name: "MediaMart",
+    industry: "retail-mediamart",
+    sourceUrl: "https://mediamart.vn/",
+    status: "active" as const,
+    allowedProjects: ["Demo/MediaMart"],
+    isDefault: false,
+  },
 ];
 
 const THEMES = [
@@ -55,6 +64,17 @@ const THEMES = [
     fontFamily: "Inter",
     tone: "professional" as const,
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Salesforce.com_logo.svg/320px-Salesforce.com_logo.svg.png",
+  },
+  {
+    tenantId: "mediamart",
+    companyName: "MediaMart",
+    primaryColor: "#E50914",
+    secondaryColor: "#FFD700",
+    neutralColor: "#0F172A",
+    sidebarTextColor: "#ffffff",
+    fontFamily: "Inter",
+    tone: "professional" as const,
+    logoUrl: "/tenants/mediamart-logo.png",
   },
 ];
 
