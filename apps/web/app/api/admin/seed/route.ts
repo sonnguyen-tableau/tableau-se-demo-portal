@@ -78,6 +78,12 @@ const THEMES = [
   },
 ];
 
+// GET is an alias for POST — convenience so internal admins can trigger
+// the reseed by opening the URL in the browser after signing in.
+export async function GET(req: Request): Promise<Response> {
+  return POST(req);
+}
+
 export async function POST(req: Request): Promise<Response> {
   const session = await auth();
   const ctx = tenantFromSession(session);
