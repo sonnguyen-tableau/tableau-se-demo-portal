@@ -4,7 +4,7 @@ import { VIZ_TOOLS, isVizToolName } from "./viz-tools";
 
 const DEFAULT_MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 8192;
-const MAX_TOOL_ROUNDS = 15;
+const MAX_TOOL_ROUNDS = 40;
 const MAX_TOOL_RESULT_CHARS = 8_000;
 const MAX_TOOL_DESCRIPTION_CHARS = 500;
 
