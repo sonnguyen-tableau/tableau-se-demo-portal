@@ -123,8 +123,25 @@ def rewrite_for_tenant(template_path: str, tenant: str, ds_name: str) -> str:
 - **Adding a live database connection** instead of an extract. Templates always connect to a published `.hyper` data source so the factory can swap them.
 - **Hardcoding a tenant name or date** in a title. Use parameters or calculated fields driven by `TODAY()`/`USERATTRIBUTE`.
 
+## Cloud strict-mode pitfalls (learned the hard way during MediaMart bring-up, 2026-07-01)
+
+Do NOT hand-author `.twb` XML from scratch or from the retail-banking pattern. Tableau Cloud strict-mode validation rejects almost every hand-written variant with cryptic errors that took ~10 iterations to diagnose. Instead:
+
+1. **Ask user to publish a minimal reference workbook manually.** 1 datasource, 1 sheet, 1 calc field if needed. This gives you the exact XML shape Cloud expects for the target site.
+2. **Download the reference via TSC**, diff `<datasources>` block, use the `sqlproxy.<hash>` connection name verbatim, mirror the calc-field `<column>` shape.
+3. **Publish with `skip_connection_check=True`** or Cloud rejects with 403132 "Forbidden — failed to establish a connection".
+4. **Workbook and its datasource must be in the same project.** If ds is at `Demo/Foo`, workbook goes to `Demo/Foo` — never `tenant-{slug}`.
+5. **Never embed `<connection class='hyper' server='localhost'/>`** in a factory workbook. Use `<connection class='sqlproxy'>` + `<repository-location>` to reference the published datasource.
+6. **Multi-table `<relationship>` in .tds cannot be hand-authored.** Six variants of banking.tds pattern all failed Cloud validation. Ship a flat .tdsx, let user draw relationships in Tableau Desktop, then re-publish.
+7. **Every worksheet needs `<simple-id uuid='{...}'>`** and a matching window `<viewpoint />`, or dashboards fail with "0x2805CF18 Dashboard references sheet X which has no visual representation".
+8. **Calc field pill format is `[usr:CalculationId:qk]` with `derivation='User'`**, not `[sum:FieldName:qk]`. Raw aggregates use the latter.
+9. **Verify with `views.populate_image(v)`** after publish — real content is >500 bytes, empty placeholder is exactly 178 bytes (Tableau's 1x1 fallback). Missing field references silently produce placeholders with no error.
+
+See `[[tableau-workbook-authoring-pitfalls]]` memory for the full 8-rule catalog with symptom + fix per rule.
+
 ## Related skills
 
 - `factory-pipeline-debug` — what to inspect when a template fails to publish.
 - `multitenant-rls` — the data-policy contract.
 - `pulse-metric-builder` — KPI metric definitions paired with each template.
+- `tableau-desktop-author` — reusable XML builders (kit/) + validator (Layer-0 XSD + Layer-1 empirical rules).

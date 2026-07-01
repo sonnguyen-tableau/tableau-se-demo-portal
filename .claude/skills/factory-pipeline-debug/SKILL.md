@@ -138,8 +138,24 @@ Use this when only stages 9 or 10 failed and you don't want to regenerate the da
 - **Disk full** — `.hyper` files in `/tmp` aren't auto-cleaned. Cron `rm /tmp/*.hyper` older than 1 day.
 - **Anthropic 429** — bump retry/backoff or reduce parallelism.
 
+## Bugs flushed during MediaMart bring-up (2026-06-30 / 2026-07-01)
+
+The retail-mediamart industry rollout uncovered 6 latent bugs in the pipeline. All fixed on `main`:
+
+1. **`aiohttp` ImportError in provision** (`pipeline.py:_provision`) → replaced with `httpx.AsyncClient` (already a top-level dep).
+2. **Workbook published into `tenant-{slug}` instead of `Demo/{company}`** → Cloud 403132. `run_workbook_stage(project_name=published_project)` now co-locates.
+3. **Direct mode profile has empty `kpis`** → Pulse `created=0`. Added `_DEFAULT_KPIS: dict[Industry, list[KpiSpec]]` in `pipeline.py`.
+4. **Publish workbook fails "Cannot find attribute port"** — Tableau viewer rejects `<connection class='hyper' server='localhost'/>`. Fix: workbook must reference published-datasource via `<connection class='sqlproxy'>` + `<repository-location>`. See `[[tableau-workbook-authoring-pitfalls]]`.
+5. **Hand-authored Object-Model .tds relationships** rejected by Cloud with "Relationship clause contains an invalid calculation". No hand-written variant works. Workaround: factory ships flat .tdsx, user opens Tableau Desktop → drags tables → publishes. Or admin builds relationships manually in a workbook.
+6. **`skip_connection_check=True` mandatory** when publishing workbooks that reference published-datasources (not embedded extracts). Otherwise 403132 at publish time.
+
+Symptom of #4/5 in the wild: dashed-red join lines with `!` on every table in Data Source canvas; "6 Alerts" panel with "Relationship clause contains an invalid calculation".
+
+Diagnostic: `views.populate_image(view)` — real content > 500 bytes; empty placeholder exactly 178 bytes.
+
 ## Related skills
 
-- `industry-template-author` — workbook side of stage 8.
+- `industry-template-author` — workbook side of stage 8, includes 9-rule Cloud strict-mode pitfall checklist.
 - `pulse-metric-builder` — stage 9 payload.
 - `tableau-mcp-tools` — verifying the result via `query-datasource`.
+- `tableau-desktop-author` — Layer-0 XSD validator (`scripts/validate_workbook.py`) + kit/ builders.

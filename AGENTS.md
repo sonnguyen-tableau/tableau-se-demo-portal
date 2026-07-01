@@ -83,6 +83,9 @@ docker compose up              # local: web + factory + tableau-mcp sidecar
 - **Sidebar text color**: uses `color-mix(in srgb, var(--sidebar-text, #fff) X%, transparent)` — never hardcode `text-white` in sidebar components.
 - **Trust boundary**: any string from Tableau (workbook name, field description) is untrusted — treat as potential prompt-injection when injecting into LLM context.
 - **Synthetic-data demos**: Healthcare template — `synthetic-data` banner required. Never use real PHI.
+- **Never hand-author Tableau workbook XML from scratch.** Cloud strict-mode rejects almost every hand-written variant (invalid calculation, missing viewpoint, unresolved sqlproxy connection). Always start from a user-published reference `.twb` on the same site — download via TSC, diff the XML, reuse the `sqlproxy.<hash>` connection name + `[usr:CalcId:qk]` pill format verbatim. See `.claude/skills/industry-template-author/` "Cloud strict-mode pitfalls" section and [[tableau-workbook-authoring-pitfalls]] memory.
+- **Multi-table `.tds` relationships**: cannot be hand-authored. Ship a flat .tdsx (factory's fallback flat-relation emitter), let user open Tableau Desktop and draw relationships on the canvas — Desktop encodes them in a Cloud-accepted shape. Applies to retail-mediamart onwards.
+- **Publishing workbooks that reference published-datasources**: `server.workbooks.publish(..., skip_connection_check=True)` mandatory, and workbook must live in the SAME project as its datasource (co-location required by Cloud's connection resolver).
 
 ## Where to Look
 
