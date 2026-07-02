@@ -223,6 +223,34 @@ export function TableauVizShell({ src, initialToken, height = "700px", viewMeta 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src, token, height]);
 
+  // Re-fit the Tableau viz when its container width changes (e.g. the AI panel
+  // is toggled). The embedded <tableau-viz> lays out once at mount width and
+  // does NOT reflow on its own, so a wider container leaves the viz at its old
+  // width and forces a horizontal scrollbar. A ResizeObserver that fires a
+  // window `resize` — plus nudging the element width — makes the viz recompute.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+
+    let raf = 0;
+    let lastWidth = container.clientWidth;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width ?? container.clientWidth;
+      if (Math.abs(w - lastWidth) < 2) return; // ignore sub-pixel jitter
+      lastWidth = w;
+      // Debounce to the next frame so we react once per settled size.
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = vizRef.current as unknown as HTMLElement | null;
+        if (!el) return;
+        // The web component listens for window resize to recompute its layout.
+        window.dispatchEvent(new Event("resize"));
+      });
+    });
+    ro.observe(container);
+    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
+  }, []);
+
   const isFill = height === "100%";
 
   return (
