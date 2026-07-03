@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Watchlist — Nam A Bank</title>
+  <!-- Tableau Extensions API v1 -->
+  <script src="https://cdn.jsdelivr.net/npm/@tableau/extensions-api@1.12.0/lib/tableau.extensions.1.latest.min.js"></script>
+  <link rel="stylesheet" href="./watchlist.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="wl-header">
+      <div class="wl-title">
+        <span class="wl-dot"></span>
+        <h1>AI Watchlist — Khách hàng Rủi ro cao</h1>
+      </div>
+      <div class="wl-controls">
+        <label>Nguồn:
+          <select id="worksheet-select"></select>
+        </label>
+        <span id="wl-count" class="wl-count"></span>
+      </div>
+    </header>
+
+    <div id="wl-body" class="wl-body">
+      <div id="wl-loading" class="wl-loading">Đang tải dữ liệu…</div>
+      <table id="wl-table" class="wl-table" hidden>
+        <thead>
+          <tr>
+            <th>Khách hàng</th>
+            <th>Nhóm rủi ro</th>
+            <th class="wl-num">PD Score</th>
+            <th>Lý do cảnh báo</th>
+            <th class="wl-action">AI</th>
+          </tr>
+        </thead>
+        <tbody id="wl-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- AI explanation drawer -->
+    <div id="wl-drawer" class="wl-drawer" hidden>
+      <div class="wl-drawer-head">
+        <strong id="wl-drawer-title">Giải thích AI</strong>
+        <button id="wl-drawer-close" aria-label="Đóng">×</button>
+      </div>
+      <div id="wl-drawer-content" class="wl-drawer-content"></div>
+    </div>
+  </div>
+  <script src="./watchlist.js"></script>
+</body>
+</html>
