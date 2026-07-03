@@ -117,11 +117,19 @@ def inst_cntd(name): return f"            <column-instance column='[{name}]' der
 
 # ─── KPI card ───────────────────────────────────────────────────────────────
 def kpi_card(sheet_name: str, calc: Calc, title_vn: str) -> str:
+    """KPI card cloned EXACTLY from the user's Desktop-authored `KPI Seed`
+    worksheet (services/factory/scripts/meygroup/_seed_desktop). The proven
+    geometry: single-run customized-label at 28px navy bold, mark-labels-cull
+    ='true' (culprit of the earlier vertical clipping was cull='false', which
+    force-renders the glyph even when the mark cell is shorter than it), empty
+    <style/>, and the number format carried by the calc's own default-format.
+    We only ADD a layout-options title for the Vietnamese uppercase label —
+    proven safe by the seed's `Revenue KPI` card, which also carries a title."""
     field = calc.ref()
-    fmt = esc(calc.fmt or "n#,##0")
+    label = esc(title_vn.upper())
     return f"""    <worksheet name='{esc(sheet_name)}'>
       <layout-options>
-        <title><formatted-text><run fontname='Tableau Book' fontsize='10' fontcolor='#6B7280'>{esc(title_vn)}</run></formatted-text></title>
+        <title><formatted-text><run fontsize='9' bold='true' fontcolor='#5A6B7B'>{label}</run></formatted-text></title>
       </layout-options>
       <table>
         <view>
@@ -134,10 +142,7 @@ def kpi_card(sheet_name: str, calc: Calc, title_vn: str) -> str:
           </datasource-dependencies>
           <aggregation value='true' />
         </view>
-        <style>
-          <style-rule element='cell'><format attr='text-format' field='{field}' value='{fmt}' /></style-rule>
-          <style-rule element='label'><format attr='text-format' field='{field}' value='{fmt}' /></style-rule>
-        </style>
+        <style />
         <panes>
           <pane selection-relaxation-option='selection-relaxation-allow'>
             <view><breakdown value='auto' /></view>
@@ -145,7 +150,7 @@ def kpi_card(sheet_name: str, calc: Calc, title_vn: str) -> str:
             <encodings><text column='{field}' /></encodings>
             <customized-label>
               <formatted-text>
-                <run fontname='Tableau Book' fontalignment='1' fontsize='20' bold='true' fontcolor='#0F2A47'><![CDATA[<{field}>]]></run>
+                <run bold='true' fontalignment='1' fontcolor='#0f2a47' fontsize='18'><![CDATA[<{field}>]]></run>
               </formatted-text>
             </customized-label>
             <style>
@@ -177,16 +182,64 @@ def exclude_ciel_filter(field: str) -> tuple[str, str]:
 
 
 def chart(sheet_name, title_vn, deps, insts, rows, cols, mark="Bar", encodings=None,
-          filters=None):
+          filters=None, color_palette=None, single_color=None, hide_axis_titles=True):
+    """Premium chart. Options:
+    - color_palette: name of a registered palette (e.g. 'Mey Sequential Blue')
+      applied to the color encoding so bars grade as one brand family.
+    - single_color: hex for a flat single-color bar (no legend), e.g. '#1B75BC'.
+    - hide_axis_titles: drop the noisy '[Field] Vnd' axis captions.
+    """
     enc = ""
     if encodings:
         enc = "            <encodings>\n" + "".join(f"              <{k} column='{c}' />\n" for k, c in encodings) + "            </encodings>\n"
     db = "\n".join(deps)
     ib = "\n".join(insts)
     filt_xml = ("\n" + "\n".join(filters)) if filters else ""
+
+    # Worksheet-level style: remove chart junk (gridlines, zero line, axis rulers).
+    ws_style = (
+        "        <style>\n"
+        "          <style-rule element='pane'>\n"
+        "            <format attr='grid-line-show' value='false' />\n"
+        "            <format attr='zero-line-show' value='false' />\n"
+        "          </style-rule>\n"
+        "          <style-rule element='axis'>\n"
+        "            <format attr='rule-color' value='#C3CDD8' />\n"
+        "            <format attr='tick-color' value='#E3E9EF' />\n"
+        "          </style-rule>\n"
+        "        </style>"
+    )
+
+    # Pane-level style: slim bars + brand color. NO mark labels on charts —
+    # they clutter ranking bars with long raw numbers; the axis carries scale.
+    pane_style_rules = []
+    if mark == "Bar":
+        pane_style_rules.append("                <format attr='mark-bar-size' value='0.72' />")
+    if mark == "Pie":
+        # A pie with no Size field renders at a tiny default radius; force a
+        # large fixed mark size so the donut fills its card.
+        pane_style_rules.append("                <format attr='mark-size' value='1.0' />")
+    if single_color:
+        pane_style_rules.append(f"                <format attr='mark-color' value='{single_color}' />")
+    pane_style = (("            <style>\n              <style-rule element='mark'>\n"
+                   + "\n".join(pane_style_rules)
+                   + "\n              </style-rule>\n            </style>\n")
+                  if pane_style_rules else "")
+
+    # Colour-palette binding on the color encoding (if any encoding is 'color').
+    enc_block = enc
+    if color_palette and encodings:
+        # Replace the plain <color column=...> with a palette-bound encoding.
+        for k, c in encodings:
+            if k == "color":
+                plain = f"              <color column='{c}' />\n"
+                bound = (f"              <color column='{c}' palette='{color_palette}' "
+                         f"type='palette' />\n")
+                enc_block = enc_block.replace(plain, bound)
+
     return f"""    <worksheet name='{esc(sheet_name)}'>
       <layout-options>
-        <title><formatted-text><run fontname='Tableau Book' fontsize='12' bold='true' fontcolor='#0F2A47'>{esc(title_vn)}</run></formatted-text></title>
+        <title><formatted-text><run fontname='Tableau Bold' fontsize='13' bold='true' fontcolor='#0F2A47'>{esc(title_vn)}</run></formatted-text></title>
       </layout-options>
       <table>
         <view>
@@ -199,12 +252,12 @@ def chart(sheet_name, title_vn, deps, insts, rows, cols, mark="Bar", encodings=N
           </datasource-dependencies>{filt_xml}
           <aggregation value='true' />
         </view>
-        <style />
+{ws_style}
         <panes>
           <pane selection-relaxation-option='selection-relaxation-allow'>
             <view><breakdown value='auto' /></view>
             <mark class='{mark}' />
-{enc}          </pane>
+{enc_block}{pane_style}          </pane>
         </panes>
         <rows>{rows}</rows>
         <cols>{cols}</cols>
@@ -213,17 +266,57 @@ def chart(sheet_name, title_vn, deps, insts, rows, cols, mark="Bar", encodings=N
     </worksheet>"""
 
 
+# ─── Design tokens (Meyland brand + Ciel resort palette, light-elegant) ─────
+BG_PAGE   = "#F5F8FB"   # canvas — "tinh khiết" trắng xanh nhạt
+BG_CARD   = "#FFFFFF"   # card fill
+BORDER    = "#E3E9EF"   # card border / gridline
+NAVY      = "#0F2A47"   # titles, header band, deep sequential end
+BRAND     = "#1B75BC"   # Mey primary blue (single-color bars)
+CYAN      = "#29ABE2"   # accent / divider
+BODY      = "#5A6B7B"   # secondary text
+
+
 # ─── Dashboard layout-flow ──────────────────────────────────────────────────
 def leaf(name, minw=80, w=100000):
+    # Floating card: soft border + generous gutter (margin) + inner padding so
+    # each viz breathes — the single cheapest "premium" signal.
     return (f"              <zone h='100000' id='{_zid()}' name='{esc(name)}' w='{w}' x='0' y='0'>\n"
             f"                <layout-cache minwidth='{minw}' type-h='scalable' type-w='scalable' />\n"
-            f"                <zone-style><format attr='border-color' value='#e5e7eb' /><format attr='border-style' value='solid' /><format attr='border-width' value='1' /><format attr='margin' value='3' /><format attr='background-color' value='#FFFFFF' /></zone-style>\n"
+            f"                <zone-style>"
+            f"<format attr='border-color' value='{BORDER}' />"
+            f"<format attr='border-style' value='solid' />"
+            f"<format attr='border-width' value='1' />"
+            f"<format attr='margin' value='8' />"
+            f"<format attr='padding' value='6' />"
+            f"<format attr='background-color' value='{BG_CARD}' />"
+            f"</zone-style>\n"
             f"              </zone>")
 
+def header_band(title_vn: str, subtitle_vn: str) -> str:
+    """Branded navy header band + a thin cyan divider stripe beneath. Placed
+    first in a dashboard's rows_xml."""
+    tid = _zid()
+    band = (f"          <zone h='9000' id='{tid}' type-v2='text' w='100000' x='0' y='0'>\n"
+            f"            <formatted-text>\n"
+            f"              <run fontname='Tableau Bold' fontsize='19' bold='true' fontcolor='#FFFFFF'>Mey Group</run>\n"
+            f"              <run fontname='Tableau Book' fontsize='13' fontcolor='#7FC4EC'>   |   {esc(title_vn)}</run>\n"
+            f"              <run fontname='Tableau Book' fontsize='11' fontcolor='#B9D9EE'>    ·   {esc(subtitle_vn)}</run>\n"
+            f"            </formatted-text>\n"
+            f"            <zone-style>"
+            f"<format attr='border-style' value='none' /><format attr='border-width' value='0' />"
+            f"<format attr='margin' value='0' /><format attr='padding' value='16' />"
+            f"<format attr='background-color' value='{NAVY}' /></zone-style>\n"
+            f"          </zone>")
+    stripe = (f"          <zone h='500' id='{_zid()}' type-v2='empty' w='100000' x='0' y='0'>\n"
+              f"            <zone-style><format attr='border-style' value='none' /><format attr='border-width' value='0' />"
+              f"<format attr='margin' value='0' /><format attr='background-color' value='{CYAN}' /></zone-style>\n"
+              f"          </zone>")
+    return band + "\n" + stripe
+
 def hrow(names, h, minw=80, weights=None):
-    """Horizontal row. `weights` = list of relative widths (same length as
-    names); Tableau distributes leaf zones proportional to their `w`. Default
-    equal split."""
+    """Horizontal row. NOTE: Tableau layout-flow splits EQUALLY regardless of
+    zone w= — `weights` only helps in nested layouts; for true different widths
+    put a chart on its own row."""
     if weights:
         total = sum(weights)
         ws = [int(100000 * wt / total) for wt in weights]
@@ -232,19 +325,25 @@ def hrow(names, h, minw=80, weights=None):
         body = "\n".join(leaf(n, minw) for n in names)
     return (f"          <zone h='{h}' id='{_zid()}' param='horz' type-v2='layout-flow' w='100000' x='0' y='0'>\n{body}\n          </zone>")
 
-def dashboard(name, rows_xml):
+def dashboard(name, rows_xml, width=1400, height=1100):
+    """Fixed-size dashboard. FIXED sizing (not 'automatic') is essential: with
+    automatic sizing the row `h=` values are only relative weights that map to
+    an unpredictable pixel height Cloud picks per-render, so a KPI hero number
+    fits at one canvas size and clips at another (the root cause of every KPI
+    layout failure). A fixed height pins each row's h/100000 weight to stable
+    pixels. The user's Desktop dashboards use the same fixed-size pattern."""
     reset_zids()
     body = "\n".join(rows_xml)
     outer = _zid()
     return f"""    <dashboard enable-sort-zone-taborder='true' name='{esc(name)}'>
       <style />
-      <size sizing-mode='automatic' />
+      <size maxheight='{height}' maxwidth='{width}' minheight='{height}' minwidth='{width}' />
       <zones>
         <zone h='100000' id='{outer}' type-v2='layout-basic' w='100000' x='0' y='0'>
           <zone h='100000' id='{_zid()}' param='vert' type-v2='layout-flow' w='100000' x='0' y='0'>
 {body}
           </zone>
-          <zone-style><format attr='border-color' value='#000000' /><format attr='border-style' value='none' /><format attr='border-width' value='0' /><format attr='margin' value='8' /><format attr='background-color' value='#F7F7F7' /></zone-style>
+          <zone-style><format attr='border-color' value='#000000' /><format attr='border-style' value='none' /><format attr='border-width' value='0' /><format attr='margin' value='8' /><format attr='background-color' value='{BG_PAGE}' /></zone-style>
         </zone>
       </zones>
       <simple-id uuid='{U()}' />
@@ -267,7 +366,24 @@ def workbook(calcs, sheets_xml, sheet_names, dashboard_xml, dash_name):
     <ObjectModelTableType />
     <SchemaViewerObjectModel />
   </document-format-change-manifest>
-  <preferences />
+  <preferences>
+    <color-palette name='Mey Sequential Blue' type='ordered-sequential'>
+      <color>#D6ECF8</color>
+      <color>#9FD3EF</color>
+      <color>#5FB4E5</color>
+      <color>#29ABE2</color>
+      <color>#1B75BC</color>
+      <color>#0F2A47</color>
+    </color-palette>
+    <color-palette name='Mey Categorical' type='regular'>
+      <color>#1B75BC</color>
+      <color>#29ABE2</color>
+      <color>#0F2A47</color>
+      <color>#2AA79B</color>
+      <color>#C9A24B</color>
+      <color>#8E7CC3</color>
+    </color-palette>
+  </preferences>
   {ds_block}
 {ws}{dash}{windows}</workbook>
 """

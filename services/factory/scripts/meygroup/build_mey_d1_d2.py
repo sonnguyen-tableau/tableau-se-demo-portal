@@ -37,66 +37,75 @@ def build_d1():
     sheets.append(M.kpi_card("KPI Tiền thu", calc_tienthu, "Tiền thu"))
     sheets.append(M.kpi_card("KPI Công nợ", calc_congno, "Công nợ phải thu"))
 
-    # Chart 1: Doanh số theo dự án (bar)
+    # Chart 1: Doanh số theo dự án — ranking bars in one brand-blue family
     sheets.append(M.chart("DoanhSoTheoDuAn", "Doanh số theo Dự án",
         [M.raw_dep("ProjectName", "Count", "string", "dimension", "nominal", "nominal"),
          M.raw_dep("DealValueVnd", "Sum", "real")],
         [M.inst_dim("ProjectName"), M.inst_agg("DealValueVnd", "Sum")],
         rows=M.ref_dim("ProjectName"), cols=M.ref_agg("DealValueVnd"),
-        mark="Bar", encodings=[("color", M.ref_dim("ProjectName"))]))
+        mark="Bar", encodings=[("color", M.ref_agg("DealValueVnd"))],
+        color_palette="Mey Sequential Blue"))
 
-    # Chart 2: Doanh số theo tháng (bar, from MonthlyFinancial)
+    # Chart 2: Doanh số theo tháng — single brand-blue bars
     sheets.append(M.chart("DoanhSoTheoThang", "Doanh số theo Tháng",
         [M.raw_dep("Month", "Year", "datetime", "dimension", "ordinal", "ordinal"),
          M.raw_dep("RevenueVnd", "Sum", "real")],
         [M.inst_month("Month"), M.inst_agg("RevenueVnd", "Sum")],
         rows=M.ref_agg("RevenueVnd"), cols=M.ref_month("Month"),
-        mark="Bar"))
+        mark="Bar", single_color="#1B75BC"))
 
-    # Chart 3: Dòng tiền thu theo dự án (bar)
+    # Chart 3: Dòng tiền thu theo dự án — single cyan bars
     sheets.append(M.chart("DongTienTheoDuAn", "Dòng tiền thu theo Dự án",
         [M.raw_dep("ProjectName (MonthlyFinancial)", "Count", "string", "dimension", "nominal", "nominal", caption="Dự án"),
          M.raw_dep("CashCollectedVnd", "Sum", "real")],
         [M.inst_dim("ProjectName (MonthlyFinancial)"), M.inst_agg("CashCollectedVnd", "Sum")],
         rows=M.ref_dim("ProjectName (MonthlyFinancial)"), cols=M.ref_agg("CashCollectedVnd"),
-        mark="Bar"))
+        mark="Bar", single_color="#29ABE2"))
 
-    # Chart 4: Công nợ theo nhóm tuổi (donut)
+    # Chart 4: Công nợ theo nhóm tuổi — horizontal bars (donut/pie renders as a
+    # tiny dot on this Cloud; bars are the proven mark type + aging buckets have
+    # a natural order so a ranked bar reads better than a donut anyway).
+    # Sequential blue = ascending age severity.
     sheets.append(M.chart("CongNoTheoTuoi", "Công nợ theo Nhóm tuổi nợ",
         [M.raw_dep("AgingBucket", "Count", "string", "dimension", "nominal", "nominal"),
          M.raw_dep("AmountDueVnd", "Sum", "real")],
         [M.inst_dim("AgingBucket"), M.inst_agg("AmountDueVnd", "Sum")],
-        rows="", cols="",
-        mark="Pie", encodings=[("color", M.ref_dim("AgingBucket")), ("angle", M.ref_agg("AmountDueVnd"))]))
+        rows=M.ref_dim("AgingBucket"), cols=M.ref_agg("AmountDueVnd"),
+        mark="Bar", encodings=[("color", M.ref_agg("AmountDueVnd"))],
+        color_palette="Mey Sequential Blue"))
 
-    # Chart 5: Công nợ còn phải thu theo dự án (donut)
+    # Chart 5: Công nợ còn phải thu theo dự án — horizontal ranking bars.
     sheets.append(M.chart("CongNoTheoDuAn", "Công nợ còn phải thu theo Dự án",
         [M.raw_dep("ProjectName (Collections)", "Count", "string", "dimension", "nominal", "nominal", caption="Dự án"),
          M.raw_dep("AmountDueVnd", "Sum", "real")],
         [M.inst_dim("ProjectName (Collections)"), M.inst_agg("AmountDueVnd", "Sum")],
-        rows="", cols="",
-        mark="Pie", encodings=[("color", M.ref_dim("ProjectName (Collections)")), ("angle", M.ref_agg("AmountDueVnd"))]))
+        rows=M.ref_dim("ProjectName (Collections)"), cols=M.ref_agg("AmountDueVnd"),
+        mark="Bar", encodings=[("color", M.ref_agg("AmountDueVnd"))],
+        color_palette="Mey Sequential Blue"))
 
-    # Chart 6: Lợi nhuận theo Miền (bar)
+    # Chart 6: Lợi nhuận theo Miền — 2 regions, categorical
     sheets.append(M.chart("LoiNhuanTheoMien", "Lợi nhuận theo Miền",
         [M.raw_dep("Region (MonthlyFinancial)", "Count", "string", "dimension", "nominal", "nominal", caption="Miền"),
          M.raw_dep("ProfitVnd", "Sum", "real")],
         [M.inst_dim("Region (MonthlyFinancial)"), M.inst_agg("ProfitVnd", "Sum")],
         rows=M.ref_dim("Region (MonthlyFinancial)"), cols=M.ref_agg("ProfitVnd"),
-        mark="Bar", encodings=[("color", M.ref_dim("Region (MonthlyFinancial)"))]))
+        mark="Bar", encodings=[("color", M.ref_dim("Region (MonthlyFinancial)"))],
+        color_palette="Mey Categorical"))
 
     names = ["KPI Sản lượng", "KPI Doanh số", "KPI Tiền thu", "KPI Công nợ",
              "DoanhSoTheoDuAn", "DoanhSoTheoThang", "DongTienTheoDuAn",
              "CongNoTheoTuoi", "CongNoTheoDuAn", "LoiNhuanTheoMien"]
-    # Layout-flow distributes zones EQUALLY regardless of the w attribute, so a
-    # narrow 3rd-of-a-row donut gets its title-wrapped and squished. Give the two
-    # công-nợ donuts a half-width each on their own row, and Lợi nhuận its own
-    # full-width row below.
+    # Branded navy header band on top, then KPI strip, then chart grid.
+    # Header/title lives in the React portal chrome (a text-zone header band in
+    # layout-flow distorts the row proportions). Rows sum to 100000.
+    # Row heights sum to 100000. KPI row held at 24000 — the proven-clean height
+    # for the 18px hero number (matrix test variant D). Charts 34000, công-nợ
+    # bars 25000, lợi nhuận 17000.
     dash = M.dashboard("Tài Chính", [
-        M.hrow(["KPI Sản lượng", "KPI Doanh số", "KPI Tiền thu", "KPI Công nợ"], 20000),
-        M.hrow(["DoanhSoTheoDuAn", "DoanhSoTheoThang", "DongTienTheoDuAn"], 40000, minw=120),
-        M.hrow(["CongNoTheoTuoi", "CongNoTheoDuAn"], 22000, minw=160),
-        M.hrow(["LoiNhuanTheoMien"], 18000, minw=200),
+        M.hrow(["KPI Sản lượng", "KPI Doanh số", "KPI Tiền thu", "KPI Công nợ"], 24000),
+        M.hrow(["DoanhSoTheoDuAn", "DoanhSoTheoThang", "DongTienTheoDuAn"], 34000, minw=120),
+        M.hrow(["CongNoTheoTuoi", "CongNoTheoDuAn"], 25000, minw=160),
+        M.hrow(["LoiNhuanTheoMien"], 17000, minw=200),
     ])
     xml = M.workbook(calcs, sheets, names, dash, "Tài Chính")
     Path("/tmp/wb-mey-taichinh.twb").write_text(xml, encoding="utf-8")
@@ -141,15 +150,21 @@ def build_d2():
          calc_funnel_cnt.dep_col().strip()],
         [M.inst_dim("Status"), calc_funnel_cnt.inst().strip()],
         rows=M.ref_dim("Status"), cols=calc_funnel_cnt.ref(),
-        mark="Bar", encodings=[("color", M.ref_dim("Status"))]))
+        mark="Bar", encodings=[("color", calc_funnel_cnt.ref())],
+        color_palette="Mey Sequential Blue"))
 
-    # Chart 2: Nguồn khách (bar)
+    # Chart 2: Nguồn khách (bar). Use the COUNTD([LeadId]) CALC FIELD, not the
+    # raw [ctd:LeadId] column-instance — the raw instance INFLATES across the
+    # Leads↔Agencies↔Sales↔Collections relationships (each source showed ~3K,
+    # summing far above the 4,254 total). The calc evaluates at LeadId's own
+    # grain and is immune (same fan-out lesson as D1).
     sheets.append(M.chart("NguonKhach", "Leads theo Nguồn khách",
         [M.raw_dep("Source", "Count", "string", "dimension", "nominal", "nominal"),
-         M.raw_dep("LeadId", "Count", "integer", "dimension", "ordinal", "ordinal")],
-        [M.inst_dim("Source"), M.inst_cntd("LeadId").strip()],
-        rows=M.ref_dim("Source"), cols=M.ref_cntd("LeadId"),
-        mark="Bar", encodings=[("color", M.ref_dim("Source"))]))
+         calc_leads.dep_col().strip()],
+        [M.inst_dim("Source"), calc_leads.inst().strip()],
+        rows=M.ref_dim("Source"), cols=calc_leads.ref(),
+        mark="Bar", encodings=[("color", calc_leads.ref())],
+        color_palette="Mey Sequential Blue"))
 
     # Deal count calc — COUNTD on Sales' own key, immune to Collections fan-out.
     calc_dealcnt = Calc("0090020000000008", "Số Deal (Sales)", "integer", "measure", "quantitative",
@@ -162,7 +177,8 @@ def build_d2():
          calc_dealcnt.dep_col().strip()],
         [M.inst_dim("ProjectName"), calc_dealcnt.inst().strip()],
         rows=M.ref_dim("ProjectName"), cols=calc_dealcnt.ref(),
-        mark="Bar", encodings=[("color", M.ref_dim("ProjectName"))]))
+        mark="Bar", encodings=[("color", calc_dealcnt.ref())],
+        color_palette="Mey Sequential Blue"))
 
     # Chart 4: KH vs TH theo tháng (Deal metric from PlanTargets)
     sheets.append(M.chart("KHvsTH", "Kế hoạch vs Thực hiện (Deal theo tháng)",
@@ -181,7 +197,8 @@ def build_d2():
          calc_dealcnt.dep_col().strip()],
         [M.inst_dim("CustomerSegment"), calc_dealcnt.inst().strip()],
         rows=M.ref_dim("CustomerSegment"), cols=calc_dealcnt.ref(),
-        mark="Bar", encodings=[("color", M.ref_dim("CustomerSegment"))]))
+        mark="Bar", encodings=[("color", calc_dealcnt.ref())],
+        color_palette="Mey Sequential Blue"))
 
     # Chart 6: Loại sản phẩm (bar)
     sheets.append(M.chart("LoaiSanPham", "Deal theo Loại sản phẩm",
@@ -189,7 +206,8 @@ def build_d2():
          calc_dealcnt.dep_col().strip()],
         [M.inst_dim("UnitType"), calc_dealcnt.inst().strip()],
         rows=M.ref_dim("UnitType"), cols=calc_dealcnt.ref(),
-        mark="Bar", encodings=[("color", M.ref_dim("UnitType"))]))
+        mark="Bar", encodings=[("color", calc_dealcnt.ref())],
+        color_palette="Mey Sequential Blue"))
 
     names = ["KPI Leads", "KPI Booking", "KPI Deal", "KPI Tỷ lệ chốt", "KPI Lost",
              "PheuGiaiDoan", "NguonKhach", "DealTheoDuAn", "KHvsTH", "PhanKhucKH", "LoaiSanPham"]

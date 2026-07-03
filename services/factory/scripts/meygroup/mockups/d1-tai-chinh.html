@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --bg:#EEF3F8;          /* page canvas, cool porcelain */
+    --card:#FFFFFF;
+    --navy:#0B2545;        /* deep brand navy */
+    --navy2:#123A63;
+    --brand:#1B75BC;       /* Mey primary blue */
+    --cyan:#29ABE2;        /* Ciel accent */
+    --cyan-soft:#8FD3F0;
+    --gold:#C9A24B;        /* luxury accent */
+    --ink:#0F2A47;         /* headings */
+    --body:#6A7A8C;        /* secondary text */
+    --line:#E4EBF2;        /* hairlines */
+    --pos:#1E9E74;
+    --neg:#C0492E;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{
+    font-family:'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+    background:var(--bg);color:var(--ink);
+  }
+  .canvas{width:1440px;padding:0 0 34px;background:var(--bg);}
+
+  /* ── Header band ────────────────────────────────────────────── */
+  .hero{
+    position:relative;height:132px;overflow:hidden;
+    background:
+      linear-gradient(115deg, rgba(11,37,69,.94) 0%, rgba(18,58,99,.86) 44%, rgba(27,117,188,.72) 100%),
+      linear-gradient(115deg,#0B2545,#1B75BC);
+    padding:0 44px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .hero::after{ /* faint resort horizon shimmer */
+    content:"";position:absolute;right:0;top:0;width:520px;height:100%;
+    background:radial-gradient(120% 140% at 85% 20%, rgba(143,211,240,.30), rgba(143,211,240,0) 60%);
+  }
+  .brand{display:flex;align-items:center;gap:18px;z-index:2;}
+  .mark{
+    width:52px;height:52px;border-radius:13px;
+    background:linear-gradient(150deg,#29ABE2,#1B75BC 60%,#0B2545);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 22px rgba(11,37,69,.45);
+  }
+  .mark span{font-weight:800;font-size:26px;color:#fff;letter-spacing:-1px;}
+  .brand .txt .name{font-size:22px;font-weight:800;color:#fff;letter-spacing:.3px;}
+  .brand .txt .name b{color:var(--cyan-soft);font-weight:800;}
+  .brand .txt .sub{font-size:12.5px;color:#B9D4EA;margin-top:3px;letter-spacing:.6px;text-transform:uppercase;}
+  .hero .meta{z-index:2;text-align:right;}
+  .hero .meta .t{font-size:15px;color:#fff;font-weight:600;}
+  .hero .meta .d{font-size:12px;color:#9FC2DE;margin-top:4px;letter-spacing:.4px;}
+  .goldline{height:3px;background:linear-gradient(90deg,var(--gold),#E4C878 40%,transparent 82%);}
+
+  /* ── KPI strip ──────────────────────────────────────────────── */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:26px 34px 6px;}
+  .kpi{
+    position:relative;background:var(--card);border-radius:16px;padding:22px 24px 20px;
+    box-shadow:0 1px 2px rgba(15,42,71,.04),0 10px 30px rgba(15,42,71,.06);
+    overflow:hidden;
+  }
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:16px 0 0 16px;}
+  .kpi.k1::before{background:linear-gradient(#29ABE2,#1B75BC);}
+  .kpi.k2::before{background:linear-gradient(#1B75BC,#0B2545);}
+  .kpi.k3::before{background:linear-gradient(#2FBF9A,#1E9E74);}
+  .kpi.k4::before{background:linear-gradient(#E4A93A,#C9A24B);}
+  .kpi .lab{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--body);font-weight:600;}
+  .kpi .val{font-size:38px;font-weight:800;color:var(--ink);letter-spacing:-1px;margin-top:10px;line-height:1;}
+  .kpi .val .u{font-size:19px;font-weight:700;color:var(--body);margin-left:4px;letter-spacing:0;}
+  .kpi .foot{display:flex;align-items:center;gap:7px;margin-top:13px;font-size:12.5px;color:var(--body);}
+  .kpi .chip{display:inline-flex;align-items:center;gap:4px;font-weight:700;padding:2px 8px;border-radius:20px;font-size:12px;}
+  .chip.up{color:var(--pos);background:rgba(30,158,116,.10);}
+  .chip.dn{color:var(--neg);background:rgba(192,73,46,.10);}
+  .chip.neu{color:var(--brand);background:rgba(27,117,188,.10);}
+
+  /* ── Chart grid ─────────────────────────────────────────────── */
+  .grid{display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:20px;padding:16px 34px 0;}
+  .panel{
+    background:var(--card);border-radius:16px;padding:20px 22px 18px;
+    box-shadow:0 1px 2px rgba(15,42,71,.04),0 10px 30px rgba(15,42,71,.05);
+    display:flex;flex-direction:column;
+  }
+  .panel h3{font-size:14.5px;font-weight:700;color:var(--ink);letter-spacing:.2px;}
+  .panel .hint{font-size:11px;color:var(--body);margin-top:2px;margin-bottom:14px;}
+
+  /* horizontal bars */
+  .hbar{display:flex;flex-direction:column;gap:13px;margin-top:4px;}
+  .hbar .row{display:grid;grid-template-columns:118px 1fr;align-items:center;gap:10px;}
+  .hbar .nm{font-size:11.5px;color:var(--body);text-align:right;line-height:1.15;}
+  .hbar .track{position:relative;height:22px;background:#F1F5FA;border-radius:6px;overflow:hidden;}
+  .hbar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:6px;
+    display:flex;align-items:center;justify-content:flex-end;padding-right:8px;
+    font-size:11px;font-weight:700;color:#fff;}
+
+  /* vertical bars (month) */
+  .vbar{display:flex;align-items:flex-end;gap:14px;height:190px;padding-top:8px;border-bottom:1px solid var(--line);}
+  .vbar .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}
+  .vbar .bar{width:62%;border-radius:7px 7px 0 0;background:linear-gradient(#29ABE2,#1B75BC);}
+  .vbar .bar.peak{background:linear-gradient(#1B75BC,#0B2545);}
+  .vbar .vv{font-size:10.5px;font-weight:700;color:var(--ink);}
+  .vlabels{display:flex;gap:14px;margin-top:8px;}
+  .vlabels .m{flex:1;text-align:center;font-size:10.5px;color:var(--body);}
+
+  /* donut */
+  .donutwrap{display:flex;align-items:center;gap:18px;margin-top:6px;}
+  .donut{width:118px;height:118px;border-radius:50%;flex:none;position:relative;}
+  .donut::after{content:"";position:absolute;inset:26px;background:var(--card);border-radius:50%;}
+  .donut .ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;}
+  .donut .ctr b{font-size:19px;font-weight:800;color:var(--ink);line-height:1;}
+  .donut .ctr small{font-size:9.5px;color:var(--body);margin-top:3px;letter-spacing:.4px;}
+  .legend{display:flex;flex-direction:column;gap:9px;}
+  .legend .li{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--body);}
+  .legend .dot{width:10px;height:10px;border-radius:3px;flex:none;}
+  .legend .li b{color:var(--ink);font-weight:700;margin-left:auto;padding-left:14px;}
+
+  /* profit region full-width */
+  .wide{padding:16px 34px 0;}
+  .wide .panel{padding:22px 26px 20px;}
+  .region{display:flex;flex-direction:column;gap:16px;margin-top:8px;}
+  .region .row{display:grid;grid-template-columns:64px 1fr 92px;align-items:center;gap:14px;}
+  .region .nm{font-size:13px;font-weight:700;color:var(--ink);}
+  .region .track{height:30px;background:#F1F5FA;border-radius:8px;overflow:hidden;}
+  .region .fill{height:100%;border-radius:8px;}
+  .region .amt{font-size:13px;font-weight:800;color:var(--ink);text-align:right;}
+  .foot-note{padding:16px 34px 0;font-size:11px;color:#9AA9B8;letter-spacing:.3px;}
+</style>
+</head>
+<body>
+<div class="canvas">
+
+  <!-- HEADER -->
+  <div class="hero">
+    <div class="brand">
+      <div class="mark"><span>M</span></div>
+      <div class="txt">
+        <div class="name">MEY <b>GROUP</b></div>
+        <div class="sub">Báo cáo Tài chính · Điều hành</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div class="t">Tổng quan Tài chính 2026</div>
+      <div class="d">Cập nhật T1–T6 · Đơn vị: tỷ VND</div>
+    </div>
+  </div>
+  <div class="goldline"></div>
+
+  <!-- KPI STRIP -->
+  <div class="kpis">
+    <div class="kpi k1">
+      <div class="lab">Sản lượng bán</div>
+      <div class="val">595<span class="u">căn</span></div>
+      <div class="foot"><span class="chip up">▲ 12.4%</span> so với cùng kỳ</div>
+    </div>
+    <div class="kpi k2">
+      <div class="lab">Doanh số</div>
+      <div class="val">7.220<span class="u">tỷ</span></div>
+      <div class="foot"><span class="chip up">▲ 18.6%</span> so với cùng kỳ</div>
+    </div>
+    <div class="kpi k3">
+      <div class="lab">Tiền thu</div>
+      <div class="val">5.274<span class="u">tỷ</span></div>
+      <div class="foot"><span class="chip neu">73%</span> tỷ lệ thu / doanh số</div>
+    </div>
+    <div class="kpi k4">
+      <div class="lab">Công nợ phải thu</div>
+      <div class="val">1.946<span class="u">tỷ</span></div>
+      <div class="foot"><span class="chip dn">▲ 4.2%</span> cần theo dõi thu hồi</div>
+    </div>
+  </div>
+
+  <!-- ROW 1: three charts -->
+  <div class="grid">
+    <!-- Doanh số theo dự án -->
+    <div class="panel">
+      <h3>Doanh số theo Dự án</h3>
+      <div class="hint">Xếp hạng theo giá trị hợp đồng · tỷ VND</div>
+      <div class="hbar">
+        <div class="row"><div class="nm">Rivea Hanoi</div><div class="track"><div class="fill" style="width:100%;background:linear-gradient(90deg,#123A63,#0B2545)">2.140</div></div></div>
+        <div class="row"><div class="nm">Meyhomes Capital<br>Phú Quốc</div><div class="track"><div class="fill" style="width:78%;background:linear-gradient(90deg,#1B75BC,#123A63)">1.670</div></div></div>
+        <div class="row"><div class="nm">Meypearl Harmony<br>Phú Quốc</div><div class="track"><div class="fill" style="width:56%;background:linear-gradient(90deg,#29ABE2,#1B75BC)">1.200</div></div></div>
+        <div class="row"><div class="nm">Galia Hanoi</div><div class="track"><div class="fill" style="width:44%;background:linear-gradient(90deg,#5FB4E5,#29ABE2)">940</div></div></div>
+        <div class="row"><div class="nm">Mey Retreat<br>Bãi Lữ</div><div class="track"><div class="fill" style="width:38%;background:linear-gradient(90deg,#8FD3F0,#5FB4E5)">820</div></div></div>
+        <div class="row"><div class="nm">Rivea Residences</div><div class="track"><div class="fill" style="width:21%;background:linear-gradient(90deg,#BFE3F5,#8FD3F0);color:#123A63">450</div></div></div>
+      </div>
+    </div>
+
+    <!-- Doanh số theo tháng -->
+    <div class="panel">
+      <h3>Doanh số theo Tháng</h3>
+      <div class="hint">Doanh thu ghi nhận theo tháng · tỷ VND</div>
+      <div class="vbar">
+        <div class="col"><div class="vv">980</div><div class="bar" style="height:55%"></div></div>
+        <div class="col"><div class="vv">1.780</div><div class="bar peak" style="height:100%"></div></div>
+        <div class="col"><div class="vv">890</div><div class="bar" style="height:50%"></div></div>
+        <div class="col"><div class="vv">1.130</div><div class="bar" style="height:64%"></div></div>
+        <div class="col"><div class="vv">1.160</div><div class="bar" style="height:65%"></div></div>
+        <div class="col"><div class="vv">950</div><div class="bar" style="height:53%"></div></div>
+      </div>
+      <div class="vlabels"><div class="m">T1</div><div class="m">T2</div><div class="m">T3</div><div class="m">T4</div><div class="m">T5</div><div class="m">T6</div></div>
+    </div>
+
+    <!-- Dòng tiền thu theo dự án -->
+    <div class="panel">
+      <h3>Dòng tiền thu theo Dự án</h3>
+      <div class="hint">Tiền thực thu · tỷ VND</div>
+      <div class="hbar">
+        <div class="row"><div class="nm">Rivea Hanoi</div><div class="track"><div class="fill" style="width:100%;background:linear-gradient(90deg,#1B75BC,#0B2545)">1.560</div></div></div>
+        <div class="row"><div class="nm">Meyhomes<br>Capital PQ</div><div class="track"><div class="fill" style="width:74%;background:linear-gradient(90deg,#29ABE2,#1B75BC)">1.150</div></div></div>
+        <div class="row"><div class="nm">Galia Hanoi</div><div class="track"><div class="fill" style="width:52%;background:linear-gradient(90deg,#5FB4E5,#29ABE2)">810</div></div></div>
+        <div class="row"><div class="nm">Meypearl<br>Harmony PQ</div><div class="track"><div class="fill" style="width:47%;background:linear-gradient(90deg,#5FB4E5,#29ABE2)">730</div></div></div>
+        <div class="row"><div class="nm">Mey Retreat<br>Bãi Lữ</div><div class="track"><div class="fill" style="width:39%;background:linear-gradient(90deg,#8FD3F0,#5FB4E5)">610</div></div></div>
+        <div class="row"><div class="nm">Rivea Residences</div><div class="track"><div class="fill" style="width:26%;background:linear-gradient(90deg,#BFE3F5,#8FD3F0);color:#123A63">410</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: two donuts -->
+  <div class="grid" style="grid-template-columns:1fr 1fr;">
+    <div class="panel">
+      <h3>Công nợ theo Nhóm tuổi nợ</h3>
+      <div class="hint">Phân bổ công nợ phải thu theo aging</div>
+      <div class="donutwrap">
+        <div class="donut" style="background:conic-gradient(#1B75BC 0 46%,#29ABE2 46% 72%,#5FB4E5 72% 88%,#C9A24B 88% 100%)">
+          <div class="ctr"><b>1.946</b><small>TỔNG · tỷ</small></div>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="dot" style="background:#1B75BC"></span>Trong hạn (0–30)<b>895</b></div>
+          <div class="li"><span class="dot" style="background:#29ABE2"></span>31–60 ngày<b>506</b></div>
+          <div class="li"><span class="dot" style="background:#5FB4E5"></span>61–90 ngày<b>311</b></div>
+          <div class="li"><span class="dot" style="background:#C9A24B"></span>Quá 90 ngày<b>234</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Công nợ còn phải thu theo Dự án</h3>
+      <div class="hint">Số dư phải thu theo từng dự án</div>
+      <div class="donutwrap">
+        <div class="donut" style="background:conic-gradient(#0B2545 0 32%,#1B75BC 32% 58%,#29ABE2 58% 78%,#5FB4E5 78% 92%,#8FD3F0 92% 100%)">
+          <div class="ctr"><b>1.946</b><small>TỔNG · tỷ</small></div>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="dot" style="background:#0B2545"></span>Rivea Hanoi<b>623</b></div>
+          <div class="li"><span class="dot" style="background:#1B75BC"></span>Meyhomes Capital PQ<b>506</b></div>
+          <div class="li"><span class="dot" style="background:#29ABE2"></span>Galia Hanoi<b>389</b></div>
+          <div class="li"><span class="dot" style="background:#5FB4E5"></span>Meypearl Harmony PQ<b>272</b></div>
+          <div class="li"><span class="dot" style="background:#8FD3F0"></span>Khác<b>156</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 3: profit by region full width -->
+  <div class="wide">
+    <div class="panel">
+      <h3>Lợi nhuận theo Miền</h3>
+      <div class="hint">Lợi nhuận gộp lũy kế T1–T6 · tỷ VND</div>
+      <div class="region">
+        <div class="row"><div class="nm">Miền Trung</div><div class="track"><div class="fill" style="width:100%;background:linear-gradient(90deg,#29ABE2,#1B75BC)"></div></div><div class="amt">1.178</div></div>
+        <div class="row"><div class="nm">Miền Bắc</div><div class="track"><div class="fill" style="width:87%;background:linear-gradient(90deg,#1B75BC,#0B2545)"></div></div><div class="amt">1.031</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-note">Mey Group · Demo Tableau — dữ liệu mô phỏng hiệu chỉnh theo master data. Thiết kế: mockup chốt trước khi triển khai Tableau.</div>
+</div>
+</body>
+</html>
