@@ -22,7 +22,11 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
     pathname.startsWith("/api/admin/debug-session") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
-    pathname.startsWith("/assets")
+    pathname.startsWith("/assets") ||
+    // Tableau dashboard extensions: static assets (.trex/.html/.js/.css) must be
+    // publicly fetchable — Tableau Cloud loads the manifest + shell without the
+    // portal session cookie. The extension's own /api/chat calls still require auth.
+    pathname.startsWith("/extensions/")
   ) {
     return NextResponse.next();
   }
