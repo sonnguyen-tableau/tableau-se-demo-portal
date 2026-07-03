@@ -23,9 +23,9 @@
           "type": "array",
           "items": {
             "enum": [
-              "ProjectId", "ProjectName", "District", "Region", "Stage",
-              "TargetDeals", "TargetRevenueVnd", "Latitude", "Longitude",
-              "Country", "TenantId"
+              "ProjectId", "ProjectName", "City", "Province", "District",
+              "Region", "Stage", "TargetDeals", "TargetRevenueVnd",
+              "Latitude", "Longitude", "Country", "TenantId"
             ]
           }
         }

@@ -29,16 +29,26 @@ from faker import Faker
 
 
 # ─── Projects (6 built + Ciel for AI deep-dive) ─────────────────────────────
-# (name, district, region, target_deals, target_revenue_ty, lat, lon, stage)
-_PROJECTS: tuple[tuple[str, str, str, int, int, float, float, str], ...] = (
-    ("Rivea Hanoi",                 "Central", "Bắc",  181, 1968, 21.0075, 105.8425, "Đang bán"),
-    ("Meyhomes Capital Phú Quốc",   "South",   "Trung",123, 1420, 10.2270, 103.9670, "Đang bán"),
-    ("Meypearl Harmony Phú Quốc",   "South",   "Trung", 83, 1169, 10.2150, 103.9600, "Đang bán"),
-    ("Mey Retreat Bãi Lữ",          "East",    "Trung", 57, 1009, 18.8100, 105.7600, "Đang bán"),
-    ("Galia Hanoi",                 "North",   "Bắc",  116,  957, 21.0450, 105.7900, "Đang bán"),
-    ("Rivea Residences Vinh Hưng",  "West",    "Bắc",   35,  354, 20.9200, 105.7500, "Đang bán"),
-    ("Mey Pearl Ciel Phú Quốc",     "South",   "Trung",  0,    0, 10.2050, 103.9550, "Rumor"),
+# City + Province are REAL Vietnamese place names so Tableau geocodes the map.
+# (name, city, province, district, region, target_deals, target_revenue_ty, lat, lon, stage)
+_PROJECTS: tuple[tuple[str, str, str, str, str, int, int, float, float, str], ...] = (
+    ("Rivea Hanoi",                 "Hà Nội",       "Hà Nội",     "Central", "Bắc",  181, 1968, 21.0075, 105.8425, "Đang bán"),
+    ("Meyhomes Capital Phú Quốc",   "Phú Quốc",     "Kiên Giang", "South",   "Trung",123, 1420, 10.2270, 103.9670, "Đang bán"),
+    ("Meypearl Harmony Phú Quốc",   "Phú Quốc",     "Kiên Giang", "South",   "Trung", 83, 1169, 10.2150, 103.9600, "Đang bán"),
+    ("Mey Retreat Bãi Lữ",          "Nghi Lộc",     "Nghệ An",    "East",    "Trung", 57, 1009, 18.8100, 105.7600, "Đang bán"),
+    ("Galia Hanoi",                 "Hà Nội",       "Hà Nội",     "North",   "Bắc",  116,  957, 21.0450, 105.7900, "Đang bán"),
+    ("Rivea Residences Vinh Hưng",  "Hà Nội",       "Hà Nội",     "West",    "Bắc",   35,  354, 20.9200, 105.7500, "Đang bán"),
+    ("Mey Pearl Ciel Phú Quốc",     "Phú Quốc",     "Kiên Giang", "South",   "Trung",  0,    0, 10.2050, 103.9550, "Rumor"),
 )
+
+# Named accessor so downstream code isn't coupled to tuple positions.
+_PROJ_KEYS = ("name", "city", "province", "district", "region",
+              "target_deals", "target_revenue_ty", "lat", "lon", "stage")
+
+
+def _proj_dicts(built_only: bool = False) -> list[dict]:
+    out = [dict(zip(_PROJ_KEYS, p)) for p in _PROJECTS]
+    return [d for d in out if d["stage"] != "Rumor"] if built_only else out
 
 # Funnel stages — TERMINAL status (where a lead sits now), not cumulative.
 # (status, target_count)
@@ -172,10 +182,12 @@ def generate_meygroup(params: MeyGroupParameters) -> MeyGroupDataset:
 
 def _build_projects(params: MeyGroupParameters) -> pd.DataFrame:
     rows = []
-    for i, (name, district, region, tgt_deals, tgt_rev, lat, lon, stage) in enumerate(_PROJECTS, 1):
+    for i, (name, city, province, district, region, tgt_deals, tgt_rev, lat, lon, stage) in enumerate(_PROJECTS, 1):
         rows.append({
             "ProjectId": i,
             "ProjectName": name,
+            "City": city,
+            "Province": province,
             "District": district,
             "Region": region,
             "Stage": stage,
@@ -211,8 +223,9 @@ def _build_leads(params: MeyGroupParameters, rng, fake) -> pd.DataFrame:
     # plus Ciel gets a chunk (Rumor-stage leads, 1247 per talk track — but we
     # cap total at n; give Ciel ~a slice via a separate flag). Here Ciel leads
     # are handled in a dedicated Ciel lead pool appended below.
-    proj_names = [p[0] for p in _PROJECTS if p[7] != "Rumor"]
-    proj_weights = np.array([p[3] for p in _PROJECTS if p[7] != "Rumor"], dtype=float)
+    _built = _proj_dicts(built_only=True)
+    proj_names = [d["name"] for d in _built]
+    proj_weights = np.array([d["target_deals"] for d in _built], dtype=float)
     proj_weights /= proj_weights.sum()
     lead_projects = list(rng.choice(proj_names, size=n, p=proj_weights))
 
@@ -300,10 +313,10 @@ def _build_sales(params: MeyGroupParameters, rng, fake, leads) -> pd.DataFrame:
         seg_pool.extend([sg] * cnt)
 
     # per-project deal counts (sum = 595)
-    proj_deals = {p[0]: p[3] for p in _PROJECTS if p[7] != "Rumor"}
+    proj_deals = {d["name"]: d["target_deals"] for d in _proj_dicts(built_only=True)}
+    proj_rev = {d["name"]: d["target_revenue_ty"] for d in _proj_dicts(built_only=True)}
     for proj, ndeals in proj_deals.items():
-        prj = next(p for p in _PROJECTS if p[0] == proj)
-        avg_price = (prj[4] * 1e9) / max(ndeals, 1)  # revenue_ty / deals
+        avg_price = (proj_rev[proj] * 1e9) / max(ndeals, 1)  # revenue_ty / deals
         for _ in range(ndeals):
             close_month = int(rng.choice([1, 2, 3, 4, 5, 6], p=[0.18, 0.20, 0.16, 0.16, 0.16, 0.14]))
             closed = date(2026, close_month, int(rng.integers(1, 28)))
@@ -373,10 +386,8 @@ def _build_monthly_financial(params: MeyGroupParameters, rng) -> pd.DataFrame:
     # Per project × month: sản lượng (units), doanh số (revenue), tiền thu (cash), chi phí.
     rows = []
     fid = 1
-    for prj in _PROJECTS:
-        if prj[7] == "Rumor":
-            continue
-        name, _, region, tgt_deals, tgt_rev, *_ = prj
+    for d in _proj_dicts(built_only=True):
+        name, region, tgt_deals, tgt_rev = d["name"], d["region"], d["target_deals"], d["target_revenue_ty"]
         for mo in range(1, 7):
             # scale by month-actual revenue pattern
             m = _PLAN_ACTUAL[mo - 1]
@@ -454,10 +465,8 @@ def _build_packages(params: MeyGroupParameters, rng) -> pd.DataFrame:
     pkg_types = ["Móng & Thô", "Kết cấu", "MEP (Cơ điện)", "Hoàn thiện", "Cảnh quan", "Hạ tầng"]
     rows = []
     pid = 1
-    for prj in _PROJECTS:
-        if prj[7] == "Rumor":
-            continue
-        name = prj[0]
+    for d in _proj_dicts(built_only=True):
+        name = d["name"]
         for pkg in pkg_types:
             status = str(rng.choice(_PACKAGE_STATUS, p=[0.55, 0.25, 0.20]))
             progress = (1.0 if status == "Hoàn thành"
