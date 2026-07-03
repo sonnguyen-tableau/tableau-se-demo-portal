@@ -25,6 +25,7 @@
             "enum": [
               "ProjectId", "ProjectName", "City", "Province", "District",
               "Region", "Stage", "TargetDeals", "TargetRevenueVnd",
+              "TotalInventory", "UnitsOpened", "UnitsSold", "UnitsInventory",
               "Latitude", "Longitude", "Country", "TenantId"
             ]
           }
@@ -82,9 +83,11 @@
           "type": "array",
           "items": {
             "enum": [
-              "FinancialId", "ProjectName", "Region", "Month", "UnitsSold",
-              "RevenueVnd", "CashCollectedVnd", "CostVnd", "ProfitVnd",
-              "TenantId"
+              "FinancialId", "ProjectName", "Region", "Month",
+              "UnitsSold", "UnitsSoldPlan", "UnitsSoldKpi",
+              "RevenueVnd", "RevenuePlanVnd", "RevenueKpiVnd",
+              "CashCollectedVnd", "CashCollectedPlanVnd", "CashCollectedKpiVnd",
+              "CostVnd", "ProfitVnd", "TenantId"
             ]
           }
         }
@@ -98,7 +101,7 @@
           "items": {
             "enum": [
               "PlanId", "Month", "Metric", "PlanValue", "ActualValue",
-              "TenantId"
+              "KpiValue", "TenantId"
             ]
           }
         }

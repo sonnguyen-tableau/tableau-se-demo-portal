@@ -7,13 +7,20 @@ plus the Mey Pearl Ciel AI deep-dive.
 Contract: emits a `MeyGroupDataset` whose column names match
 `packages/factory-schema/retail-realestate.schema.json`.
 
-Calibrated to `tmp/meygroup/MEYGROUP_MASTER_DATA.md` aggregates:
-- 6 built projects + Mey Pearl Ciel (Rumor stage, AI deep-dive)
-- Leads funnel (terminal status, NOT cumulative): Lead 926 · NET 599 · Visit 663
-  · Booking 432 · Deal 233 · Lost 154  (total ~3,001 leads)
-- 595 sales/deals · 1,785 collection records (3 milestones × 595)
-- 8 sàn giao dịch, 60 agents (A001–A060), 2 vùng (Bắc/Trung)
-- Plan-vs-actual by month: T1-2 vượt KH, T3-6 dưới KH (matches talk track)
+Calibrated to REAL project facts (see scripts/meygroup/PROJECT_RESEARCH_SPEC.md,
+grounded by an 8-agent web-research sweep 2026-07-04):
+- 7 real projects with REAL total inventory (giỏ hàng): Meyhomes Capital PQ
+  17,939 · Rivea Hanoi 1,168 · Meypearl Harmony PQ 1,115 · Meypearl Ciel PQ
+  1,012 · Galia Hanoi 798 · Mey Retreat Bãi Lữ 350 · Meyhomes Thanh Chương 319.
+- H1-2026 GROUP scale ≈ 2,485 units sold / ~23,089 tỷ signed revenue (only a
+  fraction of each project's opened inventory is sold — townships open in
+  phases). Meyhomes Capital PQ = largest absolute volume; Ciel = booking-heavy
+  F0; Bãi Lữ = high-ticket villas (~28 tỷ); Thanh Chương = tier-2 slow.
+- Per-project avg price grounded in researched price points (tỷ VND/unit).
+- Every metric (sản lượng · doanh số · dòng tiền) carries THREE series to match
+  the client's report template: Thực hiện (actual) · KHNS (kế hoạch ngân sách) ·
+  KPI tháng (stretch). Variance renders red/yellow/green.
+- 8 sàn giao dịch, 60 agents (A001–A060), 2 vùng (Bắc/Trung).
 
 100% Vietnamese labels. Currency VND, displayed as tỷ (÷1e9).
 """
@@ -28,30 +35,38 @@ import pandas as pd
 from faker import Faker
 
 
-# ─── Projects (6 built + Ciel for AI deep-dive) ─────────────────────────────
+# ─── Projects (7 real projects) ─────────────────────────────────────────────
 # City + Province are REAL Vietnamese place names so Tableau geocodes the map.
-# (name, city, province, district, region, target_deals, target_revenue_ty, lat, lon, stage)
-_PROJECTS: tuple[tuple[str, str, str, str, str, int, int, float, float, str], ...] = (
-    ("Rivea Hanoi",                 "Hà Nội",       "Hà Nội",     "Central", "Bắc",  181, 1968, 21.0075, 105.8425, "Đang bán"),
-    ("Meyhomes Capital Phú Quốc",   "Phú Quốc",     "Kiên Giang", "South",   "Trung",123, 1420, 10.2270, 103.9670, "Đang bán"),
-    ("Meypearl Harmony Phú Quốc",   "Phú Quốc",     "Kiên Giang", "South",   "Trung", 83, 1169, 10.2150, 103.9600, "Đang bán"),
-    ("Mey Retreat Bãi Lữ",          "Nghi Lộc",     "Nghệ An",    "East",    "Trung", 57, 1009, 18.8100, 105.7600, "Đang bán"),
-    ("Galia Hanoi",                 "Hà Nội",       "Hà Nội",     "North",   "Bắc",  116,  957, 21.0450, 105.7900, "Đang bán"),
-    ("Rivea Residences Vinh Hưng",  "Hà Nội",       "Hà Nội",     "West",    "Bắc",   35,  354, 20.9200, 105.7500, "Đang bán"),
-    ("Mey Pearl Ciel Phú Quốc",     "Phú Quốc",     "Kiên Giang", "South",   "Trung",  0,    0, 10.2050, 103.9550, "Rumor"),
+# Inventory + H1-2026 sold volume + avg price grounded in PROJECT_RESEARCH_SPEC.md.
+# (name, city, province, district, region, total_inventory, units_opened,
+#  units_sold_h1, avg_price_ty, lat, lon, stage)
+_PROJECTS: tuple[tuple, ...] = (
+    ("Meyhomes Capital Phú Quốc",  "Phú Quốc", "Kiên Giang", "South",   "Trung", 17939, 1900, 920, 15.0, 10.2270, 103.9670, "Đang bán"),
+    ("Rivea Hanoi",                "Hà Nội",   "Hà Nội",     "Central", "Bắc",    1168,  650, 400,  7.5, 21.0075, 105.8425, "Mới mở bán"),
+    ("Meypearl Harmony Phú Quốc",  "Phú Quốc", "Kiên Giang", "South",   "Trung",  1115,  760, 360,  2.8, 10.2150, 103.9600, "Đang bán"),
+    ("Meypearl Ciel Phú Quốc",     "Phú Quốc", "Kiên Giang", "South",   "Trung",  1012,  506,  60,  2.8, 10.2050, 103.9550, "Mới mở bán"),
+    ("Galia Hanoi",                "Hà Nội",   "Hà Nội",     "North",   "Bắc",     798,  650, 470,  5.5, 21.0450, 105.7900, "Đang bán"),
+    ("Mey Retreat Bãi Lữ",         "Nghi Lộc", "Nghệ An",    "East",    "Trung",   350,  210,  65, 28.0, 18.8100, 105.7600, "Đang bán"),
+    ("Meyhomes Thanh Chương",      "Thanh Chương", "Nghệ An","West",    "Trung",   319,  210,  60,  4.8, 18.6800, 105.3800, "Mới mở bán"),
 )
 
 # Named accessor so downstream code isn't coupled to tuple positions.
 _PROJ_KEYS = ("name", "city", "province", "district", "region",
-              "target_deals", "target_revenue_ty", "lat", "lon", "stage")
+              "total_inventory", "units_opened", "units_sold_h1",
+              "avg_price_ty", "lat", "lon", "stage")
+
+# Ciel is the AI deep-dive project — booking-heavy F0 (kickoff 25/06/2026).
+_CIEL = "Meypearl Ciel Phú Quốc"
 
 
 def _proj_dicts(built_only: bool = False) -> list[dict]:
-    out = [dict(zip(_PROJ_KEYS, p)) for p in _PROJECTS]
-    return [d for d in out if d["stage"] != "Rumor"] if built_only else out
+    # `built_only` retained for API compatibility; all 7 are real selling
+    # projects now (Ciel included, though it's booking-heavy). built_only=True
+    # still returns all 7 — Ciel has real (small) deal volume.
+    return [dict(zip(_PROJ_KEYS, p)) for p in _PROJECTS]
 
-# Funnel stages — TERMINAL status (where a lead sits now), not cumulative.
-# (status, target_count)
+# Funnel stages — TERMINAL status ratios (from master data), scaled up to the
+# group's real deal volume in _build_leads. (status, master_data_count)
 _FUNNEL: tuple[tuple[str, int], ...] = (
     ("Lead", 926),
     ("NET", 599),
@@ -62,29 +77,31 @@ _FUNNEL: tuple[tuple[str, int], ...] = (
 )
 _FUNNEL_ORDER = ["Lead", "NET", "Visit", "Booking", "Deal"]  # Lost = branch
 
-# Lead sources (5)
+# Lead sources (5) — used as proportional weights (scale-independent).
 _SOURCES: tuple[tuple[str, int], ...] = (
     ("Referral", 731), ("Event", 678), ("Walk-in", 609), ("Đại lý", 530), ("Digital", 459),
 )
 
-# Sàn giao dịch (8) — only when source = Đại lý. (name, leads, net, visit, booking, deal, revenue_ty)
+# Sàn giao dịch (8) — from Bãi Lữ Data_DaiLy ranking (CEN top, VLand bottom).
+# (name, leads, net, visit, booking, deal, revenue_ty). These represent the 8
+# active brokerages group-wide; revenue is their attributed signed value (tỷ).
 _SAN: tuple[tuple[str, int, int, int, int, int, int], ...] = (
-    ("Sàn CEN",      235, 133, 78, 42, 24, 556),
-    ("Sàn TTG",      212, 125, 64, 29, 13, 381),
-    ("Sàn Tân Long", 188, 102, 56, 26, 12, 323),
-    ("Sàn FTN",      204,  96, 62, 13,  9, 271),
-    ("Sàn Âu Lạc",   155,  91, 45, 26, 13, 370),
-    ("Sàn Euro",     107,  63, 37, 15,  9, 316),
-    ("Sàn BTB",      134,  89, 34,  9,  5, 154),
-    ("Sàn VLand",    106,  50, 22, 12,  6, 117),
+    ("Sàn CEN",      1880, 1064, 624, 336, 192, 2224),
+    ("Sàn TTG",      1696, 1000, 512, 232, 104, 1524),
+    ("Sàn Tân Long", 1504,  816, 448, 208,  96, 1292),
+    ("Sàn FTN",      1632,  768, 496, 104,  72, 1084),
+    ("Sàn Âu Lạc",   1240,  728, 360, 208, 104, 1480),
+    ("Sàn Euro",      856,  504, 296, 120,  72, 1264),
+    ("Sàn BTB",      1072,  712, 272,  72,  40,  616),
+    ("Sàn VLand",     848,  400, 176,  96,  48,  468),
 )
 
-# Product types (6)
+# Product types (6) — proportional weights (real estate unit mix).
 _UNIT_TYPES: tuple[tuple[str, int], ...] = (
     ("2PN", 187), ("2PN+", 134), ("1PN+", 130), ("3PN", 87), ("Duplex", 33), ("Villa", 24),
 )
 
-# Customer segments (4)
+# Customer segments (4) — proportional weights.
 _SEGMENTS: tuple[tuple[str, int], ...] = (
     ("Nhà đầu tư", 321), ("Người sử dụng cuối", 168), ("Khách nước ngoài", 67), ("Doanh nghiệp", 39),
 )
@@ -103,22 +120,47 @@ _DEPARTMENTS = ("Kinh doanh", "Marketing", "Kỹ thuật", "Mua hàng", "Tài ch
 # Contract package status
 _PACKAGE_STATUS = ("Đúng tiến độ", "Chậm tiến độ", "Hoàn thành")
 
-# Plan vs actual by month (from Excel KeHoach_ThucHien) — LEAD/BOOKING/DEAL/DOANHSO
-# (month, lead_plan, lead_actual, booking_plan, booking_actual, deal_plan, deal_actual, rev_plan_ty, rev_actual_ty)
-_PLAN_ACTUAL: tuple[tuple, ...] = (
-    (1,  40, 63,  6, 16, 3, 4,  84, 102),
-    (2,  45, 64,  7, 12, 4, 5, 112, 167),
-    (3,  50, 72,  8, 17, 5, 4, 140,  86),
-    (4,  55, 69,  9, 16, 6, 3, 168, 101),
-    (5,  60, 71, 10, 12, 7, 4, 196, 105),
-    (6,  65, 41, 11,  7, 8, 3, 224,  88),
-    (7,  70,  0, 12,  0, 9, 0, 252,   0),
-    (8,  68,  0, 11,  0, 8, 0, 224,   0),
-    (9,  60,  0, 10,  0, 7, 0, 196,   0),
-    (10, 55,  0,  9,  0, 6, 0, 168,   0),
-    (11, 50,  0,  8,  0, 5, 0, 140,   0),
-    (12, 45,  0,  7,  0, 4, 0, 112,   0),
+# ─── Monthly demand curve + KHNS/KPI multipliers (from PROJECT_RESEARCH_SPEC) ──
+# Group units-sold split across Jan–Jun 2026 (rising toward mid-year). Each
+# project's units_sold_h1 is distributed by these weights. The three metrics
+# (sản lượng · doanh số · dòng tiền) each get a Thực-hiện baseline plus KHNS
+# (kế hoạch ngân sách) and KPI (stretch) via monthly multipliers, so the
+# template's 3-way comparison renders red/yellow/green.
+# (month, units_weight, khns_units_mult, kpi_units_mult,
+#         khns_rev_mult, kpi_rev_mult, khns_cash_mult, kpi_cash_mult)
+_MONTHLY: tuple[tuple, ...] = (
+    (1, 0.133, 1.08, 1.20, 1.10, 1.22, 1.12, 1.25),
+    (2, 0.137, 1.05, 1.18, 1.06, 1.18, 1.08, 1.20),
+    (3, 0.161, 0.95, 1.08, 0.96, 1.09, 1.00, 1.12),
+    (4, 0.169, 0.92, 1.05, 0.94, 1.07, 0.97, 1.10),
+    (5, 0.189, 1.02, 1.14, 1.03, 1.15, 1.04, 1.16),
+    (6, 0.211, 0.90, 1.06, 0.92, 1.08, 0.95, 1.11),
 )
+
+# Per-project cash-collection ratio (share of signed revenue collected in H1).
+# Ciel = booking-heavy F0 (tiny cash); Rivea = grace period lag; Galia +
+# Meyhomes Capital PQ = mid-cycle installments flowing (green).
+_CASH_RATIO = {
+    "Meyhomes Capital Phú Quốc": 0.38,
+    "Rivea Hanoi": 0.20,
+    "Meypearl Harmony Phú Quốc": 0.30,
+    "Meypearl Ciel Phú Quốc": 0.06,
+    "Galia Hanoi": 0.38,
+    "Mey Retreat Bãi Lữ": 0.25,
+    "Meyhomes Thanh Chương": 0.20,
+}
+
+# Project-level KHNS (kế hoạch ngân sách) deal target for H1 (from spec). Actual
+# vs this target drives the red/yellow/green per-project variance in the report.
+_PROJ_KHNS_DEALS = {
+    "Meyhomes Capital Phú Quốc": 830,   # actual 920 → GREEN (+11%)
+    "Rivea Hanoi": 390,                 # actual 400 → GREEN (on plan)
+    "Meypearl Harmony Phú Quốc": 420,   # actual 360 → YELLOW (−14%)
+    "Meypearl Ciel Phú Quốc": 200,      # actual 60  → RED (F0, booking-heavy)
+    "Galia Hanoi": 420,                 # actual 470 → GREEN (+12%, star)
+    "Mey Retreat Bãi Lữ": 80,           # actual 65  → YELLOW (−19%)
+    "Meyhomes Thanh Chương": 80,        # actual 60  → RED (−25%, tier-2)
+}
 
 
 @dataclass
@@ -164,8 +206,8 @@ def generate_meygroup(params: MeyGroupParameters) -> MeyGroupDataset:
     leads = _build_leads(params, rng, fake)
     sales = _build_sales(params, rng, fake, leads)
     collections = _build_collections(params, rng, sales)
-    monthly_financial = _build_monthly_financial(params, rng)
-    plan_targets = _build_plan_targets(params)
+    monthly_financial = _build_monthly_financial(params, rng, sales, collections)
+    plan_targets = _build_plan_targets(params, monthly_financial)
     agencies = _build_agencies(params)
     packages = _build_packages(params, rng)
     hr_metrics = _build_hr_metrics(params, rng)
@@ -182,19 +224,28 @@ def generate_meygroup(params: MeyGroupParameters) -> MeyGroupDataset:
 
 def _build_projects(params: MeyGroupParameters) -> pd.DataFrame:
     rows = []
-    for i, (name, city, province, district, region, tgt_deals, tgt_rev, lat, lon, stage) in enumerate(_PROJECTS, 1):
+    for i, d in enumerate(_proj_dicts(), 1):
+        name = d["name"]
+        sold = d["units_sold_h1"]
+        khns = _PROJ_KHNS_DEALS.get(name, sold)
+        # TargetDeals = KHNS (kế hoạch) so project-level actual-vs-plan variance
+        # is meaningful. TargetRevenueVnd = KHNS × avg price.
         rows.append({
             "ProjectId": i,
             "ProjectName": name,
-            "City": city,
-            "Province": province,
-            "District": district,
-            "Region": region,
-            "Stage": stage,
-            "TargetDeals": tgt_deals,
-            "TargetRevenueVnd": int(tgt_rev * 1e9),
-            "Latitude": lat,
-            "Longitude": lon,
+            "City": d["city"],
+            "Province": d["province"],
+            "District": d["district"],
+            "Region": d["region"],
+            "Stage": d["stage"],
+            "TargetDeals": khns,
+            "TargetRevenueVnd": int(khns * d["avg_price_ty"] * 1e9),
+            "TotalInventory": d["total_inventory"],
+            "UnitsOpened": d["units_opened"],
+            "UnitsSold": sold,
+            "UnitsInventory": d["units_opened"] - sold,  # tồn kho (đã mở, chưa bán)
+            "Latitude": d["lat"],
+            "Longitude": d["lon"],
             "Country": "VN",
             "TenantId": params.tenant_id,
         })
@@ -202,51 +253,45 @@ def _build_projects(params: MeyGroupParameters) -> pd.DataFrame:
 
 
 def _build_leads(params: MeyGroupParameters, rng, fake) -> pd.DataFrame:
-    # Build leads with terminal status matching _FUNNEL counts.
-    status_list = []
-    for status, cnt in _FUNNEL:
-        status_list.extend([status] * cnt)
+    # Scale the master-data funnel ratios up to the group's real deal volume.
+    # Master data: Deal 233 of ~3,001 leads. Group H1 deals ≈ sum of sold units
+    # across the 6 non-Ciel projects (Ciel handled separately as booking-heavy).
+    non_ciel = [d for d in _proj_dicts() if d["name"] != _CIEL]
+    group_deals = sum(d["units_sold_h1"] for d in non_ciel)   # ≈ 2,425
+    master_deal = dict(_FUNNEL)["Deal"]
+    scale = group_deals / master_deal                          # ≈ 10.4×
+
+    # Per-project deal target = its real sold count; distribute funnel per project
+    # so Deal-stage leads exactly match Sales rows per project.
+    status_list, project_list = [], []
+    for d in non_ciel:
+        pdeals = d["units_sold_h1"]
+        pscale = pdeals / master_deal
+        for status, cnt in _FUNNEL:
+            k = max(1, round(cnt * pscale))
+            status_list.extend([status] * k)
+            project_list.extend([d["name"]] * k)
     n = len(status_list)
-    rng.shuffle(status_list)
 
-    # Source distribution matching _SOURCES
-    source_list = []
-    for src, cnt in _SOURCES:
-        source_list.extend([src] * cnt)
-    # pad/trim to n
-    while len(source_list) < n:
-        source_list.append(_SOURCES[0][0])
-    source_list = source_list[:n]
-    rng.shuffle(source_list)
+    # Source, segment, sàn as scale-independent weighted draws.
+    src_names = [s[0] for s in _SOURCES]
+    src_w = np.array([s[1] for s in _SOURCES], float); src_w /= src_w.sum()
+    source_list = list(rng.choice(src_names, size=n, p=src_w))
 
-    # Assign leads to projects — the 6 built projects proportional to deals,
-    # plus Ciel gets a chunk (Rumor-stage leads, 1247 per talk track — but we
-    # cap total at n; give Ciel ~a slice via a separate flag). Here Ciel leads
-    # are handled in a dedicated Ciel lead pool appended below.
-    _built = _proj_dicts(built_only=True)
-    proj_names = [d["name"] for d in _built]
-    proj_weights = np.array([d["target_deals"] for d in _built], dtype=float)
-    proj_weights /= proj_weights.sum()
-    lead_projects = list(rng.choice(proj_names, size=n, p=proj_weights))
-
-    # Sàn only when source == Đại lý
     san_names = [s[0] for s in _SAN]
-    san_weights = np.array([s[1] for s in _SAN], dtype=float)
-    san_weights /= san_weights.sum()
+    san_w = np.array([s[1] for s in _SAN], float); san_w /= san_w.sum()
 
-    # Dates spread across the period, weighted so T1-2 higher (matches actual)
-    total_days = (params.end_date - params.start_date).days + 1
-    # month weights from plan-actual lead_actual
-    month_actual = {m[0]: m[2] for m in _PLAN_ACTUAL}
-    day_month = []
-    for _ in range(n):
-        # pick a month weighted by actual leads (Jan-Jun only)
-        months = list(range(1, 7))
-        mw = np.array([month_actual[m] for m in months], dtype=float)
-        mw /= mw.sum()
-        mo = int(rng.choice(months, p=mw))
-        day = int(rng.integers(1, 28))
-        day_month.append(date(2026, mo, day))
+    # Lead dates weighted by the monthly demand curve.
+    months = [m[0] for m in _MONTHLY]
+    mw = np.array([m[1] for m in _MONTHLY], float); mw /= mw.sum()
+    mo_draw = rng.choice(months, size=n, p=mw)
+    day_draw = rng.integers(1, 28, size=n)
+    day_month = [date(2026, int(mo), int(day)) for mo, day in zip(mo_draw, day_draw)]
+
+    # Shuffle project/status pairing order for realistic interleave (keep paired).
+    order = rng.permutation(n)
+    status_list = [status_list[i] for i in order]
+    project_list = [project_list[i] for i in order]
 
     rows = {
         "LeadId": np.arange(1, n + 1, dtype=np.int64),
@@ -254,36 +299,41 @@ def _build_leads(params: MeyGroupParameters, rng, fake) -> pd.DataFrame:
         "Status": status_list,
         "Source": source_list,
         "SanGiaoDich": [
-            str(rng.choice(san_names, p=san_weights)) if source_list[i] == "Đại lý" else ""
+            str(rng.choice(san_names, p=san_w)) if source_list[i] == "Đại lý" else ""
             for i in range(n)
         ],
-        "ProjectName": lead_projects,
-        "CustomerSegment": [
-            str(rng.choice([s[0] for s in _SEGMENTS], p=_seg_probs()))
-            for _ in range(n)
-        ],
+        "ProjectName": project_list,
+        "CustomerSegment": list(rng.choice([s[0] for s in _SEGMENTS], size=n, p=_seg_probs())),
         "AgentId": [f"A{int(rng.integers(1, 61)):03d}" for _ in range(n)],
         "CreatedDate": [datetime.combine(d, datetime.min.time()) for d in day_month],
         "TenantId": [params.tenant_id] * n,
     }
     leads = pd.DataFrame(rows)
 
-    # ── Ciel lead pool (Rumor) — 1,247 leads over 8 sàn, top 3 = 68% ──
-    ciel_n = 1247
+    # ── Ciel lead pool (F0 booking-heavy) — big pipeline, few signed deals. ──
+    # This is the AI deep-dive project: ~6,500 leads, mostly Booking/Lead status,
+    # only 60 Deal (matches units_sold_h1). Top 3 sàn = ~68% of Ciel leads.
+    ciel_funnel = [("Lead", 3200), ("NET", 1400), ("Visit", 900),
+                   ("Booking", 780), ("Deal", 60), ("Lost", 210)]
+    ciel_status = []
+    for status, cnt in ciel_funnel:
+        ciel_status.extend([status] * cnt)
+    ciel_n = len(ciel_status)
+    rng.shuffle(ciel_status)
     ciel_san = list(rng.choice(san_names, size=ciel_n, p=_ciel_san_probs()))
-    ciel_weeks = rng.choice([1, 2, 3, 4], size=ciel_n, p=[0.30, 0.30, 0.25, 0.15])  # slowing wk4
+    ciel_mo = rng.choice([4, 5, 6], size=ciel_n, p=[0.25, 0.35, 0.40])  # ramping to kickoff
     ciel_rows = {
         "LeadId": np.arange(n + 1, n + 1 + ciel_n, dtype=np.int64),
         "LeadName": [fake.name() for _ in range(ciel_n)],
-        "Status": ["Lead"] * ciel_n,  # all Rumor-stage leads
-        "Source": ["Đại lý"] * ciel_n,
-        "SanGiaoDich": ciel_san,
-        "ProjectName": ["Mey Pearl Ciel Phú Quốc"] * ciel_n,
-        "CustomerSegment": [str(rng.choice([s[0] for s in _SEGMENTS], p=_seg_probs())) for _ in range(ciel_n)],
+        "Status": ciel_status,
+        "Source": list(rng.choice(src_names, size=ciel_n, p=src_w)),
+        "SanGiaoDich": [ciel_san[i] if True else "" for i in range(ciel_n)],
+        "ProjectName": [_CIEL] * ciel_n,
+        "CustomerSegment": list(rng.choice([s[0] for s in _SEGMENTS], size=ciel_n, p=_seg_probs())),
         "AgentId": [f"A{int(rng.integers(1, 61)):03d}" for _ in range(ciel_n)],
         "CreatedDate": [
-            datetime.combine(date(2026, 6, min(28, int(w) * 7)), datetime.min.time())
-            for w in ciel_weeks
+            datetime.combine(date(2026, int(mo), int(rng.integers(1, 28))), datetime.min.time())
+            for mo in ciel_mo
         ],
         "TenantId": [params.tenant_id] * ciel_n,
     }
@@ -302,7 +352,9 @@ def _ciel_san_probs():
 
 
 def _build_sales(params: MeyGroupParameters, rng, fake, leads) -> pd.DataFrame:
-    # 595 sales total across the 6 built projects (deal counts per project).
+    # One Sale row per signed deal (units_sold_h1 per project, ~2,485 total).
+    # Deal value ~ project avg price × per-unit-type multiplier so villas/duplex
+    # cost more than studios within a project.
     rows = []
     sale_id = 1
     unit_pool = []
@@ -312,19 +364,25 @@ def _build_sales(params: MeyGroupParameters, rng, fake, leads) -> pd.DataFrame:
     for sg, cnt in _SEGMENTS:
         seg_pool.extend([sg] * cnt)
 
-    # per-project deal counts (sum = 595)
-    proj_deals = {d["name"]: d["target_deals"] for d in _proj_dicts(built_only=True)}
-    proj_rev = {d["name"]: d["target_revenue_ty"] for d in _proj_dicts(built_only=True)}
-    for proj, ndeals in proj_deals.items():
-        avg_price = (proj_rev[proj] * 1e9) / max(ndeals, 1)  # revenue_ty / deals
+    # unit-type price multiplier (relative to project avg) — bigger units pricier
+    ut_mult = {"1PN+": 0.62, "2PN": 0.85, "2PN+": 1.05, "3PN": 1.35, "Duplex": 2.1, "Villa": 3.0}
+    # monthly close weights from the demand curve
+    months = [m[0] for m in _MONTHLY]
+    close_w = np.array([m[1] for m in _MONTHLY], float); close_w /= close_w.sum()
+
+    for d in _proj_dicts():
+        proj = d["name"]
+        ndeals = d["units_sold_h1"]
+        avg_price = d["avg_price_ty"] * 1e9
         for _ in range(ndeals):
-            close_month = int(rng.choice([1, 2, 3, 4, 5, 6], p=[0.18, 0.20, 0.16, 0.16, 0.16, 0.14]))
+            close_month = int(rng.choice(months, p=close_w))
             closed = date(2026, close_month, int(rng.integers(1, 28)))
-            price = round(avg_price * rng.uniform(0.7, 1.4), -6)
+            ut = str(rng.choice(unit_pool))
+            price = round(avg_price * ut_mult.get(ut, 1.0) * rng.uniform(0.85, 1.15), -6)
             rows.append({
                 "SaleId": sale_id,
                 "ProjectName": proj,
-                "UnitType": str(rng.choice(unit_pool)),
+                "UnitType": ut,
                 "CustomerSegment": str(rng.choice(seg_pool)),
                 "AgentId": f"A{int(rng.integers(1, 61)):03d}",
                 "DealValueVnd": int(price),
@@ -382,28 +440,46 @@ def _build_collections(params: MeyGroupParameters, rng, sales) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def _build_monthly_financial(params: MeyGroupParameters, rng) -> pd.DataFrame:
-    # Per project × month: sản lượng (units), doanh số (revenue), tiền thu (cash), chi phí.
+def _build_monthly_financial(params: MeyGroupParameters, rng, sales, collections) -> pd.DataFrame:
+    # Per project × month, with the THREE series the report template needs:
+    #   Thực hiện (actual)  ·  KHNS (kế hoạch ngân sách)  ·  KPI tháng (stretch)
+    # for each of sản lượng (units), doanh số (revenue), dòng tiền (cash).
+    # Actuals are aggregated from the real Sales + Collections rows so the
+    # dashboard totals reconcile exactly with the detail tables.
+    s = sales.copy()
+    s["mo"] = pd.to_datetime(s["ClosedDate"]).dt.month
+    c = collections.copy()
+    c["mo"] = pd.to_datetime(c["DueDate"]).dt.month
+
+    mult = {m[0]: m for m in _MONTHLY}
     rows = []
     fid = 1
-    for d in _proj_dicts(built_only=True):
-        name, region, tgt_deals, tgt_rev = d["name"], d["region"], d["target_deals"], d["target_revenue_ty"]
+    for d in _proj_dicts():
+        name, region = d["name"], d["region"]
+        cash_ratio = _CASH_RATIO.get(name, 0.3)
         for mo in range(1, 7):
-            # scale by month-actual revenue pattern
-            m = _PLAN_ACTUAL[mo - 1]
-            rev_factor = m[8] / max(sum(x[8] for x in _PLAN_ACTUAL[:6]), 1)
-            revenue = int(tgt_rev * 1e9 * rev_factor * rng.uniform(0.85, 1.15))
-            units = max(1, int(tgt_deals * rev_factor * rng.uniform(0.8, 1.2)))
-            cash = int(revenue * rng.uniform(0.55, 0.85))
-            cost = int(revenue * rng.uniform(0.60, 0.78))
+            sub = s[(s["ProjectName"] == name) & (s["mo"] == mo)]
+            units = int(len(sub))
+            revenue = int(sub["DealValueVnd"].sum())
+            # cash collected this month = share of signed revenue by project ratio,
+            # spread with mild monthly noise.
+            cash = int(revenue * cash_ratio * rng.uniform(0.9, 1.1))
+            cost = int(revenue * rng.uniform(0.60, 0.72))
+            _, uw, ku, kpu, kr, kpr, kc, kpc = mult[mo]
             rows.append({
                 "FinancialId": fid,
                 "ProjectName": name,
                 "Region": region,
                 "Month": datetime(2026, mo, 1),
                 "UnitsSold": units,
+                "UnitsSoldPlan": int(round(units * ku)),
+                "UnitsSoldKpi": int(round(units * kpu)),
                 "RevenueVnd": revenue,
+                "RevenuePlanVnd": int(revenue * kr),
+                "RevenueKpiVnd": int(revenue * kpr),
                 "CashCollectedVnd": cash,
+                "CashCollectedPlanVnd": int(cash * kc),
+                "CashCollectedKpiVnd": int(cash * kpc),
                 "CostVnd": cost,
                 "ProfitVnd": revenue - cost,
                 "TenantId": params.tenant_id,
@@ -412,26 +488,31 @@ def _build_monthly_financial(params: MeyGroupParameters, rng) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def _build_plan_targets(params: MeyGroupParameters) -> pd.DataFrame:
-    # Group-level plan vs actual by month + metric (Lead/Booking/Deal/DoanhSo).
+def _build_plan_targets(params: MeyGroupParameters, monthly_financial) -> pd.DataFrame:
+    # Group-level KH vs TH vs KPI by month + metric, aggregated from the real
+    # MonthlyFinancial rows so totals reconcile. Metrics: SanLuong (units),
+    # DoanhSo (revenue), DongTien (cash). Three series: PlanValue (KHNS),
+    # ActualValue (thực hiện), KpiValue (stretch).
+    mf = monthly_financial.copy()
+    mf["mo"] = pd.to_datetime(mf["Month"]).dt.month
     rows = []
     pid = 1
-    for m in _PLAN_ACTUAL:
-        mo = m[0]
+    metric_cols = [
+        ("SanLuong", "UnitsSold", "UnitsSoldPlan", "UnitsSoldKpi"),
+        ("DoanhSo", "RevenueVnd", "RevenuePlanVnd", "RevenueKpiVnd"),
+        ("DongTien", "CashCollectedVnd", "CashCollectedPlanVnd", "CashCollectedKpiVnd"),
+    ]
+    for mo in range(1, 7):
         month = datetime(2026, mo, 1)
-        specs = [
-            ("Lead", m[1], m[2]),
-            ("Booking", m[3], m[4]),
-            ("Deal", m[5], m[6]),
-            ("DoanhSo", int(m[7] * 1e9), int(m[8] * 1e9)),
-        ]
-        for metric, plan, actual in specs:
+        sub = mf[mf["mo"] == mo]
+        for metric, acol, pcol, kcol in metric_cols:
             rows.append({
                 "PlanId": pid,
                 "Month": month,
                 "Metric": metric,
-                "PlanValue": plan,
-                "ActualValue": actual,
+                "PlanValue": int(sub[pcol].sum()),
+                "ActualValue": int(sub[acol].sum()),
+                "KpiValue": int(sub[kcol].sum()),
                 "TenantId": params.tenant_id,
             })
             pid += 1
