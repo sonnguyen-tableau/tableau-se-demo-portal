@@ -32,6 +32,7 @@ const INDUSTRY_ICON: Record<string, string> = {
   "retail-banking": "🏦",
   "retail-mall": "🏬",
   "retail-mediamart": "📺",
+  "retail-realestate": "🏢",
   "retail-ecommerce": "🛒",
   "ecommerce": "🛒",
   "insurance": "🛡️",

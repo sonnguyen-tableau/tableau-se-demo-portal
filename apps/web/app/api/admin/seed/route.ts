@@ -49,6 +49,15 @@ const TENANTS = [
     allowedProjects: ["Demo/Nam A Bank"],
     isDefault: false,
   },
+  {
+    slug: "meygroup",
+    name: "Mey Group",
+    industry: "retail-realestate",
+    sourceUrl: "https://meygroup.vn/",
+    status: "active" as const,
+    allowedProjects: ["Demo/Mey Group"],
+    isDefault: false,
+  },
 ];
 
 const THEMES = [
@@ -95,6 +104,17 @@ const THEMES = [
     fontFamily: "Inter",
     tone: "professional" as const,
     logoUrl: "/tenants/nam-a-bank-logo.png",
+  },
+  {
+    tenantId: "meygroup",
+    companyName: "Mey Group",
+    primaryColor: "#1B75BC",
+    secondaryColor: "#29ABE2",
+    neutralColor: "#0F2A47",
+    sidebarTextColor: "#ffffff",
+    fontFamily: "Inter",
+    tone: "professional" as const,
+    logoUrl: "/tenants/meygroup-logo.png",
   },
 ];
 

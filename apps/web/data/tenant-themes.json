@@ -42,5 +42,16 @@
     "fontFamily": "Inter",
     "tone": "professional",
     "logoUrl": "/tenants/nam-a-bank-logo.png"
+  },
+  {
+    "tenantId": "meygroup",
+    "companyName": "Mey Group",
+    "primaryColor": "#1B75BC",
+    "secondaryColor": "#29ABE2",
+    "neutralColor": "#0F2A47",
+    "sidebarTextColor": "#ffffff",
+    "fontFamily": "Inter",
+    "tone": "professional",
+    "logoUrl": "/tenants/meygroup-logo.png"
   }
 ]

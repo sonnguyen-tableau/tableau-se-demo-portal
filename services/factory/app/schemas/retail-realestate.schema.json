@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "retail-realestate.schema.json",
+  "title": "Real Estate (Mey Group) data contract",
+  "description": "Field-name contract for the Mey Group executive demo. Generator emits matching columns; workbook templates reference only fields listed here.",
+  "type": "object",
+  "required": [
+    "Projects",
+    "Leads",
+    "Sales",
+    "Collections",
+    "MonthlyFinancial",
+    "PlanTargets",
+    "Agencies",
+    "Packages",
+    "HRMetrics"
+  ],
+  "properties": {
+    "Projects": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ProjectId", "ProjectName", "District", "Region", "Stage",
+              "TargetDeals", "TargetRevenueVnd", "Latitude", "Longitude",
+              "Country", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Leads": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "LeadId", "LeadName", "Status", "Source", "SanGiaoDich",
+              "ProjectName", "CustomerSegment", "AgentId", "CreatedDate",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Sales": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "SaleId", "ProjectName", "UnitType", "CustomerSegment",
+              "AgentId", "DealValueVnd", "ClosedDate", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Collections": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "CollectionId", "SaleId", "ProjectName", "MilestoneType",
+              "DueDate", "AmountDueVnd", "AmountCollectedVnd", "AgingBucket",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "MonthlyFinancial": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "FinancialId", "ProjectName", "Region", "Month", "UnitsSold",
+              "RevenueVnd", "CashCollectedVnd", "CostVnd", "ProfitVnd",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "PlanTargets": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "PlanId", "Month", "Metric", "PlanValue", "ActualValue",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Agencies": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "AgencyId", "AgencyName", "LeadsReferred", "NetCount",
+              "VisitCount", "BookingCount", "DealCount", "RevenueVnd",
+              "SupportBudgetVnd", "ConversionRate", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Packages": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "PackageId", "ProjectName", "PackageName", "Status",
+              "ProgressPct", "DelayWeeks", "BlockingDepartment", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "HRMetrics": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "HRId", "Department", "Month", "Headcount", "PayrollPlanVnd",
+              "PayrollActualVnd", "AttritionRate", "NewHires", "KpiProgressPct",
+              "TrainingKpiPct", "TenantId"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
