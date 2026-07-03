@@ -107,6 +107,23 @@ fields + worksheets + one layout-flow dashboard.
   surgical patch — inject calc columns + replace only the KPI `<worksheet>`
   bodies keeping exact names. Rebuilding a dashboard from scratch reintroduces
   zone-id/layout bugs.
+- **Counts fan-out across relationships**: a raw `[cnt:Key]` / `[ctd:Key]`
+  column-instance INFLATES when the sheet's dimension pulls in a joined child
+  table (e.g. counting Sales grouped by project while Collections is related —
+  each sale ×3 collection rows). Use a `COUNTD([Key])` CALC FIELD instead — the
+  calc evaluates at the key's own grain and is immune. Verified on Mey Group.
+- **Exclude a category**: don't hand-author `<filter class='categorical'>` —
+  Cloud rejects malformed filter XML ("Error parsing filter, ignoring"). Use a
+  count calc that filters inline: `COUNTD(IF [x] != "…" THEN [key] END)`.
+- **All tables must relate**: Tableau errors "Unrelated Tables — all tables in
+  a data source must be related." Standalone group-level tables (targets, HR,
+  agencies) still need a join key to the model — join on a shared Month, or on a
+  dimension like AgencyName=SanGiaoDich. Logical (noodle) relationships don't
+  fan-out for correctly-authored calc measures, so this is safe.
+- **layout-flow ignores zone `w=`**: a horizontal flow splits children EQUALLY
+  regardless of their width attribute. To give a chart more/less width, put it on
+  its own row or nest flows — you cannot weight siblings in one flow. (A donut
+  squished into a third-of-row gets its title wrapped; give it half a row.)
 
 ## Phase 5 — Publish + verify
 
