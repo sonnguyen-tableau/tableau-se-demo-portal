@@ -2658,7 +2658,7 @@
         </panes>
         <rows /><cols />
       </table>
-      <simple-id uuid='{240830FB-526D-4520-86E5-54AEAE51D73F}' />
+      <simple-id uuid='{87C21ED7-A857-457F-8FAD-0788CD017B94}' />
     </worksheet>
     <worksheet name='KPI Booking'>
       <layout-options>
@@ -2696,7 +2696,7 @@
         </panes>
         <rows /><cols />
       </table>
-      <simple-id uuid='{43840A62-63D9-4D43-9338-581D2FDD449C}' />
+      <simple-id uuid='{875F0305-8F96-4430-9846-73D3AA8BECA6}' />
     </worksheet>
     <worksheet name='KPI Deal'>
       <layout-options>
@@ -2734,7 +2734,7 @@
         </panes>
         <rows /><cols />
       </table>
-      <simple-id uuid='{9A7F9268-EE3E-4369-99BE-90C77C959A2E}' />
+      <simple-id uuid='{7441D8B5-C3CD-445A-9AAF-0E3DE3CEFE74}' />
     </worksheet>
     <worksheet name='KPI Tỷ lệ chốt'>
       <layout-options>
@@ -2772,7 +2772,7 @@
         </panes>
         <rows /><cols />
       </table>
-      <simple-id uuid='{6D503736-1456-4038-B99D-A9070AA07BFB}' />
+      <simple-id uuid='{FB913C1C-61B8-440B-8470-00A988783330}' />
     </worksheet>
     <worksheet name='KPI Lost'>
       <layout-options>
@@ -2810,7 +2810,7 @@
         </panes>
         <rows /><cols />
       </table>
-      <simple-id uuid='{230F0906-37F1-404F-8295-432092E2E324}' />
+      <simple-id uuid='{624272FC-FA61-4A0B-A61E-E1385E994501}' />
     </worksheet>
     <worksheet name='PheuGiaiDoan'>
       <layout-options>
@@ -2855,10 +2855,13 @@
             <mark class='Bar' />
             <encodings>
               <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000007:qk]' palette='Mey Sequential Blue' type='palette' />
+              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000007:qk]' />
             </encodings>
             <style>
               <style-rule element='mark'>
                 <format attr='mark-bar-size' value='0.72' />
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
               </style-rule>
             </style>
           </pane>
@@ -2866,7 +2869,7 @@
         <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Status:nk]</rows>
         <cols>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000007:qk]</cols>
       </table>
-      <simple-id uuid='{D2A08A87-F8FE-4E0F-9FA4-F8DDE3AFD790}' />
+      <simple-id uuid='{CE5457A7-BC28-4716-82BE-09A9FF2B78A9}' />
     </worksheet>
     <worksheet name='NguonKhach'>
       <layout-options>
@@ -2901,10 +2904,13 @@
             <mark class='Bar' />
             <encodings>
               <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000001:qk]' palette='Mey Sequential Blue' type='palette' />
+              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000001:qk]' />
             </encodings>
             <style>
               <style-rule element='mark'>
                 <format attr='mark-bar-size' value='0.72' />
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
               </style-rule>
             </style>
           </pane>
@@ -2912,7 +2918,7 @@
         <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Source:nk]</rows>
         <cols>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000001:qk]</cols>
       </table>
-      <simple-id uuid='{DF34AE8C-52B6-497C-8F96-C7E3FC35BE62}' />
+      <simple-id uuid='{27EF3F83-4180-42F1-B672-FFA2B10133AA}' />
     </worksheet>
     <worksheet name='DealThang'>
       <layout-options>
@@ -2974,7 +2980,7 @@
         <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[Multiple Values]</rows>
         <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[mn:Month:ok] / [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names])</cols>
       </table>
-      <simple-id uuid='{DAB2933B-CB67-4903-89B4-43F9818D7DDC}' />
+      <simple-id uuid='{A69EC0D8-CD6F-43E5-BF30-210096275641}' />
     </worksheet>
     <worksheet name='DealDuAn'>
       <layout-options>
@@ -3009,10 +3015,13 @@
             <mark class='Bar' />
             <encodings>
               <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000008:qk]' palette='Mey Sequential Blue' type='palette' />
+              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000008:qk]' />
             </encodings>
             <style>
               <style-rule element='mark'>
                 <format attr='mark-bar-size' value='0.72' />
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
               </style-rule>
             </style>
           </pane>
@@ -3020,7 +3029,7 @@
         <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:ProjectName:nk]</rows>
         <cols>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000008:qk]</cols>
       </table>
-      <simple-id uuid='{C64D56B4-A252-4C5C-B9DC-8F12642656AF}' />
+      <simple-id uuid='{8B9C489B-4544-4F5A-8BCE-90FF3C875C9C}' />
     </worksheet>
     <worksheet name='PhanKhuc'>
       <layout-options>
@@ -3055,10 +3064,13 @@
             <mark class='Bar' />
             <encodings>
               <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000008:qk]' palette='Mey Sequential Blue' type='palette' />
+              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000008:qk]' />
             </encodings>
             <style>
               <style-rule element='mark'>
                 <format attr='mark-bar-size' value='0.72' />
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
               </style-rule>
             </style>
           </pane>
@@ -3066,7 +3078,7 @@
         <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:CustomerSegment:nk]</rows>
         <cols>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000008:qk]</cols>
       </table>
-      <simple-id uuid='{DBBCB538-3523-4E3C-A077-88C418DEB1A5}' />
+      <simple-id uuid='{0313C9F9-0EF3-44DD-A15A-851D0BECEBB6}' />
     </worksheet>
     <worksheet name='LoaiSP'>
       <layout-options>
@@ -3101,10 +3113,13 @@
             <mark class='Bar' />
             <encodings>
               <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000008:qk]' palette='Mey Sequential Blue' type='palette' />
+              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000008:qk]' />
             </encodings>
             <style>
               <style-rule element='mark'>
                 <format attr='mark-bar-size' value='0.72' />
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
               </style-rule>
             </style>
           </pane>
@@ -3112,10 +3127,10 @@
         <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:UnitType:nk]</rows>
         <cols>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000008:qk]</cols>
       </table>
-      <simple-id uuid='{25D5AD60-4479-4856-B63F-94527B657AC5}' />
+      <simple-id uuid='{301B2116-DF20-4454-A28C-46FC195ADD0C}' />
     </worksheet>
   <worksheet name='Ring Deal'>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh/RingSnlng?rev=' id='3035293' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
+      <repository-location derived-from='https://prod-apsoutheast-c.online.tableau.com/t/vietnam/workbooks/MeyGroup-TaiChinh/3035293?rev=' id='RingSnlng' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
       <table>
         <view>
           <datasources>
@@ -3242,7 +3257,7 @@
         <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
         <tooltip-style tooltip-mode='none' />
       </table>
-      <simple-id uuid='{240094E8-0689-4108-8494-3299FB789DF1}' />
+      <simple-id uuid='{6DC8CDFE-1F42-4E56-871E-3B41A93F0B6E}' />
     </worksheet>
   </worksheets>
   <dashboards>
@@ -3305,12 +3320,12 @@
           </zone>
           <zone-style><format attr='border-color' value='#000000' /><format attr='border-style' value='none' /><format attr='border-width' value='0' /><format attr='margin' value='8' /><format attr='background-color' value='#F5F8FB' /></zone-style>
         </zone>
-              <zone fixed-size='96' h='7000' id='9001' is-fixed='true' name='Ring Deal' show-title='false' w='4400' x='55000' y='2100'>
-          <layout-cache minwidth='90' type-h='fixed' type-w='scalable' />
+              <zone fixed-size='92' h='6800' id='9001' is-fixed='true' name='Ring Deal' show-title='false' w='4200' x='55200' y='2200'>
+          <layout-cache minwidth='84' type-h='fixed' type-w='scalable' />
           <zone-style><format attr='border-style' value='none' /><format attr='border-width' value='0' /><format attr='background-color' value='#ffffff' /></zone-style>
         </zone>
       </zones>
-      <simple-id uuid='{DA142BEF-84DB-4FF3-8A4A-F1C8AB3F1D2E}' />
+      <simple-id uuid='{8A0F9A4C-6EEC-4A86-A0C4-BB0F5EC80B1C}' />
     </dashboard>
   </dashboards>
   <windows>

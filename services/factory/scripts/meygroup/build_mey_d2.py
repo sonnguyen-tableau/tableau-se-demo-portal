@@ -36,10 +36,11 @@ def build():
     calcs = [k_leads, k_booking, k_deal, k_conv, k_lost, f_cnt, d_cnt]
 
     sheets = []
-    # KPI cards (plain — user adds ring for Deal on Desktop as with D1)
+    # KPI cards. Deal has a plan comparison (2.335 vs KHNS 2.281 = 102%) → 2-line
+    # pct card + ring (like D1). Others have no direct plan → plain number cards.
     sheets.append(M.kpi_card("KPI Leads", k_leads, "Tổng Leads"))
     sheets.append(M.kpi_card("KPI Booking", k_booking, "Booking"))
-    sheets.append(M.kpi_card("KPI Deal", k_deal, "Deal"))
+    sheets.append(M.kpi_card("KPI Deal", k_deal, "Deal"))  # ring gauge (vs KPI) carries the comparison; 5 cards too narrow for number+%line+ring
     sheets.append(M.kpi_card("KPI Tỷ lệ chốt", k_conv, "Tỷ lệ chốt"))
     sheets.append(M.kpi_card("KPI Lost", k_lost, "Lost"))
 
@@ -49,7 +50,8 @@ def build():
          f_cnt.dep_col().strip()],
         [M.inst_dim("Status"), f_cnt.inst().strip()],
         rows=M.ref_dim("Status"), cols=f_cnt.ref(),
-        mark="Bar", encodings=[("color", f_cnt.ref())], color_palette="Mey Sequential Blue"))
+        mark="Bar", encodings=[("color", f_cnt.ref())], color_palette="Mey Sequential Blue",
+        data_label=f_cnt.ref()))
 
     # Chart 2: Leads theo Nguồn khách
     sheets.append(M.chart("NguonKhach", "Leads theo Nguồn khách",
@@ -57,7 +59,8 @@ def build():
          k_leads.dep_col().strip()],
         [M.inst_dim("Source"), k_leads.inst().strip()],
         rows=M.ref_dim("Source"), cols=k_leads.ref(),
-        mark="Bar", encodings=[("color", k_leads.ref())], color_palette="Mey Sequential Blue"))
+        mark="Bar", encodings=[("color", k_leads.ref())], color_palette="Mey Sequential Blue",
+        data_label=k_leads.ref()))
 
     # Chart 3: Deal theo Tháng vs KHNS & KPI (bullet) — uses PlanTargets SanLuong
     # metric (deal-equivalent plan/actual/kpi). Actual here = ActualValue where
@@ -73,7 +76,8 @@ def build():
          d_cnt.dep_col().strip()],
         [M.inst_dim("ProjectName"), d_cnt.inst().strip()],
         rows=M.ref_dim("ProjectName"), cols=d_cnt.ref(),
-        mark="Bar", encodings=[("color", d_cnt.ref())], color_palette="Mey Sequential Blue"))
+        mark="Bar", encodings=[("color", d_cnt.ref())], color_palette="Mey Sequential Blue",
+        data_label=d_cnt.ref()))
 
     # Chart 5: Deal theo Phân khúc KH
     sheets.append(M.chart("PhanKhuc", "Deal theo Phân khúc KH",
@@ -81,7 +85,8 @@ def build():
          d_cnt.dep_col().strip()],
         [M.inst_dim("CustomerSegment"), d_cnt.inst().strip()],
         rows=M.ref_dim("CustomerSegment"), cols=d_cnt.ref(),
-        mark="Bar", encodings=[("color", d_cnt.ref())], color_palette="Mey Sequential Blue"))
+        mark="Bar", encodings=[("color", d_cnt.ref())], color_palette="Mey Sequential Blue",
+        data_label=d_cnt.ref()))
 
     # Chart 6: Deal theo Loại sản phẩm
     sheets.append(M.chart("LoaiSP", "Deal theo Loại sản phẩm",
@@ -89,7 +94,8 @@ def build():
          d_cnt.dep_col().strip()],
         [M.inst_dim("UnitType"), d_cnt.inst().strip()],
         rows=M.ref_dim("UnitType"), cols=d_cnt.ref(),
-        mark="Bar", encodings=[("color", d_cnt.ref())], color_palette="Mey Sequential Blue"))
+        mark="Bar", encodings=[("color", d_cnt.ref())], color_palette="Mey Sequential Blue",
+        data_label=d_cnt.ref()))
 
     names = ["KPI Leads","KPI Booking","KPI Deal","KPI Tỷ lệ chốt","KPI Lost",
              "PheuGiaiDoan","NguonKhach","DealThang","DealDuAn","PhanKhuc","LoaiSP"]

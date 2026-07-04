@@ -244,16 +244,25 @@ def exclude_ciel_filter(field: str) -> tuple[str, str]:
 
 
 def chart(sheet_name, title_vn, deps, insts, rows, cols, mark="Bar", encodings=None,
-          filters=None, color_palette=None, single_color=None, hide_axis_titles=True):
+          filters=None, color_palette=None, single_color=None, hide_axis_titles=True,
+          data_label=None):
     """Premium chart. Options:
     - color_palette: name of a registered palette (e.g. 'Mey Sequential Blue')
       applied to the color encoding so bars grade as one brand family.
     - single_color: hex for a flat single-color bar (no legend), e.g. '#1B75BC'.
     - hide_axis_titles: drop the noisy '[Field] Vnd' axis captions.
+    - data_label: a measure ref to show as a mark label at the bar end (the D1
+      ranking-bar upgrade — big readability win). Adds a <text> encoding +
+      mark-labels-show. e.g. ref_agg('DealValueVnd').
     """
     enc = ""
     if encodings:
-        enc = "            <encodings>\n" + "".join(f"              <{k} column='{c}' />\n" for k, c in encodings) + "            </encodings>\n"
+        enc_list = list(encodings)
+        if data_label:
+            enc_list.append(("text", data_label))
+        enc = "            <encodings>\n" + "".join(f"              <{k} column='{c}' />\n" for k, c in enc_list) + "            </encodings>\n"
+    elif data_label:
+        enc = f"            <encodings>\n              <text column='{data_label}' />\n            </encodings>\n"
     db = "\n".join(deps)
     ib = "\n".join(insts)
     filt_xml = ("\n" + "\n".join(filters)) if filters else ""
@@ -283,6 +292,9 @@ def chart(sheet_name, title_vn, deps, insts, rows, cols, mark="Bar", encodings=N
         pane_style_rules.append("                <format attr='mark-size' value='1.0' />")
     if single_color:
         pane_style_rules.append(f"                <format attr='mark-color' value='{single_color}' />")
+    if data_label:
+        pane_style_rules.append("                <format attr='mark-labels-show' value='true' />")
+        pane_style_rules.append("                <format attr='mark-labels-cull' value='true' />")
     pane_style = (("            <style>\n              <style-rule element='mark'>\n"
                    + "\n".join(pane_style_rules)
                    + "\n              </style-rule>\n            </style>\n")
