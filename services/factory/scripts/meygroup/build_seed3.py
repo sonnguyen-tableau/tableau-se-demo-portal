@@ -156,9 +156,11 @@ if "name='ring_gauge'" not in data:
 idx = data.find("</worksheets>")
 data = data[:idx] + new_ws_xml + "\n  " + data[idx:]
 
-# Register hidden windows for the new worksheets (before the first <window class='worksheet'>)
+# Register VISIBLE windows for the new worksheets (NOT hidden — so they show as
+# tabs in Tableau Desktop for the user to work on). Place before the first
+# <window class='worksheet'> in the block.
 win_block = "".join(
-    f"    <window class='worksheet' hidden='true' name='{n}'>\n      <cards><edge name='left'><strip size='160'></strip></edge></cards>\n      <viewpoint><zoom type='entire-view' /></viewpoint>\n      <simple-id uuid='{U()}' />\n    </window>\n"
+    f"    <window class='worksheet' name='{n}'>\n      <cards><edge name='left'><strip size='160'></strip></edge></cards>\n      <viewpoint><zoom type='entire-view' /></viewpoint>\n      <simple-id uuid='{U()}' />\n    </window>\n"
     for n in new_names)
 first_ws_win = re.search(r"<window class='worksheet'", data)
 data = data[:first_ws_win.start()] + win_block + data[first_ws_win.start():]

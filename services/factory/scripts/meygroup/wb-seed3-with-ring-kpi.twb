@@ -3238,7 +3238,7 @@
         <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
         <tooltip-style tooltip-mode='none' />
       </table>
-      <simple-id uuid='{D8C81C08-57C3-4FD4-9D46-1D78BD5BB0D2}' />
+      <simple-id uuid='{8F82BFFB-6226-4C17-8A7E-4B2F38A4A841}' />
     </worksheet>
     <worksheet name='Ring Doanh số'>
       <table>
@@ -3302,7 +3302,7 @@
         <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
         <tooltip-style tooltip-mode='none' />
       </table>
-      <simple-id uuid='{753EC43D-B265-423D-AB4C-DB0F670E75FA}' />
+      <simple-id uuid='{9A9F51A2-9B96-4E81-81BC-CFC1B9B915C1}' />
     </worksheet>
     <worksheet name='Ring Tiền thu'>
       <table>
@@ -3366,7 +3366,7 @@
         <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
         <tooltip-style tooltip-mode='none' />
       </table>
-      <simple-id uuid='{EA6CB98F-0857-4175-9607-84EDC4E9DF07}' />
+      <simple-id uuid='{A73518B7-AC5F-49EF-92C2-8F2FB1FC5905}' />
     </worksheet>
     <worksheet name='KPI Sản lượng (pct)'>
       <layout-options>
@@ -3399,7 +3399,7 @@
         </panes>
         <rows /><cols />
       </table>
-      <simple-id uuid='{85E948C3-5115-489A-9A0C-E1F3F67FFBE0}' />
+      <simple-id uuid='{CE61162A-3E49-4180-B167-219F0E0B876F}' />
     </worksheet>
     <worksheet name='KPI Doanh số (pct)'>
       <layout-options>
@@ -3432,7 +3432,7 @@
         </panes>
         <rows /><cols />
       </table>
-      <simple-id uuid='{3716F59F-1B91-4E16-B0FF-3842A900E5F6}' />
+      <simple-id uuid='{474B2162-46C2-4344-AD24-D1B9C05F3C02}' />
     </worksheet>
     <worksheet name='KPI Tiền thu (pct)'>
       <layout-options>
@@ -3465,7 +3465,7 @@
         </panes>
         <rows /><cols />
       </table>
-      <simple-id uuid='{B911C34E-F977-4CB6-BEE2-472DE3C99E53}' />
+      <simple-id uuid='{49630D33-5D7F-4369-986F-41097B8A4DE2}' />
     </worksheet>
   </worksheets>
   <dashboards>
@@ -3740,35 +3740,35 @@
       <active id='2' />
       <simple-id uuid='{A50294A9-8956-4FBC-90C1-780DA7660DEE}' />
     </window>
-        <window class='worksheet' hidden='true' name='Ring Sản lượng'>
+        <window class='worksheet' name='Ring Sản lượng'>
       <cards><edge name='left'><strip size='160'></strip></edge></cards>
       <viewpoint><zoom type='entire-view' /></viewpoint>
-      <simple-id uuid='{2ED00867-F88C-48F9-A356-703A6A79DB8B}' />
+      <simple-id uuid='{BA46EF8C-0FC9-4DC8-9DC9-D8D5194EF4D8}' />
     </window>
-    <window class='worksheet' hidden='true' name='Ring Doanh số'>
+    <window class='worksheet' name='Ring Doanh số'>
       <cards><edge name='left'><strip size='160'></strip></edge></cards>
       <viewpoint><zoom type='entire-view' /></viewpoint>
-      <simple-id uuid='{812F9CFB-2E71-4ED2-92AA-FE5D14C7FC25}' />
+      <simple-id uuid='{4A0511DC-8254-4E17-B95C-E4925A9F576E}' />
     </window>
-    <window class='worksheet' hidden='true' name='Ring Tiền thu'>
+    <window class='worksheet' name='Ring Tiền thu'>
       <cards><edge name='left'><strip size='160'></strip></edge></cards>
       <viewpoint><zoom type='entire-view' /></viewpoint>
-      <simple-id uuid='{7C16E859-37CA-422A-A012-E0B03D6DD80A}' />
+      <simple-id uuid='{4836E6C7-6F3A-49CE-A780-0E35CBCC4BBA}' />
     </window>
-    <window class='worksheet' hidden='true' name='KPI Sản lượng (pct)'>
+    <window class='worksheet' name='KPI Sản lượng (pct)'>
       <cards><edge name='left'><strip size='160'></strip></edge></cards>
       <viewpoint><zoom type='entire-view' /></viewpoint>
-      <simple-id uuid='{A4F1CA2E-3FE2-4824-8474-C1E93C27C4ED}' />
+      <simple-id uuid='{F6E9D098-FC68-4822-B850-4076EC58C302}' />
     </window>
-    <window class='worksheet' hidden='true' name='KPI Doanh số (pct)'>
+    <window class='worksheet' name='KPI Doanh số (pct)'>
       <cards><edge name='left'><strip size='160'></strip></edge></cards>
       <viewpoint><zoom type='entire-view' /></viewpoint>
-      <simple-id uuid='{8155A914-DFE4-4C89-8AE0-D6073E26CAC5}' />
+      <simple-id uuid='{51AA4FD9-CE72-40DA-8513-7C16FB84A1CE}' />
     </window>
-    <window class='worksheet' hidden='true' name='KPI Tiền thu (pct)'>
+    <window class='worksheet' name='KPI Tiền thu (pct)'>
       <cards><edge name='left'><strip size='160'></strip></edge></cards>
       <viewpoint><zoom type='entire-view' /></viewpoint>
-      <simple-id uuid='{361DAA5A-FD44-4D63-B5F6-8970BFC2896B}' />
+      <simple-id uuid='{AA006628-80C9-459C-9079-A057495E90B9}' />
     </window>
 <window class='worksheet' hidden='true' name='CongNoDuAn'>
       <cards>
