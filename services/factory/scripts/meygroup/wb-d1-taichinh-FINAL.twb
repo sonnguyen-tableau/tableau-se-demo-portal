@@ -21,7 +21,7 @@
     <_.fcp.WorkbookFingerprinting.true...WorkbookFingerprinting />
     <WorksheetBackgroundTransparency />
   </document-format-change-manifest>
-  <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3?rev=1.8' id='_seed_desktop3' path='/t/vietnam/workbooks' revision='1.8' site='vietnam' />
+  <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh?rev=5.3' id='MeyGroup-TaiChinh' path='/t/vietnam/workbooks' revision='5.3' site='vietnam' />
   <preferences />
   <style>
     <style-rule element='animation'>
@@ -30,7 +30,7 @@
   </style>
   <datasources>
     <datasource caption='meygroup' inline='true' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' version='18.1'>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.8' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='5.3' site='vietnam' />
       <connection channel='https' class='sqlproxy' dbname='meygroup' directory='dataserver' port='443' saved-credentials-viewerid='11497' server='prod-apsoutheast-c.online.tableau.com' server-ds-friendly-name='meygroup' server-oauth='' username='' workgroup-auth-mode='prompt'>
         <relation type='collection'>
           <relation connection='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' name='sqlproxy' table='[sqlproxy]' type='table' />
@@ -1881,7 +1881,7 @@
     <ObjectModelTableType />
     <SchemaViewerObjectModel />
   </document-format-change-manifest>
-  <repository-location derived-from='http://prod-apsoutheast-c.online.tableau.com/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.8' site='vietnam' />
+  <repository-location derived-from='http://prod-apsoutheast-c.online.tableau.com/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='5.3' site='vietnam' />
   <connection :user-groups='local\\All Users\#local\\All Reports\#\#' channel='http' class='sqlproxy' dbname='meygroup' directory='dataserver' port='8080' server='localhost'>
     <relation type='collection'>
       <relation connection='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' name='sqlproxy' table='[sqlproxy]' type='table' />
@@ -2001,13 +2001,13 @@
   <column aggregation='Count' caption='Agent Id' datatype='string' default-type='nominal' name='[AgentId]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Count' caption='Aging Bucket' datatype='string' default-type='nominal' name='[AgingBucket]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Sum' caption='Amount Collected Vnd' datatype='integer' default-type='quantitative' name='[AmountCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Công nợ (tỷ)' datatype='integer' default-type='quantitative' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Amount Due Vnd' datatype='integer' default-type='quantitative' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Attrition Rate' datatype='real' default-type='quantitative' name='[AttritionRate]' pivot='key' role='measure' type='quantitative' user-datatype='real' visual-totals='Default' />
   <column aggregation='Count' caption='Blocking Department' datatype='string' default-type='nominal' name='[BlockingDepartment]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Sum' caption='Booking Count' datatype='integer' default-type='quantitative' name='[BookingCount]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' name='[CashCollectedKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Cash Collected Kpi Vnd' datatype='integer' default-type='quantitative' name='[CashCollectedKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Cash Collected Plan Vnd' datatype='integer' default-type='quantitative' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Cash Collected Vnd' datatype='integer' default-type='quantitative' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' datatype='string' default-type='nominal' name='[City]' pivot='key' role='dimension' semantic-role='[City].[Name]' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Year' caption='Closed Date' datatype='datetime' default-type='ordinal' name='[ClosedDate]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
   <column aggregation='Count' caption='Collection Id' datatype='integer' default-type='ordinal' name='[CollectionId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
@@ -2017,7 +2017,7 @@
   <column aggregation='Year' caption='Created Date' datatype='datetime' default-type='ordinal' name='[CreatedDate]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
   <column aggregation='Count' caption='Customer Segment' datatype='string' default-type='nominal' name='[CustomerSegment]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Sum' caption='Deal Count' datatype='integer' default-type='quantitative' name='[DealCount]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Doanh số (tỷ)' datatype='integer' default-type='quantitative' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Deal Value Vnd' datatype='integer' default-type='quantitative' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Delay Weeks' datatype='integer' default-type='quantitative' name='[DelayWeeks]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Year' caption='Due Date' datatype='datetime' default-type='ordinal' name='[DueDate]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
   <column aggregation='Count' caption='Financial Id' datatype='integer' default-type='ordinal' name='[FinancialId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
@@ -2043,9 +2043,9 @@
   <column aggregation='Count' caption='Project Id' datatype='integer' default-type='ordinal' name='[ProjectId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' caption='Project Name' datatype='string' default-type='nominal' name='[ProjectName]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Count' datatype='string' default-type='nominal' name='[Province]' pivot='key' role='dimension' semantic-role='[State].[Name]' type='nominal' user-datatype='string' visual-totals='Default' />
-  <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' name='[RevenueKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' name='[RevenuePlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' name='[RevenueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Revenue Kpi Vnd' datatype='integer' default-type='quantitative' name='[RevenueKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Revenue Plan Vnd' datatype='integer' default-type='quantitative' name='[RevenuePlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Revenue Vnd' datatype='integer' default-type='quantitative' name='[RevenueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' datatype='integer' default-type='ordinal' name='[SaleId (Collections)]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' caption='Sale Id' datatype='integer' default-type='ordinal' name='[SaleId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' caption='San Giao Dich' datatype='string' default-type='nominal' name='[SanGiaoDich]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
@@ -2058,8 +2058,8 @@
   <column aggregation='Count' caption='Unit Type' datatype='string' default-type='nominal' name='[UnitType]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Sum' caption='Units Inventory' datatype='integer' default-type='quantitative' name='[UnitsInventory]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Units Opened' datatype='integer' default-type='quantitative' name='[UnitsOpened]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' name='[UnitsSoldKpi]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' name='[UnitsSoldPlan]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Units Sold Kpi' datatype='integer' default-type='quantitative' name='[UnitsSoldKpi]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Units Sold Plan' datatype='integer' default-type='quantitative' name='[UnitsSoldPlan]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Units Sold' datatype='integer' default-type='quantitative' name='[UnitsSold]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Visit Count' datatype='integer' default-type='quantitative' name='[VisitCount]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' caption='Agencies' datatype='table' default-type='quantitative' name='[__tableau_internal_object_id__].[Agencies (Extract.Agencies)_38235686A3B14517A0A65B7B239FB917]' pivot='key' role='measure' type='quantitative' user-datatype='table' visual-totals='Default' />
@@ -2429,7 +2429,7 @@
             <map to='#4e79a7'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj]&quot;</bucket>
             </map>
-            <map to='#4e79a7'>
+            <map to='#1b75bc'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:UnitsSold (MonthlyFinancial):qk]&quot;</bucket>
             </map>
             <map to='#4e79a7'>
@@ -2441,13 +2441,13 @@
             <map to='#4e79a7'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000032:qk]&quot;</bucket>
             </map>
-            <map to='#59a14f'>
+            <map to='#9fb3c8'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:RevenuePlanVnd:qk]&quot;</bucket>
             </map>
-            <map to='#76b7b2'>
+            <map to='#1b75bc'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:RevenueVnd:qk]&quot;</bucket>
             </map>
-            <map to='#b07aa1'>
+            <map to='#1b75bc'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:CashCollectedVnd:qk]&quot;</bucket>
             </map>
             <map to='#bab0ac'>
@@ -2459,16 +2459,16 @@
             <map to='#bab0ac'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000033:qk]&quot;</bucket>
             </map>
-            <map to='#e15759'>
+            <map to='#c29b54'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:UnitsSoldKpi:qk]&quot;</bucket>
             </map>
-            <map to='#edc948'>
+            <map to='#c29b54'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:RevenueKpiVnd:qk]&quot;</bucket>
             </map>
-            <map to='#f28e2b'>
+            <map to='#9fb3c8'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:UnitsSoldPlan:qk]&quot;</bucket>
             </map>
-            <map to='#ff9da7'>
+            <map to='#9fb3c8'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:CashCollectedPlanVnd:qk]&quot;</bucket>
             </map>
           </encoding>
@@ -3034,7 +3034,7 @@
           </formatted-text>
         </title>
       </layout-options>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/KPIDoanhspct?rev=' id='3032422' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh/KPIDoanhspct?rev=' id='3035297' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
       <table>
         <view>
           <datasources>
@@ -3136,7 +3136,7 @@
           </formatted-text>
         </title>
       </layout-options>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/KPISnlngpct?rev=' id='3032421' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh/KPISnlngpct?rev=' id='3035296' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
       <table>
         <view>
           <datasources>
@@ -3238,7 +3238,7 @@
           </formatted-text>
         </title>
       </layout-options>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/KPITinthupct?rev=' id='3032423' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh/KPITinthupct?rev=' id='3035298' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
       <table>
         <view>
           <datasources>
@@ -3283,7 +3283,7 @@
       <simple-id uuid='{49630D33-5D7F-4369-986F-41097B8A4DE2}' />
     </worksheet>
     <worksheet name='Ring Doanh số'>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/RingDoanhs?rev=' id='3032419' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh/RingDoanhs?rev=' id='3035294' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
       <table>
         <view>
           <datasources>
@@ -3413,7 +3413,7 @@
       <simple-id uuid='{9A9F51A2-9B96-4E81-81BC-CFC1B9B915C1}' />
     </worksheet>
     <worksheet name='Ring Sản lượng'>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/RingSnlng?rev=' id='3032418' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh/RingSnlng?rev=' id='3035293' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
       <table>
         <view>
           <datasources>
@@ -3543,7 +3543,7 @@
       <simple-id uuid='{8F82BFFB-6226-4C17-8A7E-4B2F38A4A841}' />
     </worksheet>
     <worksheet name='Ring Tiền thu'>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/RingTinthu?rev=' id='3032420' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh/RingTinthu?rev=' id='3035295' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
       <table>
         <view>
           <datasources>
@@ -3673,7 +3673,7 @@
       <simple-id uuid='{A73518B7-AC5F-49EF-92C2-8F2FB1FC5905}' />
     </worksheet>
     <worksheet name='Ring Tiền thu 1'>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/RingTinthu1?rev=' id='3034827' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh/RingTinthu1?rev=' id='3035299' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
       <table>
         <view>
           <datasources>
@@ -3855,7 +3855,7 @@
   </worksheets>
   <dashboards>
     <dashboard enable-sort-zone-taborder='true' name='Tài Chính'>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/TiChnh?rev=' id='3032225' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/MeyGroup-TaiChinh/TiChnh?rev=' id='3031225' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
       <style />
       <size maxheight='1100' maxwidth='1560' minheight='1100' minwidth='1560' />
       <zones>
@@ -3934,79 +3934,115 @@
                       <format attr='background-color' value='#ffffff' />
                     </zone-style>
                   </zone>
-                  <zone fixed-size='595' h='35273' id='3022' is-fixed='true' param='vert' type-v2='layout-flow' w='38141' x='23718' y='10272'>
-                    <zone fixed-size='597' h='32364' id='3007' is-fixed='true' name='SanLuongThang' w='38141' x='23718' y='10272'>
-                      <layout-cache cell-count-w='18' minheight='179' non-cell-size-w='31' type-h='scalable' type-w='cell' />
-                      <zone-style>
-                        <format attr='border-color' value='#e3e9ef' />
-                        <format attr='border-style' value='solid' />
-                        <format attr='border-width' value='1' />
-                        <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                        <format attr='margin' value='9' />
-                        <format attr='padding' value='10' />
-                        <format attr='background-color' value='#ffffff' />
-                      </zone-style>
+                  <zone fixed-size='595' h='35273' id='3035' is-fixed='true' type-v2='layout-basic' w='38141' x='23718' y='10272'>
+                    <zone h='32183' id='3022' param='vert' type-v2='layout-flow' w='38141' x='23718' y='10272'>
+                      <zone fixed-size='597' h='32183' id='3007' is-fixed='true' name='SanLuongThang' w='38141' x='23718' y='10272'>
+                        <layout-cache cell-count-w='18' minheight='180' non-cell-size-w='31' type-h='scalable' type-w='cell' />
+                        <zone-style>
+                          <format attr='border-color' value='#e3e9ef' />
+                          <format attr='border-style' value='solid' />
+                          <format attr='border-width' value='1' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-bottom-left' value='0' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-bottom-right' value='0' />
+                          <format attr='margin' value='9' />
+                          <format attr='margin-bottom' value='0' />
+                          <format attr='padding' value='10' />
+                          <format attr='background-color' value='#ffffff' />
+                        </zone-style>
+                      </zone>
                     </zone>
-                    <zone h='2909' id='3018' name='SanLuongThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='38141' x='23718' y='42636'>
-                      <zone-style>
-                        <format attr='border-color' value='#e6e6e6' />
-                        <format attr='border-style' value='solid' />
-                        <format attr='border-width' value='1' />
-                        <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                        <format attr='margin' value='3' />
-                        <format attr='padding' value='3' />
-                        <format attr='background-color' value='#ffffff' />
-                      </zone-style>
+                    <zone h='3090' id='3036' param='vert' type-v2='layout-flow' w='38141' x='23718' y='42455'>
+                      <zone h='3090' id='3018' name='SanLuongThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='38141' x='23718' y='42455'>
+                        <zone-style>
+                          <format attr='border-color' value='#e6e6e6' />
+                          <format attr='border-style' value='solid' />
+                          <format attr='border-width' value='1' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-top-left' value='0' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-top-right' value='0' />
+                          <format attr='margin' value='3' />
+                          <format attr='margin-top' value='0' />
+                          <format attr='margin-right' value='9' />
+                          <format attr='margin-bottom' value='9' />
+                          <format attr='margin-left' value='9' />
+                          <format attr='padding' value='3' />
+                          <format attr='background-color' value='#ffffff' />
+                        </zone-style>
+                      </zone>
                     </zone>
                   </zone>
-                  <zone h='35273' id='3024' param='vert' type-v2='layout-flow' w='37627' x='61859' y='10272'>
-                    <zone h='32183' id='3008' name='DoanhSoThang' w='37627' x='61859' y='10272'>
-                      <layout-cache minheight='180' type-h='scalable' type-w='cell' />
-                      <zone-style>
-                        <format attr='border-color' value='#e3e9ef' />
-                        <format attr='border-style' value='solid' />
-                        <format attr='border-width' value='1' />
-                        <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                        <format attr='margin' value='9' />
-                        <format attr='padding' value='10' />
-                        <format attr='background-color' value='#ffffff' />
-                      </zone-style>
+                  <zone h='35273' id='3037' is-fixed='true' type-v2='layout-basic' w='37628' x='61859' y='10272'>
+                    <zone h='32183' id='3024' param='vert' type-v2='layout-flow' w='37628' x='61859' y='10272'>
+                      <zone h='32183' id='3008' name='DoanhSoThang' w='37628' x='61859' y='10272'>
+                        <layout-cache minheight='180' type-h='scalable' type-w='cell' />
+                        <zone-style>
+                          <format attr='border-color' value='#e3e9ef' />
+                          <format attr='border-style' value='solid' />
+                          <format attr='border-width' value='1' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-bottom-left' value='0' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-bottom-right' value='0' />
+                          <format attr='margin' value='9' />
+                          <format attr='margin-bottom' value='0' />
+                          <format attr='padding' value='10' />
+                          <format attr='background-color' value='#ffffff' />
+                        </zone-style>
+                      </zone>
                     </zone>
-                    <zone h='3090' id='3023' leg-item-layout='horz' name='DoanhSoThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='37627' x='61859' y='42455'>
-                      <zone-style>
-                        <format attr='border-color' value='#f5f5f5' />
-                        <format attr='border-style' value='solid' />
-                        <format attr='border-width' value='1' />
-                        <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                        <format attr='margin' value='3' />
-                        <format attr='padding' value='3' />
-                        <format attr='background-color' value='#ffffff' />
-                      </zone-style>
+                    <zone h='3090' id='3038' param='vert' type-v2='layout-flow' w='37628' x='61859' y='42455'>
+                      <zone h='3090' id='3023' leg-item-layout='horz' name='DoanhSoThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='37628' x='61859' y='42455'>
+                        <zone-style>
+                          <format attr='border-color' value='#f5f5f5' />
+                          <format attr='border-style' value='solid' />
+                          <format attr='border-width' value='1' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-top-left' value='0' />
+                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-top-right' value='0' />
+                          <format attr='margin' value='3' />
+                          <format attr='margin-top' value='0' />
+                          <format attr='margin-right' value='10' />
+                          <format attr='margin-bottom' value='10' />
+                          <format attr='margin-left' value='10' />
+                          <format attr='padding' value='3' />
+                          <format attr='background-color' value='#ffffff' />
+                        </zone-style>
+                      </zone>
                     </zone>
                   </zone>
                 </zone>
               </zone>
               <zone h='26953' id='3012' param='horz' type-v2='layout-flow' w='98974' x='513' y='45545'>
                 <zone h='26953' id='3026' param='vert' type-v2='layout-flow' w='49101' x='513' y='45545'>
-                  <zone h='2727' id='3025' leg-item-layout='horz' name='DongTienThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='49101' x='513' y='45545'>
+                  <zone h='3636' id='3025' leg-item-layout='horz' name='DongTienThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='49101' x='513' y='45545'>
                     <zone-style>
                       <format attr='border-color' value='#f5f5f5' />
                       <format attr='border-style' value='solid' />
                       <format attr='border-width' value='1' />
                       <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                      <format attr='margin' value='4' />
+                      <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-bottom-left' value='0' />
+                      <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-bottom-right' value='0' />
+                      <format attr='margin' value='9' />
+                      <format attr='margin-bottom' value='0' />
+                      <format attr='padding-top' value='9' />
+                      <format attr='padding-right' value='9' />
+                      <format attr='padding-left' value='9' />
                       <format attr='background-color' value='#ffffff' />
                     </zone-style>
                   </zone>
-                  <zone h='24226' id='3010' name='DongTienThang' w='49101' x='513' y='48272'>
+                  <zone h='23317' id='3010' name='DongTienThang' w='49101' x='513' y='49181'>
                     <layout-cache minheight='180' type-h='scalable' type-w='cell' />
                     <zone-style>
                       <format attr='border-color' value='#e3e9ef' />
                       <format attr='border-style' value='solid' />
                       <format attr='border-width' value='1' />
                       <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                      <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-top-left' value='0' />
+                      <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius-top-right' value='0' />
                       <format attr='margin' value='9' />
+                      <format attr='margin-top' value='0' />
                       <format attr='padding' value='10' />
+                      <format attr='padding-top' value='0' />
                       <format attr='background-color' value='#ffffff' />
                     </zone-style>
                   </zone>
@@ -4108,24 +4144,6 @@
         </viewpoint>
         <viewpoint name='KPI Công nợ'>
           <zoom type='entire-view' />
-          <selection-collection>
-            <tuple-selection>
-              <tuple-reference>
-                <tuple-descriptor>
-                  <pane-descriptor>
-                    <x-fields />
-                    <y-fields />
-                  </pane-descriptor>
-                  <columns>
-                    <field>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000003:qk]</field>
-                  </columns>
-                </tuple-descriptor>
-                <tuple>
-                  <value>6401279400000</value>
-                </tuple>
-              </tuple-reference>
-            </tuple-selection>
-          </selection-collection>
         </viewpoint>
         <viewpoint name='KPI Doanh số'>
           <zoom type='entire-view' />
@@ -4152,7 +4170,7 @@
           </highlight>
         </viewpoint>
       </viewpoints>
-      <active id='-1' />
+      <active id='3013' />
       <simple-id uuid='{A50294A9-8956-4FBC-90C1-780DA7660DEE}' />
     </window>
     <window class='worksheet' name='Ring Sản lượng'>
