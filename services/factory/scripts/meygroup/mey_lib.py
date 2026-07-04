@@ -266,6 +266,177 @@ def chart(sheet_name, title_vn, deps, insts, rows, cols, mark="Bar", encodings=N
     </worksheet>"""
 
 
+# ─── Ring / donut % gauge (dual-pie donut, cloned from Superstore2 `Segment`) ─
+def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
+              zero_calc: Calc, dummy_calc: Calc, center_pct_text: str,
+              ring_color="#1F8A70"):
+    """% hoàn thành donut gauge using the two-stacked-pie technique from the
+    user's Superstore reference: a placeholder measure (zero) is placed on rows
+    TWICE `(zero+zero)` → dual axis → two Pie panes stacked at the same spot.
+    Pane 0 = big pie (green Đạt arc + grey Còn lại arc, wedge-size=Multiple
+    Values). Pane 1 = smaller WHITE pie on top → punches the donut hole. The
+    hole shows center_pct_text via the title. A single-pie has no hole (renders
+    as a solid dot — the earlier bug)."""
+    dat = f"[{DS}].[usr:{dat_calc.cid}:qk]"
+    rem = f"[{DS}].[usr:{remain_calc.cid}:qk]"
+    zero = f"[{DS}].[sum:{zero_calc.cid}:qk]"
+    dummy = f"[{DS}].[none:{dummy_calc.cid}:nk]"
+    mn = f"[{DS}].[:Measure Names]"
+    mv = f"[{DS}].[Multiple Values]"
+    # zero_calc is a measure literal 0; its column-instance is a Sum (not usr).
+    zero_dep = (f"            <column caption='{esc(zero_calc.caption)}' datatype='integer' "
+                f"name='[{zero_calc.cid}]' role='measure' type='quantitative'>\n"
+                f"              <calculation class='tableau' formula='{esc(zero_calc.formula)}' />\n"
+                f"            </column>\n"
+                f"            <column-instance column='[{zero_calc.cid}]' derivation='Sum' "
+                f"name='[sum:{zero_calc.cid}:qk]' pivot='key' type='quantitative' />")
+    dummy_dep = (dummy_calc.dep_col() + "\n"
+                 f"            <column-instance column='[{dummy_calc.cid}]' derivation='None' "
+                 f"name='[none:{dummy_calc.cid}:nk]' pivot='key' type='nominal' />")
+    deps = "\n".join([pct_calc.dep_col(), dat_calc.dep_col(), remain_calc.dep_col(),
+                      pct_calc.inst(), dat_calc.inst(), remain_calc.inst(),
+                      zero_dep, dummy_dep])
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <layout-options>
+        <title><formatted-text><run fontsize='21' bold='true' fontcolor='{ring_color}'>{esc(center_pct_text)}</run></formatted-text></title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='{DS}' />
+          </datasources>
+          <datasource-dependencies datasource='{DS}'>
+{deps}
+          </datasource-dependencies>
+          <filter class='categorical' column='{mn}'>
+            <groupfilter function='union' user:op='manual'>
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;{dat}&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;{rem}&quot;' />
+            </groupfilter>
+          </filter>
+          <slices><column>{mn}</column></slices>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='axis'>
+            <format attr='display' class='0' field='{zero}' scope='rows' value='false' />
+            <format attr='display' class='1' field='{zero}' scope='rows' value='false' />
+            <format attr='tick-color' value='#00000000' />
+          </style-rule>
+          <style-rule element='label'><format attr='display' field='{dummy}' value='false' /></style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Pie' />
+            <mark-sizing mark-sizing-setting='marks-scaling-off' />
+            <encodings>
+              <color column='{mn}' palette='ring_gauge' type='palette' />
+              <wedge-size column='{mv}' />
+            </encodings>
+            <style><style-rule element='mark'><format attr='size' value='1.20' /></style-rule></style>
+          </pane>
+          <pane id='1' selection-relaxation-option='selection-relaxation-allow' y-axis-name='{zero}' y-index='1'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Pie' />
+            <mark-sizing mark-sizing-setting='marks-scaling-off' />
+            <encodings>
+              <color column='{mn}' palette='ring_gauge' type='palette' />
+              <wedge-size column='{mv}' />
+            </encodings>
+            <style><style-rule element='mark'>
+              <format attr='size' value='0.62' />
+              <format attr='mark-color' value='#FFFFFF' />
+            </style-rule></style>
+          </pane>
+        </panes>
+        <rows>({zero} + {zero})</rows>
+        <cols>{dummy}</cols>
+        <tooltip-style tooltip-mode='none' />
+      </table>
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
+# ─── Bullet chart: KHNS ghost bar (wide, behind) + actual bar (brand, front) ──
+def bullet_chart(sheet_name, title_vn, month_field, actual_calc_name, plan_calc_name,
+                 kpi_calc_name=None, fmt='n#,##0,,,"tỷ"'):
+    """Monthly plan-vs-actual: a wide grey KHNS ghost bar with the brand-blue
+    actual bar overlaid thinner in front (dual-axis, synchronized) — the exact
+    structure of the user's Desktop `Bullet Seed`. `kpi_calc_name` is accepted
+    for API symmetry but rendered as a thin gold KPI marker bar on a 3rd
+    synchronized measure only when provided (avoids the unverified reference-line
+    XML). month_field e.g. 'Month'; *_calc_name are RAW measure names."""
+    def sref(n): return f"[{DS}].[sum:{n}:qk]"
+    def rawcol(n): return (f"            <column aggregation='Sum' datatype='integer' default-type='quantitative' "
+                           f"layered='true' name='[{n}]' pivot='key' role='measure' type='quantitative' "
+                           f"user-datatype='integer' visual-totals='Default' />")
+    def sinst(n): return f"            <column-instance column='[{n}]' derivation='Sum' name='[sum:{n}:qk]' pivot='key' type='quantitative' />"
+    act, plan = sref(actual_calc_name), sref(plan_calc_name)
+    month_inst = f"[{DS}].[mn:{month_field}:ok]"
+    dep_names = [
+        f"            <column aggregation='Year' datatype='datetime' default-type='ordinal' layered='true' name='[{month_field}]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />",
+        rawcol(actual_calc_name), rawcol(plan_calc_name),
+        f"            <column-instance column='[{month_field}]' derivation='Month' name='[mn:{month_field}:ok]' pivot='key' type='ordinal' />",
+        sinst(actual_calc_name), sinst(plan_calc_name),
+    ]
+    deps = "\n".join(dep_names)
+    # TRUE dual-axis: two measures on rows (plan first = behind, actual second =
+    # front), each its own <pane> keyed by y-axis-name, axes synchronized so they
+    # share scale and overlay. Plan pane = wide grey ghost; actual pane = thin
+    # brand-blue in front. mark-layer-order puts actual on top.
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <layout-options>
+        <title><formatted-text><run fontname='Tableau Bold' fontsize='13' bold='true' fontcolor='#0F2A47'>{esc(title_vn)}</run></formatted-text></title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='{DS}' />
+          </datasources>
+          <datasource-dependencies datasource='{DS}'>
+{deps}
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='pane'>
+            <format attr='grid-line-show' value='false' />
+            <format attr='zero-line-show' value='false' />
+          </style-rule>
+          <style-rule element='axis'>
+            <format attr='rule-color' value='#C3CDD8' /><format attr='tick-color' value='#E3E9EF' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow' y-axis-name='{plan}'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Bar' />
+            <style>
+              <style-rule element='mark'><format attr='mark-color' value='#D6E0EA' /><format attr='mark-bar-size' value='0.86' /></style-rule>
+            </style>
+          </pane>
+          <pane id='1' selection-relaxation-option='selection-relaxation-allow' y-axis-name='{act}'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Bar' />
+            <style>
+              <style-rule element='mark'><format attr='mark-color' value='#1B75BC' /><format attr='mark-bar-size' value='0.44' /></style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>{plan}{act}</rows>
+        <cols>{month_inst}</cols>
+        <join-axes>
+          <axis-mapping-set>
+            <axis-mapping to='{plan}'>{plan}</axis-mapping>
+            <axis-mapping to='{plan}'>{act}</axis-mapping>
+          </axis-mapping-set>
+        </join-axes>
+      </table>
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
 # ─── Design tokens (Meyland brand + Ciel resort palette, light-elegant) ─────
 BG_PAGE   = "#F5F8FB"   # canvas — "tinh khiết" trắng xanh nhạt
 BG_CARD   = "#FFFFFF"   # card fill
@@ -277,17 +448,24 @@ BODY      = "#5A6B7B"   # secondary text
 
 
 # ─── Dashboard layout-flow ──────────────────────────────────────────────────
+# Tableau's feature-flagged rounded-corner format (from the user's Desktop
+# Dashboard 1). Requires the DashboardRoundedCorners FCP entry in the workbook
+# manifest (see workbook()). value = corner radius in px.
+ROUNDED = "<_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />"
+
 def leaf(name, minw=80, w=100000):
-    # Floating card: soft border + generous gutter (margin) + inner padding so
-    # each viz breathes — the single cheapest "premium" signal.
+    # Floating card: soft border + rounded corners + generous gutter (margin) +
+    # inner padding so each viz breathes — the premium card treatment matching
+    # the approved v3 mockup + the user's Superstore reference.
     return (f"              <zone h='100000' id='{_zid()}' name='{esc(name)}' w='{w}' x='0' y='0'>\n"
             f"                <layout-cache minwidth='{minw}' type-h='scalable' type-w='scalable' />\n"
             f"                <zone-style>"
             f"<format attr='border-color' value='{BORDER}' />"
             f"<format attr='border-style' value='solid' />"
             f"<format attr='border-width' value='1' />"
-            f"<format attr='margin' value='8' />"
-            f"<format attr='padding' value='6' />"
+            f"{ROUNDED}"
+            f"<format attr='margin' value='9' />"
+            f"<format attr='padding' value='10' />"
             f"<format attr='background-color' value='{BG_CARD}' />"
             f"</zone-style>\n"
             f"              </zone>")
@@ -361,6 +539,7 @@ def workbook(calcs, sheets_xml, sheet_names, dashboard_xml, dash_name):
     return f"""<?xml version='1.0' encoding='utf-8' ?>
 <workbook original-version='18.1' source-build='2026.1.1 (20261.26.0410.0924)' version='18.1' xml:base='https://prod-apsoutheast-c.online.tableau.com' xmlns:user='http://www.tableausoftware.com/xml/user'>
   <document-format-change-manifest>
+    <_.fcp.DashboardRoundedCorners.true...DashboardRoundedCorners />
     <ObjectModelEncapsulateLegacy />
     <ObjectModelSharedDimensions />
     <ObjectModelTableType />
@@ -382,6 +561,10 @@ def workbook(calcs, sheets_xml, sheet_names, dashboard_xml, dash_name):
       <color>#2AA79B</color>
       <color>#C9A24B</color>
       <color>#8E7CC3</color>
+    </color-palette>
+    <color-palette name='ring_gauge' type='regular'>
+      <color>#1F8A70</color>
+      <color>#E7EDF3</color>
     </color-palette>
   </preferences>
   {ds_block}

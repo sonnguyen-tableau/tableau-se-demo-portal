@@ -1,6 +1,6 @@
 <datasources>
     <datasource caption='meygroup' inline='true' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' version='18.1'>
-      <repository-location derived-from='http://localhost:9100/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.4' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.6' site='vietnam' />
       <connection channel='https' class='sqlproxy' dbname='meygroup' directory='dataserver' port='443' saved-credentials-viewerid='11497' server='prod-apsoutheast-c.online.tableau.com' server-ds-friendly-name='meygroup' username=''>
         <relation type='collection'>
           <relation connection='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' name='sqlproxy' table='[sqlproxy]' type='table' />
@@ -1851,7 +1851,7 @@
     <ObjectModelTableType />
     <SchemaViewerObjectModel />
   </document-format-change-manifest>
-  <repository-location derived-from='http://prod-apsoutheast-c.online.tableau.com/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.4' site='vietnam' />
+  <repository-location derived-from='http://prod-apsoutheast-c.online.tableau.com/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.6' site='vietnam' />
   <connection :user-groups='local\\All Users\#local\\All Reports\#\#' channel='http' class='sqlproxy' dbname='meygroup' directory='dataserver' port='8080' server='localhost'>
     <relation type='collection'>
       <relation connection='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' name='sqlproxy' table='[sqlproxy]' type='table' />
@@ -2207,6 +2207,18 @@
       <column caption='Transaction' datatype='integer' name='[Calculation_0013763111612433]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='COUNTD([SaleId])' />
       </column>
+      <column caption='Pct HT San Luong' datatype='real' default-format='p0.0%' name='[Calculation_0013763350716434]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([UnitsSold]) / SUM([UnitsOpened])' />
+      </column>
+      <column caption='Phần còn lại' datatype='real' name='[Calculation_0013763350962195]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula='1 - MIN([Calculation_0013763350716434], 1)' />
+      </column>
+      <column caption='Đạt' datatype='real' name='[Calculation_0013763351994388]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula='MIN([Calculation_0013763350716434],1)' />
+      </column>
+      <column caption='Còn lại' datatype='real' name='[Calculation_0013763352047637]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula='1 - [Calculation_0013763351994388]' />
+      </column>
       <column aggregation='Sum' caption='Cash Collected Kpi Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Sum' caption='Cash Collected Plan Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Sum' caption='Cash Collected Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
@@ -2320,6 +2332,11 @@
       <column aggregation='Count' caption='Sales' datatype='table' default-type='quantitative' layered='true' name='[__tableau_internal_object_id__].[Sales (Extract.Sales)_61170ECD1B8F4BA8AA876BC898EC169F]' pivot='key' role='measure' type='quantitative' user-datatype='table' visual-totals='Default' />
       <column aggregation='Count' caption='Sales' datatype='table' default-type='quantitative' layered='true' name='[__tableau_internal_object_id__].[Sales (Extract.Sales)_7159C15AAF67477FA16ACCFF54067786]' pivot='key' role='measure' type='quantitative' user-datatype='table' visual-totals='Default' />
       <column aggregation='Count' caption='Sales' datatype='table' default-type='quantitative' layered='true' name='[__tableau_internal_object_id__].[Sales (Extract.Sales)_8699A0EC1C854DF9AAAA36C4C486724C]' pivot='key' role='measure' type='quantitative' user-datatype='table' visual-totals='Default' />
+      <column-instance column='[RevenueKpiVnd]' derivation='Sum' name='[sum:RevenueKpiVnd:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[RevenuePlanVnd]' derivation='Sum' name='[sum:RevenuePlanVnd:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[RevenueVnd]' derivation='Sum' name='[sum:RevenueVnd:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[Calculation_0013763351994388]' derivation='User' name='[usr:Calculation_0013763351994388:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[Calculation_0013763352047637]' derivation='User' name='[usr:Calculation_0013763352047637:qk]' pivot='key' type='quantitative' />
       <drill-paths>
         <drill-path layered='true' name='Country, Province, City'>
           <field>[Country]</field>
@@ -2328,6 +2345,27 @@
         </drill-path>
       </drill-paths>
       <layout dim-ordering='alphabetic' measure-ordering='alphabetic' show-structure='true' />
+      <style>
+        <style-rule element='mark'>
+          <encoding attr='color' field='[:Measure Names]' type='palette'>
+            <map to='#4e79a7'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:RevenueVnd:qk]&quot;</bucket>
+            </map>
+            <map to='#4e79a7'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0013763351994388:qk]&quot;</bucket>
+            </map>
+            <map to='#bab0ac'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:RevenuePlanVnd:qk]&quot;</bucket>
+            </map>
+            <map to='#e15759'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:RevenueKpiVnd:qk]&quot;</bucket>
+            </map>
+            <map to='#f28e2b'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0013763352047637:qk]&quot;</bucket>
+            </map>
+          </encoding>
+        </style-rule>
+      </style>
       <semantic-values>
         <semantic-value key='[Country].[Name]' value='&quot;Singapore&quot;' />
       </semantic-values>
