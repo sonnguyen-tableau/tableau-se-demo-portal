@@ -1,13 +1,15 @@
 <?xml version='1.0' encoding='utf-8' ?>
 
 <!-- build 20262.26.0625.1400                               -->
-<workbook original-version='18.1' source-build='2026.1.3 (20261.26.0605.2203)' source-platform='mac' version='18.1' xml:base='https://prod-apsoutheast-c.online.tableau.com' xmlns:user='http://www.tableausoftware.com/xml/user'>
+<workbook _.fcp.WorkbookFingerprinting.true...author-id='798dc609deff033e9c2f37fe6693a2b3a546dec5aeb6cc04670255407637a926' _.fcp.WorkbookFingerprinting.true...creator-author-id='798dc609deff033e9c2f37fe6693a2b3a546dec5aeb6cc04670255407637a926' _.fcp.WorkbookFingerprinting.true...creator-license-type='creator' _.fcp.WorkbookFingerprinting.true...creator-site-id='4386f7698bcc3630efd069e4cb60ce7d32bf07ef8a85dcd226d75c303a82b3c1' _.fcp.WorkbookFingerprinting.true...license-type='creator' _.fcp.WorkbookFingerprinting.true...site-id='4386f7698bcc3630efd069e4cb60ce7d32bf07ef8a85dcd226d75c303a82b3c1' locale='vi_VN' original-version='18.1' source-build='2026.2.2 (20262.26.0625.1400)' version='18.1' xml:base='https://prod-apsoutheast-c.online.tableau.com' xmlns:user='http://www.tableausoftware.com/xml/user'>
   <document-format-change-manifest>
     <AccessibleZoneTabOrder />
     <AnimationOnByDefault />
     <_.fcp.DashboardRoundedCorners.true...DashboardRoundedCorners />
     <ISO8601DefaultCalendarPref />
     <IndividualControlFormatting />
+    <Layers />
+    <MapboxVectorStylesAndLayers />
     <MarkAnimation />
     <ObjectModelEncapsulateLegacy />
     <ObjectModelTableType />
@@ -16,16 +18,11 @@
     <SheetIdentifierTracking />
     <SortTagCleanup />
     <WindowsPersistSimpleIdentifiers />
+    <_.fcp.WorkbookFingerprinting.true...WorkbookFingerprinting />
+    <WorksheetBackgroundTransparency />
   </document-format-change-manifest>
-  <repository-location derived-from='http://prod-apsoutheast-c.online.tableau.com/t/vietnam/workbooks/_seed_desktop2?rev=1.0' id='_seed_desktop2' path='/t/vietnam/workbooks' revision='1.0' site='vietnam' />
-  <preferences>
-    <preference name='ui.encoding.shelf.height' value='24' />
-    <preference name='ui.shelf.height' value='26' />
-      <color-palette name='ring_gauge' type='regular'>
-      <color>#1F8A70</color>
-      <color>#E7EDF3</color>
-    </color-palette>
-  </preferences>
+  <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3?rev=1.6' id='_seed_desktop3' path='/t/vietnam/workbooks' revision='1.6' site='vietnam' />
+  <preferences />
   <style>
     <style-rule element='animation'>
       <format attr='animation-on' value='ao-off' />
@@ -33,7 +30,7 @@
   </style>
   <datasources>
     <datasource caption='meygroup' inline='true' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' version='18.1'>
-      <repository-location derived-from='http://prod-apsoutheast-c.online.tableau.com/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.0' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.6' site='vietnam' />
       <connection channel='https' class='sqlproxy' dbname='meygroup' directory='dataserver' port='443' saved-credentials-viewerid='11497' server='prod-apsoutheast-c.online.tableau.com' server-ds-friendly-name='meygroup' server-oauth='' username='' workgroup-auth-mode='prompt'>
         <relation type='collection'>
           <relation connection='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' name='sqlproxy' table='[sqlproxy]' type='table' />
@@ -1884,8 +1881,8 @@
     <ObjectModelTableType />
     <SchemaViewerObjectModel />
   </document-format-change-manifest>
-  <repository-location derived-from='http://prod-apsoutheast-c.online.tableau.com/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.0' site='vietnam' />
-  <connection :databaseVariables='' channel='http' class='sqlproxy' dbname='meygroup' local-dataserver='' port='80' server='prod-apsoutheast-c.online.tableau.com'>
+  <repository-location derived-from='http://prod-apsoutheast-c.online.tableau.com/t/vietnam/datasources/meygroup?rev=1.5' id='meygroup' path='/t/vietnam/datasources' revision='1.6' site='vietnam' />
+  <connection :user-groups='local\\All Users\#local\\All Reports\#\#' channel='http' class='sqlproxy' dbname='meygroup' directory='dataserver' port='8080' server='localhost'>
     <relation type='collection'>
       <relation connection='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' name='sqlproxy' table='[sqlproxy]' type='table' />
       <relation connection='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' name='sqlproxy' table='[sqlproxy]' type='table' />
@@ -2240,6 +2237,9 @@
       <column caption='Transaction' datatype='integer' name='[Calculation_0013763111612433]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='COUNTD([SaleId])' />
       </column>
+      <column caption='Zero' datatype='spatial' name='[Calculation_0013900913811477]' role='measure' type='nominal'>
+        <calculation class='tableau' formula='MAKEPOINT(0,0)' />
+      </column>
       <column caption='Tổng doanh số' datatype='integer' default-format='n#,##0,,,&quot;tỷ&quot;' name='[Calculation_0090010000000001]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='SUM([DealValueVnd])' />
       </column>
@@ -2255,31 +2255,31 @@
       <column caption='Lợi nhuận' datatype='integer' default-format='n#,##0,,,&quot;tỷ&quot;' name='[Calculation_0090010000000005]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='SUM([ProfitVnd])' />
       </column>
-      <column caption='Pct HT' datatype='real' default-format='p0%' name='[Calculation_009001100000011]' role='measure' type='quantitative'>
-        <calculation class='tableau' formula='SUM([UnitsSold (MonthlyFinancial)]) / SUM([UnitsSoldPlan])' />
+      <column caption='Pct HT SL' datatype='real' default-format='p0%' name='[Calculation_009001100000011]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([UnitsSold (MonthlyFinancial)]) / SUM([UnitsSoldKpi])' />
       </column>
-      <column caption='Đạt' datatype='real' name='[Calculation_009001100000012]' role='measure' type='quantitative'>
+      <column caption='Đạt SL' datatype='real' name='[Calculation_009001100000012]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='MIN([Calculation_009001100000011],1)' />
       </column>
-      <column caption='Còn lại' datatype='real' name='[Calculation_009001100000013]' role='measure' type='quantitative'>
+      <column caption='Còn lại - SL' datatype='real' name='[Calculation_009001100000013]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='1 - [Calculation_009001100000012]' />
       </column>
-      <column caption='Pct HT' datatype='real' default-format='p0%' name='[Calculation_009001100000021]' role='measure' type='quantitative'>
-        <calculation class='tableau' formula='SUM([RevenueVnd]) / SUM([RevenuePlanVnd])' />
+      <column caption='Pct HT Rev' datatype='real' default-format='p0%' name='[Calculation_009001100000021]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([RevenueVnd]) / SUM([RevenueKpiVnd])' />
       </column>
-      <column caption='Đạt' datatype='real' name='[Calculation_009001100000022]' role='measure' type='quantitative'>
+      <column caption='Đạt Rev' datatype='real' name='[Calculation_009001100000022]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='MIN([Calculation_009001100000021],1)' />
       </column>
-      <column caption='Còn lại' datatype='real' name='[Calculation_009001100000023]' role='measure' type='quantitative'>
+      <column caption='Còn lại - Rev' datatype='real' name='[Calculation_009001100000023]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='1 - [Calculation_009001100000022]' />
       </column>
-      <column caption='Pct HT' datatype='real' default-format='p0%' name='[Calculation_009001100000031]' role='measure' type='quantitative'>
-        <calculation class='tableau' formula='SUM([CashCollectedVnd]) / SUM([CashCollectedPlanVnd])' />
+      <column caption='Pct HT Cash' datatype='real' default-format='p0%' name='[Calculation_009001100000031]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula='SUM([CashCollectedVnd]) / SUM([CashCollectedKpiVnd])' />
       </column>
-      <column caption='Đạt' datatype='real' name='[Calculation_009001100000032]' role='measure' type='quantitative'>
+      <column caption='Đạt Cash' datatype='real' name='[Calculation_009001100000032]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='MIN([Calculation_009001100000031],1)' />
       </column>
-      <column caption='Còn lại' datatype='real' name='[Calculation_009001100000033]' role='measure' type='quantitative'>
+      <column caption='Còn lại - Cash' datatype='real' name='[Calculation_009001100000033]' role='measure' type='quantitative'>
         <calculation class='tableau' formula='1 - [Calculation_009001100000032]' />
       </column>
       <column caption='min0' datatype='integer' name='[Calculation_00900119000000]' role='measure' type='quantitative'>
@@ -2409,6 +2409,12 @@
       <column-instance column='[UnitsSold (MonthlyFinancial)]' derivation='Sum' name='[sum:UnitsSold (MonthlyFinancial):qk]' pivot='key' type='quantitative' />
       <column-instance column='[UnitsSoldKpi]' derivation='Sum' name='[sum:UnitsSoldKpi:qk]' pivot='key' type='quantitative' />
       <column-instance column='[UnitsSoldPlan]' derivation='Sum' name='[sum:UnitsSoldPlan:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[Calculation_009001100000012]' derivation='User' name='[usr:Calculation_009001100000012:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[Calculation_009001100000013]' derivation='User' name='[usr:Calculation_009001100000013:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[Calculation_009001100000022]' derivation='User' name='[usr:Calculation_009001100000022:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[Calculation_009001100000023]' derivation='User' name='[usr:Calculation_009001100000023:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[Calculation_009001100000032]' derivation='User' name='[usr:Calculation_009001100000032:qk]' pivot='key' type='quantitative' />
+      <column-instance column='[Calculation_009001100000033]' derivation='User' name='[usr:Calculation_009001100000033:qk]' pivot='key' type='quantitative' />
       <drill-paths>
         <drill-path layered='true' name='Country, Province, City'>
           <field>[Country]</field>
@@ -2421,7 +2427,19 @@
         <style-rule element='mark'>
           <encoding attr='color' field='[:Measure Names]' type='palette'>
             <map to='#4e79a7'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj]&quot;</bucket>
+            </map>
+            <map to='#4e79a7'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:UnitsSold (MonthlyFinancial):qk]&quot;</bucket>
+            </map>
+            <map to='#4e79a7'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000012:qk]&quot;</bucket>
+            </map>
+            <map to='#4e79a7'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000022:qk]&quot;</bucket>
+            </map>
+            <map to='#4e79a7'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000032:qk]&quot;</bucket>
             </map>
             <map to='#59a14f'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:RevenuePlanVnd:qk]&quot;</bucket>
@@ -2432,6 +2450,12 @@
             <map to='#b07aa1'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:CashCollectedVnd:qk]&quot;</bucket>
             </map>
+            <map to='#bab0ac'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000013:qk]&quot;</bucket>
+            </map>
+            <map to='#bab0ac'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000033:qk]&quot;</bucket>
+            </map>
             <map to='#e15759'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:UnitsSoldKpi:qk]&quot;</bucket>
             </map>
@@ -2440,6 +2464,9 @@
             </map>
             <map to='#f28e2b'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:UnitsSoldPlan:qk]&quot;</bucket>
+            </map>
+            <map to='#f28e2b'>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000023:qk]&quot;</bucket>
             </map>
             <map to='#ff9da7'>
               <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:CashCollectedPlanVnd:qk]&quot;</bucket>
@@ -2567,6 +2594,9 @@
       </object-graph>
     </datasource>
   </datasources>
+  <mapsources>
+    <mapsource name='Tableau' />
+  </mapsources>
   <worksheets>
     <worksheet name='CongNoDuAn'>
       <layout-options>
@@ -2996,6 +3026,58 @@
       </table>
       <simple-id uuid='{1775BED3-A3C9-42C4-B234-10AEDA073F14}' />
     </worksheet>
+    <worksheet name='KPI Doanh số (pct)'>
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold='true' fontcolor='#5a6b7b' fontsize='9'>DOANH SỐ</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/KPIDoanhspct?rev=' id='3032422' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
+          </datasources>
+          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
+            <column caption='Tổng doanh số' datatype='integer' default-format='n#,##0,,,&quot;tỷ&quot;' name='[Calculation_0090010000000001]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([DealValueVnd])' />
+            </column>
+            <column aggregation='Sum' caption='Deal Value Vnd' datatype='integer' default-type='quantitative' layered='true' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column-instance column='[Calculation_0090010000000001]' derivation='User' name='[usr:Calculation_0090010000000001:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style />
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Automatic' />
+            <encodings>
+              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000001:qk]' />
+            </encodings>
+            <customized-label>
+              <formatted-text>
+                <run bold='true' fontalignment='1' fontcolor='#0f2a47' fontsize='18'><![CDATA[<[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000001:qk]>]]></run>
+                <run bold='true' fontalignment='1' fontcolor='#1f8a70' fontsize='10'>▲ 101% so KHNS</run>
+              </formatted-text>
+            </customized-label>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows />
+        <cols />
+      </table>
+      <simple-id uuid='{474B2162-46C2-4344-AD24-D1B9C05F3C02}' />
+    </worksheet>
     <worksheet name='KPI Sản lượng'>
       <layout-options>
         <title>
@@ -3046,6 +3128,58 @@
       </table>
       <simple-id uuid='{E56CF71F-FEAD-41DA-A917-74D5A1653879}' />
     </worksheet>
+    <worksheet name='KPI Sản lượng (pct)'>
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold='true' fontcolor='#5a6b7b' fontsize='9'>SẢN LƯỢNG (CĂN)</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/KPISnlngpct?rev=' id='3032421' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
+          </datasources>
+          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
+            <column caption='Sản lượng (căn)' datatype='integer' default-format='n#,##0' name='[Calculation_0090010000000004]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='COUNTD([SaleId])' />
+            </column>
+            <column aggregation='Count' caption='Sale Id' datatype='integer' default-type='ordinal' layered='true' name='[SaleId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
+            <column-instance column='[Calculation_0090010000000004]' derivation='User' name='[usr:Calculation_0090010000000004:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style />
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Automatic' />
+            <encodings>
+              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000004:qk]' />
+            </encodings>
+            <customized-label>
+              <formatted-text>
+                <run bold='true' fontalignment='1' fontcolor='#0f2a47' fontsize='18'><![CDATA[<[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000004:qk]>]]></run>
+                <run bold='true' fontalignment='1' fontcolor='#1f8a70' fontsize='10'>▲ 102% so KHNS</run>
+              </formatted-text>
+            </customized-label>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows />
+        <cols />
+      </table>
+      <simple-id uuid='{CE61162A-3E49-4180-B167-219F0E0B876F}' />
+    </worksheet>
     <worksheet name='KPI Tiền thu'>
       <layout-options>
         <title>
@@ -3095,6 +3229,497 @@
         <cols />
       </table>
       <simple-id uuid='{363D37A9-0339-4257-9B4D-012564FAE24B}' />
+    </worksheet>
+    <worksheet name='KPI Tiền thu (pct)'>
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold='true' fontcolor='#5a6b7b' fontsize='9'>TIỀN THU</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/KPITinthupct?rev=' id='3032423' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
+          </datasources>
+          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
+            <column aggregation='Sum' caption='Amount Collected Vnd' datatype='integer' default-type='quantitative' layered='true' name='[AmountCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column caption='Tổng tiền thu' datatype='integer' default-format='n#,##0,,,&quot;tỷ&quot;' name='[Calculation_0090010000000002]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([AmountCollectedVnd])' />
+            </column>
+            <column-instance column='[Calculation_0090010000000002]' derivation='User' name='[usr:Calculation_0090010000000002:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style />
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Automatic' />
+            <encodings>
+              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000002:qk]' />
+            </encodings>
+            <customized-label>
+              <formatted-text>
+                <run bold='true' fontalignment='1' fontcolor='#0f2a47' fontsize='18'><![CDATA[<[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000002:qk]>]]></run>
+                <run bold='true' fontalignment='1' fontcolor='#b7823a' fontsize='10'>98% so KHNS</run>
+              </formatted-text>
+            </customized-label>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows />
+        <cols />
+      </table>
+      <simple-id uuid='{49630D33-5D7F-4369-986F-41097B8A4DE2}' />
+    </worksheet>
+    <worksheet name='Ring Doanh số'>
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/RingDoanhs?rev=' id='3032419' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
+          </datasources>
+          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
+            <column caption='Pct HT Rev' datatype='real' default-format='p0%' name='[Calculation_009001100000021]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([RevenueVnd]) / SUM([RevenueKpiVnd])' />
+            </column>
+            <column caption='Đạt Rev' datatype='real' name='[Calculation_009001100000022]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='MIN([Calculation_009001100000021],1)' />
+            </column>
+            <column caption='Còn lại - Rev' datatype='real' name='[Calculation_009001100000023]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='1 - [Calculation_009001100000022]' />
+            </column>
+            <column caption='min0' datatype='integer' name='[Calculation_00900119000000]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='MIN(0)' />
+            </column>
+            <column caption='Gauge dummy' datatype='string' name='[Calculation_00900119000001]' role='dimension' type='nominal'>
+              <calculation class='tableau' formula='&quot;dummy&quot;' />
+            </column>
+            <column aggregation='Sum' caption='Revenue Plan Vnd' datatype='integer' default-type='quantitative' layered='true' name='[RevenuePlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Revenue Vnd' datatype='integer' default-type='quantitative' layered='true' name='[RevenueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column-instance column='[Calculation_00900119000001]' derivation='None' name='[none:Calculation_00900119000001:nk]' pivot='key' type='nominal' />
+            <column-instance column='[Calculation_009001100000022]' derivation='User' name='[usr:Calculation_009001100000022:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Calculation_009001100000023]' derivation='User' name='[usr:Calculation_009001100000023:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Calculation_00900119000000]' derivation='User' name='[usr:Calculation_00900119000000:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <filter class='categorical' column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]'>
+            <groupfilter function='union' user:op='manual'>
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000022:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000023:qk]&quot;' />
+            </groupfilter>
+          </filter>
+          <manual-sort column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' direction='ASC'>
+            <dictionary>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000022:qk]&quot;</bucket>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000023:qk]&quot;</bucket>
+            </dictionary>
+          </manual-sort>
+          <slices>
+            <column>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]</column>
+          </slices>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='axis'>
+            <format attr='display' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
+            <encoding attr='space' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' field-type='quantitative' fold='true' scope='cols' type='space' />
+            <format attr='display' class='0' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
+            <format attr='tick-color' value='#00000000' />
+          </style-rule>
+          <style-rule element='label'>
+            <format attr='display' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]' value='false' />
+          </style-rule>
+          <style-rule element='table'>
+            <format attr='background-color' value='#00000000' />
+          </style-rule>
+          <style-rule element='worksheet'>
+            <format attr='display-field-labels' scope='rows' value='false' />
+          </style-rule>
+          <style-rule element='gridline'>
+            <format attr='line-visibility' scope='cols' value='off' />
+            <format attr='line-visibility' scope='rows' value='off' />
+          </style-rule>
+          <style-rule element='zeroline'>
+            <format attr='line-visibility' value='off' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+          </pane>
+          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' x-index='1'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+            <style>
+              <style-rule element='mark'>
+                <format attr='size' value='0.60' />
+                <format attr='mark-labels-show' value='false' />
+                <format attr='mark-color' value='#FFFFFF' />
+              </style-rule>
+            </style>
+          </pane>
+          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+            <encodings>
+              <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' />
+              <size column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[Multiple Values]' />
+            </encodings>
+            <style>
+              <style-rule element='mark'>
+                <format attr='size' value='1.0' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]</rows>
+        <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
+        <tooltip-style tooltip-mode='none' />
+      </table>
+      <simple-id uuid='{9A9F51A2-9B96-4E81-81BC-CFC1B9B915C1}' />
+    </worksheet>
+    <worksheet name='Ring Sản lượng'>
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/RingSnlng?rev=' id='3032418' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
+          </datasources>
+          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
+            <column caption='Pct HT SL' datatype='real' default-format='p0%' name='[Calculation_009001100000011]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([UnitsSold (MonthlyFinancial)]) / SUM([UnitsSoldKpi])' />
+            </column>
+            <column caption='Đạt SL' datatype='real' name='[Calculation_009001100000012]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='MIN([Calculation_009001100000011],1)' />
+            </column>
+            <column caption='Còn lại - SL' datatype='real' name='[Calculation_009001100000013]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='1 - [Calculation_009001100000012]' />
+            </column>
+            <column caption='min0' datatype='integer' name='[Calculation_00900119000000]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='MIN(0)' />
+            </column>
+            <column caption='Gauge dummy' datatype='string' name='[Calculation_00900119000001]' role='dimension' type='nominal'>
+              <calculation class='tableau' formula='&quot;dummy&quot;' />
+            </column>
+            <column aggregation='Sum' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSold (MonthlyFinancial)]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Units Sold Plan' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldPlan]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column-instance column='[Calculation_00900119000001]' derivation='None' name='[none:Calculation_00900119000001:nk]' pivot='key' type='nominal' />
+            <column-instance column='[Calculation_009001100000012]' derivation='User' name='[usr:Calculation_009001100000012:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Calculation_009001100000013]' derivation='User' name='[usr:Calculation_009001100000013:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Calculation_00900119000000]' derivation='User' name='[usr:Calculation_00900119000000:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <filter class='categorical' column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]'>
+            <groupfilter function='union' user:op='manual'>
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000012:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000013:qk]&quot;' />
+            </groupfilter>
+          </filter>
+          <manual-sort column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' direction='ASC'>
+            <dictionary>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000012:qk]&quot;</bucket>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000013:qk]&quot;</bucket>
+            </dictionary>
+          </manual-sort>
+          <slices>
+            <column>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]</column>
+          </slices>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='axis'>
+            <format attr='display' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
+            <encoding attr='space' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' field-type='quantitative' fold='true' scope='cols' type='space' />
+            <format attr='display' class='0' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
+            <format attr='tick-color' value='#00000000' />
+          </style-rule>
+          <style-rule element='label'>
+            <format attr='display' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]' value='false' />
+          </style-rule>
+          <style-rule element='table'>
+            <format attr='background-color' value='#00000000' />
+          </style-rule>
+          <style-rule element='worksheet'>
+            <format attr='display-field-labels' scope='rows' value='false' />
+          </style-rule>
+          <style-rule element='gridline'>
+            <format attr='line-visibility' scope='cols' value='off' />
+            <format attr='line-visibility' scope='rows' value='off' />
+          </style-rule>
+          <style-rule element='zeroline'>
+            <format attr='line-visibility' value='off' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+          </pane>
+          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' x-index='1'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+            <style>
+              <style-rule element='mark'>
+                <format attr='size' value='0.60' />
+                <format attr='mark-labels-show' value='false' />
+                <format attr='mark-color' value='#FFFFFF' />
+              </style-rule>
+            </style>
+          </pane>
+          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+            <encodings>
+              <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' />
+              <size column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[Multiple Values]' />
+            </encodings>
+            <style>
+              <style-rule element='mark'>
+                <format attr='size' value='1.0' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]</rows>
+        <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
+        <tooltip-style tooltip-mode='none' />
+      </table>
+      <simple-id uuid='{8F82BFFB-6226-4C17-8A7E-4B2F38A4A841}' />
+    </worksheet>
+    <worksheet name='Ring Tiền thu'>
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/RingTinthu?rev=' id='3032420' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
+          </datasources>
+          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
+            <column caption='Pct HT Cash' datatype='real' default-format='p0%' name='[Calculation_009001100000031]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([CashCollectedVnd]) / SUM([CashCollectedKpiVnd])' />
+            </column>
+            <column caption='Đạt Cash' datatype='real' name='[Calculation_009001100000032]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='MIN([Calculation_009001100000031],1)' />
+            </column>
+            <column caption='Còn lại - Cash' datatype='real' name='[Calculation_009001100000033]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='1 - [Calculation_009001100000032]' />
+            </column>
+            <column caption='min0' datatype='integer' name='[Calculation_00900119000000]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='MIN(0)' />
+            </column>
+            <column caption='Gauge dummy' datatype='string' name='[Calculation_00900119000001]' role='dimension' type='nominal'>
+              <calculation class='tableau' formula='&quot;dummy&quot;' />
+            </column>
+            <column aggregation='Sum' caption='Cash Collected Plan Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Cash Collected Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column-instance column='[Calculation_00900119000001]' derivation='None' name='[none:Calculation_00900119000001:nk]' pivot='key' type='nominal' />
+            <column-instance column='[Calculation_009001100000032]' derivation='User' name='[usr:Calculation_009001100000032:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Calculation_009001100000033]' derivation='User' name='[usr:Calculation_009001100000033:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Calculation_00900119000000]' derivation='User' name='[usr:Calculation_00900119000000:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <filter class='categorical' column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]'>
+            <groupfilter function='union' user:op='manual'>
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000032:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000033:qk]&quot;' />
+            </groupfilter>
+          </filter>
+          <manual-sort column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' direction='ASC'>
+            <dictionary>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000032:qk]&quot;</bucket>
+              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000033:qk]&quot;</bucket>
+            </dictionary>
+          </manual-sort>
+          <slices>
+            <column>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]</column>
+          </slices>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='axis'>
+            <format attr='display' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
+            <encoding attr='space' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' field-type='quantitative' fold='true' scope='cols' type='space' />
+            <format attr='display' class='0' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
+            <format attr='tick-color' value='#00000000' />
+          </style-rule>
+          <style-rule element='label'>
+            <format attr='display' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]' value='false' />
+          </style-rule>
+          <style-rule element='table'>
+            <format attr='background-color' value='#00000000' />
+          </style-rule>
+          <style-rule element='worksheet'>
+            <format attr='display-field-labels' scope='rows' value='false' />
+          </style-rule>
+          <style-rule element='gridline'>
+            <format attr='line-visibility' scope='cols' value='off' />
+            <format attr='line-visibility' scope='rows' value='off' />
+          </style-rule>
+          <style-rule element='zeroline'>
+            <format attr='line-visibility' value='off' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+          </pane>
+          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' x-index='1'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+            <style>
+              <style-rule element='mark'>
+                <format attr='size' value='0.60' />
+                <format attr='mark-labels-show' value='false' />
+                <format attr='mark-color' value='#FFFFFF' />
+              </style-rule>
+            </style>
+          </pane>
+          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+            <encodings>
+              <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' />
+              <size column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[Multiple Values]' />
+            </encodings>
+            <style>
+              <style-rule element='mark'>
+                <format attr='size' value='1.0' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]</rows>
+        <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
+        <tooltip-style tooltip-mode='none' />
+      </table>
+      <simple-id uuid='{A73518B7-AC5F-49EF-92C2-8F2FB1FC5905}' />
+    </worksheet>
+    <worksheet name='Ring Tiền thu 1'>
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/RingTinthu1?rev=' id='3034827' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
+          </datasources>
+          <mapsources>
+            <mapsource name='Tableau' />
+          </mapsources>
+          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
+            <column caption='Zero' datatype='spatial' name='[Calculation_0013900913811477]' role='measure' type='nominal'>
+              <calculation class='tableau' formula='MAKEPOINT(0,0)' />
+            </column>
+            <column caption='Pct HT Cash' datatype='real' default-format='p0%' name='[Calculation_009001100000031]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='SUM([CashCollectedVnd]) / SUM([CashCollectedKpiVnd])' />
+            </column>
+            <column caption='Đạt Cash' datatype='real' name='[Calculation_009001100000032]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='MIN([Calculation_009001100000031],1)' />
+            </column>
+            <column caption='Còn lại - Cash' datatype='real' name='[Calculation_009001100000033]' role='measure' type='quantitative'>
+              <calculation class='tableau' formula='1 - [Calculation_009001100000032]' />
+            </column>
+            <column aggregation='Sum' caption='Cash Collected Plan Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Cash Collected Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column-instance column='[Calculation_0013900913811477]' derivation='Collect' name='[clct:Calculation_0013900913811477:nk]' pivot='key' type='nominal' />
+            <column-instance column='[Calculation_009001100000031]' derivation='User' name='[usr:Calculation_009001100000031:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Calculation_009001100000032]' derivation='User' name='[usr:Calculation_009001100000032:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Calculation_009001100000033]' derivation='User' name='[usr:Calculation_009001100000033:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <filter class='categorical' column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]'>
+            <groupfilter function='union' user:op='manual'>
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000033:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000032:qk]&quot;' />
+            </groupfilter>
+          </filter>
+          <slices>
+            <column>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]</column>
+          </slices>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='map'>
+            <format attr='washout' value='0.0' />
+          </style-rule>
+        </style>
+        <panes customization-axis='layer'>
+          <pane id='1' selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Automatic' />
+            <encodings>
+              <lod column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[clct:Calculation_0013900913811477:nk]' />
+            </encodings>
+          </pane>
+          <pane generated-title='Zero' id='0' inert='true' selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Pie' />
+            <encodings>
+              <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' />
+              <wedge-size column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[Multiple Values]' />
+              <lod column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[clct:Calculation_0013900913811477:nk]' />
+            </encodings>
+            <style>
+              <style-rule element='mark'>
+                <format attr='size' value='2' />
+              </style-rule>
+            </style>
+          </pane>
+          <pane generated-title='Zero (2)' id='2' inert='true' selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Circle' />
+            <encodings>
+              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000031:qk]' />
+              <lod column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[clct:Calculation_0013900913811477:nk]' />
+            </encodings>
+            <customized-label>
+              <formatted-text>
+                <run fontalignment='1' fontsize='18'><![CDATA[<[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000031:qk]>]]></run>
+              </formatted-text>
+            </customized-label>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-color' value='#ffffff' />
+                <format attr='mark-labels-cull' value='true' />
+                <format attr='mark-labels-show' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows />
+        <cols />
+      </table>
+      <simple-id uuid='{C01C9313-DDBA-4E6C-8E1C-DD3437BFE184}' />
     </worksheet>
     <worksheet name='SanLuongThang'>
       <layout-options>
@@ -3176,439 +3801,44 @@
       </table>
       <simple-id uuid='{7A886AFE-B02B-41D5-A2E8-0356A4219BC1}' />
     </worksheet>
-      <worksheet name='Ring Sản lượng'>
-      <table>
-        <view>
-          <datasources>
-            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
-          </datasources>
-          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column datatype='real' name='[Calculation_009001100000012]' role='measure' type='quantitative' />
-            <column datatype='real' name='[Calculation_009001100000013]' role='measure' type='quantitative' />
-            <column datatype='integer' name='[Calculation_00900119000000]' role='measure' type='quantitative' />
-            <column datatype='string' name='[Calculation_00900119000001]' role='dimension' type='nominal' />
-            <column-instance column='[Calculation_009001100000012]' derivation='User' name='[usr:Calculation_009001100000012:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_009001100000013]' derivation='User' name='[usr:Calculation_009001100000013:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_00900119000000]' derivation='User' name='[usr:Calculation_00900119000000:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_00900119000001]' derivation='None' name='[none:Calculation_00900119000001:nk]' pivot='key' type='nominal' />
-          </datasource-dependencies>
-          <filter class='categorical' column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]'>
-            <groupfilter function='union' user:op='manual'>
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000012:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000013:qk]&quot;' />
-            </groupfilter>
-          </filter>
-          <manual-sort column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' direction='ASC'>
-            <dictionary><bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000012:qk]&quot;</bucket><bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000013:qk]&quot;</bucket></dictionary>
-          </manual-sort>
-          <slices><column>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]</column></slices>
-          <aggregation value='true' />
-        </view>
-        <style>
-          <style-rule element='axis'>
-            <format attr='display' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
-            <encoding attr='space' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' field-type='quantitative' fold='true' scope='cols' type='space' />
-            <format attr='display' class='0' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
-            <format attr='tick-color' value='#00000000' />
-          </style-rule>
-          <style-rule element='label'><format attr='display' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]' value='false' /></style-rule>
-          <style-rule element='table'><format attr='background-color' value='#00000000' /></style-rule>
-          <style-rule element='worksheet'><format attr='display-field-labels' scope='rows' value='false' /></style-rule>
-          <style-rule element='gridline'><format attr='line-visibility' scope='cols' value='off' /><format attr='line-visibility' scope='rows' value='off' /></style-rule>
-          <style-rule element='zeroline'><format attr='line-visibility' value='off' /></style-rule>
-        </style>
-        <panes>
-          <pane selection-relaxation-option='selection-relaxation-allow'>
-            <view><breakdown value='auto' /></view><mark class='Pie' />
-          </pane>
-          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' x-index='1'>
-            <view><breakdown value='auto' /></view><mark class='Pie' />
-            <style><style-rule element='mark'><format attr='size' value='0.60' /><format attr='mark-labels-show' value='false' /><format attr='mark-color' value='#FFFFFF' /></style-rule></style>
-          </pane>
-          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]'>
-            <view><breakdown value='auto' /></view><mark class='Pie' />
-            <encodings>
-              <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' palette='ring_gauge' type='palette' />
-              <size column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[Multiple Values]' />
-            </encodings>
-            <style><style-rule element='mark'><format attr='size' value='1.0' /></style-rule></style>
-          </pane>
-        </panes>
-        <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]</rows>
-        <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
-        <tooltip-style tooltip-mode='none' />
-      </table>
-      <simple-id uuid='{8F82BFFB-6226-4C17-8A7E-4B2F38A4A841}' />
-    </worksheet>
-    <worksheet name='Ring Doanh số'>
-      <table>
-        <view>
-          <datasources>
-            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
-          </datasources>
-          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column datatype='real' name='[Calculation_009001100000022]' role='measure' type='quantitative' />
-            <column datatype='real' name='[Calculation_009001100000023]' role='measure' type='quantitative' />
-            <column datatype='integer' name='[Calculation_00900119000000]' role='measure' type='quantitative' />
-            <column datatype='string' name='[Calculation_00900119000001]' role='dimension' type='nominal' />
-            <column-instance column='[Calculation_009001100000022]' derivation='User' name='[usr:Calculation_009001100000022:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_009001100000023]' derivation='User' name='[usr:Calculation_009001100000023:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_00900119000000]' derivation='User' name='[usr:Calculation_00900119000000:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_00900119000001]' derivation='None' name='[none:Calculation_00900119000001:nk]' pivot='key' type='nominal' />
-          </datasource-dependencies>
-          <filter class='categorical' column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]'>
-            <groupfilter function='union' user:op='manual'>
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000022:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000023:qk]&quot;' />
-            </groupfilter>
-          </filter>
-          <manual-sort column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' direction='ASC'>
-            <dictionary><bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000022:qk]&quot;</bucket><bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000023:qk]&quot;</bucket></dictionary>
-          </manual-sort>
-          <slices><column>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]</column></slices>
-          <aggregation value='true' />
-        </view>
-        <style>
-          <style-rule element='axis'>
-            <format attr='display' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
-            <encoding attr='space' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' field-type='quantitative' fold='true' scope='cols' type='space' />
-            <format attr='display' class='0' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
-            <format attr='tick-color' value='#00000000' />
-          </style-rule>
-          <style-rule element='label'><format attr='display' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]' value='false' /></style-rule>
-          <style-rule element='table'><format attr='background-color' value='#00000000' /></style-rule>
-          <style-rule element='worksheet'><format attr='display-field-labels' scope='rows' value='false' /></style-rule>
-          <style-rule element='gridline'><format attr='line-visibility' scope='cols' value='off' /><format attr='line-visibility' scope='rows' value='off' /></style-rule>
-          <style-rule element='zeroline'><format attr='line-visibility' value='off' /></style-rule>
-        </style>
-        <panes>
-          <pane selection-relaxation-option='selection-relaxation-allow'>
-            <view><breakdown value='auto' /></view><mark class='Pie' />
-          </pane>
-          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' x-index='1'>
-            <view><breakdown value='auto' /></view><mark class='Pie' />
-            <style><style-rule element='mark'><format attr='size' value='0.60' /><format attr='mark-labels-show' value='false' /><format attr='mark-color' value='#FFFFFF' /></style-rule></style>
-          </pane>
-          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]'>
-            <view><breakdown value='auto' /></view><mark class='Pie' />
-            <encodings>
-              <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' palette='ring_gauge' type='palette' />
-              <size column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[Multiple Values]' />
-            </encodings>
-            <style><style-rule element='mark'><format attr='size' value='1.0' /></style-rule></style>
-          </pane>
-        </panes>
-        <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]</rows>
-        <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
-        <tooltip-style tooltip-mode='none' />
-      </table>
-      <simple-id uuid='{9A9F51A2-9B96-4E81-81BC-CFC1B9B915C1}' />
-    </worksheet>
-    <worksheet name='Ring Tiền thu'>
-      <table>
-        <view>
-          <datasources>
-            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
-          </datasources>
-          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column datatype='real' name='[Calculation_009001100000032]' role='measure' type='quantitative' />
-            <column datatype='real' name='[Calculation_009001100000033]' role='measure' type='quantitative' />
-            <column datatype='integer' name='[Calculation_00900119000000]' role='measure' type='quantitative' />
-            <column datatype='string' name='[Calculation_00900119000001]' role='dimension' type='nominal' />
-            <column-instance column='[Calculation_009001100000032]' derivation='User' name='[usr:Calculation_009001100000032:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_009001100000033]' derivation='User' name='[usr:Calculation_009001100000033:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_00900119000000]' derivation='User' name='[usr:Calculation_00900119000000:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_00900119000001]' derivation='None' name='[none:Calculation_00900119000001:nk]' pivot='key' type='nominal' />
-          </datasource-dependencies>
-          <filter class='categorical' column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]'>
-            <groupfilter function='union' user:op='manual'>
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000032:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000033:qk]&quot;' />
-            </groupfilter>
-          </filter>
-          <manual-sort column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' direction='ASC'>
-            <dictionary><bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000032:qk]&quot;</bucket><bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000033:qk]&quot;</bucket></dictionary>
-          </manual-sort>
-          <slices><column>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]</column></slices>
-          <aggregation value='true' />
-        </view>
-        <style>
-          <style-rule element='axis'>
-            <format attr='display' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
-            <encoding attr='space' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' field-type='quantitative' fold='true' scope='cols' type='space' />
-            <format attr='display' class='0' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
-            <format attr='tick-color' value='#00000000' />
-          </style-rule>
-          <style-rule element='label'><format attr='display' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]' value='false' /></style-rule>
-          <style-rule element='table'><format attr='background-color' value='#00000000' /></style-rule>
-          <style-rule element='worksheet'><format attr='display-field-labels' scope='rows' value='false' /></style-rule>
-          <style-rule element='gridline'><format attr='line-visibility' scope='cols' value='off' /><format attr='line-visibility' scope='rows' value='off' /></style-rule>
-          <style-rule element='zeroline'><format attr='line-visibility' value='off' /></style-rule>
-        </style>
-        <panes>
-          <pane selection-relaxation-option='selection-relaxation-allow'>
-            <view><breakdown value='auto' /></view><mark class='Pie' />
-          </pane>
-          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' x-index='1'>
-            <view><breakdown value='auto' /></view><mark class='Pie' />
-            <style><style-rule element='mark'><format attr='size' value='0.60' /><format attr='mark-labels-show' value='false' /><format attr='mark-color' value='#FFFFFF' /></style-rule></style>
-          </pane>
-          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]'>
-            <view><breakdown value='auto' /></view><mark class='Pie' />
-            <encodings>
-              <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' palette='ring_gauge' type='palette' />
-              <size column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[Multiple Values]' />
-            </encodings>
-            <style><style-rule element='mark'><format attr='size' value='1.0' /></style-rule></style>
-          </pane>
-        </panes>
-        <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]</rows>
-        <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
-        <tooltip-style tooltip-mode='none' />
-      </table>
-      <simple-id uuid='{A73518B7-AC5F-49EF-92C2-8F2FB1FC5905}' />
-    </worksheet>
-    <worksheet name='KPI Sản lượng (pct)'>
-      <layout-options>
-        <title><formatted-text><run bold='true' fontcolor='#5a6b7b' fontsize='9'>SẢN LƯỢNG (CĂN)</run></formatted-text></title>
-      </layout-options>
-      <table>
-        <view>
-          <datasources><datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' /></datasources>
-          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column caption='Sản lượng (căn)' datatype='integer' default-format='n#,##0' name='[Calculation_0090010000000004]' role='measure' type='quantitative'><calculation class='tableau' formula='SUM([DealValueVnd])' /></column>
-            <column-instance column='[Calculation_0090010000000004]' derivation='User' name='[usr:Calculation_0090010000000004:qk]' pivot='key' type='quantitative' />
-          </datasource-dependencies>
-          <aggregation value='true' />
-        </view>
-        <style />
-        <panes>
-          <pane selection-relaxation-option='selection-relaxation-allow'>
-            <view><breakdown value='auto' /></view>
-            <mark class='Automatic' />
-            <encodings><text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000004:qk]' /></encodings>
-            <customized-label>
-              <formatted-text>
-                <run bold='true' fontalignment='1' fontcolor='#0f2a47' fontsize='18'><![CDATA[<[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000004:qk]>]]></run>
-                <run fontalignment='1'>&#10;</run>
-                <run fontalignment='1' fontsize='10' bold='true' fontcolor='#1F8A70'>▲ 102% so KHNS</run>
-              </formatted-text>
-            </customized-label>
-            <style><style-rule element='mark'><format attr='mark-labels-show' value='true' /><format attr='mark-labels-cull' value='true' /></style-rule></style>
-          </pane>
-        </panes>
-        <rows /><cols />
-      </table>
-      <simple-id uuid='{CE61162A-3E49-4180-B167-219F0E0B876F}' />
-    </worksheet>
-    <worksheet name='KPI Doanh số (pct)'>
-      <layout-options>
-        <title><formatted-text><run bold='true' fontcolor='#5a6b7b' fontsize='9'>DOANH SỐ</run></formatted-text></title>
-      </layout-options>
-      <table>
-        <view>
-          <datasources><datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' /></datasources>
-          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column caption='Doanh số' datatype='integer' default-format='n#,##0,,,&quot;tỷ&quot;' name='[Calculation_0090010000000001]' role='measure' type='quantitative'><calculation class='tableau' formula='SUM([DealValueVnd])' /></column>
-            <column-instance column='[Calculation_0090010000000001]' derivation='User' name='[usr:Calculation_0090010000000001:qk]' pivot='key' type='quantitative' />
-          </datasource-dependencies>
-          <aggregation value='true' />
-        </view>
-        <style />
-        <panes>
-          <pane selection-relaxation-option='selection-relaxation-allow'>
-            <view><breakdown value='auto' /></view>
-            <mark class='Automatic' />
-            <encodings><text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000001:qk]' /></encodings>
-            <customized-label>
-              <formatted-text>
-                <run bold='true' fontalignment='1' fontcolor='#0f2a47' fontsize='18'><![CDATA[<[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000001:qk]>]]></run>
-                <run fontalignment='1'>&#10;</run>
-                <run fontalignment='1' fontsize='10' bold='true' fontcolor='#1F8A70'>▲ 101% so KHNS</run>
-              </formatted-text>
-            </customized-label>
-            <style><style-rule element='mark'><format attr='mark-labels-show' value='true' /><format attr='mark-labels-cull' value='true' /></style-rule></style>
-          </pane>
-        </panes>
-        <rows /><cols />
-      </table>
-      <simple-id uuid='{474B2162-46C2-4344-AD24-D1B9C05F3C02}' />
-    </worksheet>
-    <worksheet name='KPI Tiền thu (pct)'>
-      <layout-options>
-        <title><formatted-text><run bold='true' fontcolor='#5a6b7b' fontsize='9'>TIỀN THU</run></formatted-text></title>
-      </layout-options>
-      <table>
-        <view>
-          <datasources><datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' /></datasources>
-          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column caption='Tiền thu' datatype='integer' default-format='n#,##0,,,&quot;tỷ&quot;' name='[Calculation_0090010000000002]' role='measure' type='quantitative'><calculation class='tableau' formula='SUM([DealValueVnd])' /></column>
-            <column-instance column='[Calculation_0090010000000002]' derivation='User' name='[usr:Calculation_0090010000000002:qk]' pivot='key' type='quantitative' />
-          </datasource-dependencies>
-          <aggregation value='true' />
-        </view>
-        <style />
-        <panes>
-          <pane selection-relaxation-option='selection-relaxation-allow'>
-            <view><breakdown value='auto' /></view>
-            <mark class='Automatic' />
-            <encodings><text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000002:qk]' /></encodings>
-            <customized-label>
-              <formatted-text>
-                <run bold='true' fontalignment='1' fontcolor='#0f2a47' fontsize='18'><![CDATA[<[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000002:qk]>]]></run>
-                <run fontalignment='1'>&#10;</run>
-                <run fontalignment='1' fontsize='10' bold='true' fontcolor='#B7823A'>98% so KHNS</run>
-              </formatted-text>
-            </customized-label>
-            <style><style-rule element='mark'><format attr='mark-labels-show' value='true' /><format attr='mark-labels-cull' value='true' /></style-rule></style>
-          </pane>
-        </panes>
-        <rows /><cols />
-      </table>
-      <simple-id uuid='{49630D33-5D7F-4369-986F-41097B8A4DE2}' />
-    </worksheet>
   </worksheets>
   <dashboards>
     <dashboard enable-sort-zone-taborder='true' name='Tài Chính'>
-      <repository-location derived-from='http://prod-apsoutheast-c.online.tableau.com/t/vietnam/workbooks/_seed_desktop2/TiChnh?rev=' id='3031731' path='/t/vietnam/workbooks/_seed_desktop2' revision='' site='vietnam' />
+      <repository-location derived-from='http://localhost:9100/t/vietnam/workbooks/_seed_desktop3/TiChnh?rev=' id='3032225' path='/t/vietnam/workbooks/_seed_desktop3' revision='' site='vietnam' />
       <style />
       <size maxheight='1100' maxwidth='1560' minheight='1100' minwidth='1560' />
       <zones>
         <zone h='100000' id='3001' type-v2='layout-basic' w='100000' x='0' y='0'>
           <zone h='98546' id='3017' param='horz' type-v2='layout-flow' w='98974' x='513' y='727'>
             <zone h='98546' id='3002' param='vert' type-v2='layout-flow' w='98974' x='513' y='727'>
-              <zone fixed-size='105' h='9545' id='3005' is-fixed='true' param='horz' type-v2='layout-flow' w='98974' x='513' y='727'>
-                <zone h='9545' id='1' name='KPI Sản lượng' w='24743' x='513' y='727'>
-                  <layout-cache cell-count-h='1' non-cell-size-h='32' type-h='cell' type-w='cell' />
-                  <zone-style>
-                    <format attr='border-color' value='#e3e9ef' />
-                    <format attr='border-style' value='solid' />
-                    <format attr='border-width' value='1' />
-                    <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                    <format attr='margin' value='9' />
-                    <format attr='padding' value='10' />
-                    <format attr='background-color' value='#ffffff' />
-                  </zone-style>
-                </zone>
-                <zone h='9545' id='2' name='KPI Doanh số' w='24743' x='25256' y='727'>
-                  <layout-cache cell-count-h='1' non-cell-size-h='32' type-h='cell' type-w='cell' />
-                  <zone-style>
-                    <format attr='border-color' value='#e3e9ef' />
-                    <format attr='border-style' value='solid' />
-                    <format attr='border-width' value='1' />
-                    <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                    <format attr='margin' value='9' />
-                    <format attr='padding' value='10' />
-                    <format attr='background-color' value='#ffffff' />
-                  </zone-style>
-                </zone>
-                <zone h='9545' id='3003' name='KPI Tiền thu' w='24743' x='49999' y='727'>
-                  <layout-cache cell-count-h='1' non-cell-size-h='32' type-h='cell' type-w='cell' />
-                  <zone-style>
-                    <format attr='border-color' value='#e3e9ef' />
-                    <format attr='border-style' value='solid' />
-                    <format attr='border-width' value='1' />
-                    <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                    <format attr='margin' value='9' />
-                    <format attr='padding' value='10' />
-                    <format attr='background-color' value='#ffffff' />
-                  </zone-style>
-                </zone>
-                <zone h='9545' id='3004' name='KPI Công nợ' w='24743' x='74742' y='727'>
-                  <layout-cache cell-count-h='1' non-cell-size-h='32' type-h='cell' type-w='cell' />
-                  <zone-style>
-                    <format attr='border-color' value='#e3e9ef' />
-                    <format attr='border-style' value='solid' />
-                    <format attr='border-width' value='1' />
-                    <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                    <format attr='margin' value='9' />
-                    <format attr='padding' value='10' />
-                    <format attr='background-color' value='#ffffff' />
-                  </zone-style>
-                </zone>
-              </zone>
-              <zone fixed-size='388' h='35273' id='3019' is-fixed='true' param='horz' type-v2='layout-flow' w='98974' x='513' y='10272'>
-                <zone h='35273' id='3020' param='horz' type-v2='layout-flow' w='98974' x='513' y='10272'>
-                  <zone h='35273' id='3021' param='horz' type-v2='layout-flow' w='98974' x='513' y='10272'>
-                    <zone fixed-size='344' h='35273' id='3006' is-fixed='true' name='DoanhSoDuAn' w='23205' x='513' y='10272'>
-                      <layout-cache cell-count-h='7' minwidth='260' non-cell-size-h='113' type-h='cell' type-w='scalable' />
-                      <zone-style>
-                        <format attr='border-color' value='#e3e9ef' />
-                        <format attr='border-style' value='solid' />
-                        <format attr='border-width' value='1' />
-                        <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                        <format attr='margin' value='9' />
-                        <format attr='padding' value='10' />
-                        <format attr='background-color' value='#ffffff' />
-                      </zone-style>
-                    </zone>
-                    <zone fixed-size='595' h='35273' id='3022' is-fixed='true' param='vert' type-v2='layout-flow' w='38141' x='23718' y='10272'>
-                      <zone fixed-size='597' h='32364' id='3007' is-fixed='true' name='SanLuongThang' w='38141' x='23718' y='10272'>
-                        <layout-cache cell-count-w='18' minheight='179' non-cell-size-w='31' type-h='scalable' type-w='cell' />
-                        <zone-style>
-                          <format attr='border-color' value='#e3e9ef' />
-                          <format attr='border-style' value='solid' />
-                          <format attr='border-width' value='1' />
-                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                          <format attr='margin' value='9' />
-                          <format attr='padding' value='10' />
-                          <format attr='background-color' value='#ffffff' />
-                        </zone-style>
-                      </zone>
-                      <zone h='2909' id='3018' name='SanLuongThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='38141' x='23718' y='42636'>
-                        <zone-style>
-                          <format attr='border-color' value='#e6e6e6' />
-                          <format attr='border-style' value='solid' />
-                          <format attr='border-width' value='1' />
-                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                          <format attr='margin' value='3' />
-                          <format attr='padding' value='3' />
-                          <format attr='background-color' value='#ffffff' />
-                        </zone-style>
-                      </zone>
-                    </zone>
-                    <zone h='35273' id='3024' param='vert' type-v2='layout-flow' w='37627' x='61859' y='10272'>
-                      <zone h='32183' id='3008' name='DoanhSoThang' w='37627' x='61859' y='10272'>
-                        <layout-cache minheight='179' type-h='scalable' type-w='cell' />
-                        <zone-style>
-                          <format attr='border-color' value='#e3e9ef' />
-                          <format attr='border-style' value='solid' />
-                          <format attr='border-width' value='1' />
-                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                          <format attr='margin' value='9' />
-                          <format attr='padding' value='10' />
-                          <format attr='background-color' value='#ffffff' />
-                        </zone-style>
-                      </zone>
-                      <zone h='3090' id='3023' leg-item-layout='horz' name='DoanhSoThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='37627' x='61859' y='42455'>
-                        <zone-style>
-                          <format attr='border-color' value='#f5f5f5' />
-                          <format attr='border-style' value='solid' />
-                          <format attr='border-width' value='1' />
-                          <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                          <format attr='margin' value='3' />
-                          <format attr='padding' value='3' />
-                          <format attr='background-color' value='#ffffff' />
-                        </zone-style>
-                      </zone>
-                    </zone>
-                  </zone>
-                </zone>
-              </zone>
-              <zone h='26954' id='3012' param='horz' type-v2='layout-flow' w='98974' x='513' y='45545'>
-                <zone h='26954' id='3026' param='vert' type-v2='layout-flow' w='49101' x='513' y='45545'>
-                  <zone h='2727' id='3025' leg-item-layout='horz' name='DongTienThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='49101' x='513' y='45545'>
+              <zone fixed-size='105' h='9545' id='3028' is-fixed='true' type-v2='layout-basic' w='98974' x='513' y='727'>
+                <zone h='9545' id='3005' param='horz' type-v2='layout-flow' w='72308' x='513' y='727'>
+                  <zone h='9545' id='1' name='KPI Sản lượng' w='24102' x='513' y='727'>
+                    <layout-cache cell-count-h='1' cell-count-w='1' non-cell-size-h='32' type-h='cell' type-w='cell' />
                     <zone-style>
-                      <format attr='border-color' value='#f5f5f5' />
+                      <format attr='border-color' value='#e3e9ef' />
                       <format attr='border-style' value='solid' />
                       <format attr='border-width' value='1' />
                       <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
-                      <format attr='margin' value='4' />
+                      <format attr='margin' value='9' />
+                      <format attr='padding' value='10' />
                       <format attr='background-color' value='#ffffff' />
                     </zone-style>
                   </zone>
-                  <zone h='24227' id='3010' name='DongTienThang' w='49101' x='513' y='48272'>
-                    <layout-cache minheight='179' type-h='scalable' type-w='cell' />
+                  <zone h='9545' id='2' name='KPI Doanh số' w='24102' x='24615' y='727'>
+                    <layout-cache cell-count-h='1' cell-count-w='1' non-cell-size-h='32' type-h='cell' type-w='cell' />
+                    <zone-style>
+                      <format attr='border-color' value='#e3e9ef' />
+                      <format attr='border-style' value='solid' />
+                      <format attr='border-width' value='1' />
+                      <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                      <format attr='margin' value='9' />
+                      <format attr='padding' value='10' />
+                      <format attr='background-color' value='#ffffff' />
+                    </zone-style>
+                  </zone>
+                  <zone h='9545' id='3003' name='KPI Tiền thu' w='24102' x='48717' y='727'>
+                    <layout-cache cell-count-h='1' cell-count-w='1' non-cell-size-h='32' type-h='cell' type-w='cell' />
                     <zone-style>
                       <format attr='border-color' value='#e3e9ef' />
                       <format attr='border-style' value='solid' />
@@ -3620,8 +3850,114 @@
                     </zone-style>
                   </zone>
                 </zone>
-                <zone h='26954' id='3011' name='DongTienDuAn' w='49873' x='49614' y='45545'>
-                  <layout-cache cell-count-h='7' minwidth='260' non-cell-size-h='113' type-h='cell' type-w='scalable' />
+                <zone h='9545' id='3029' param='horz' type-v2='layout-flow' w='26666' x='72821' y='727'>
+                  <zone fixed-size='316' h='9545' id='3004' is-fixed='true' name='KPI Công nợ' w='26666' x='72821' y='727'>
+                    <layout-cache type-h='cell' type-w='cell' />
+                    <zone-style>
+                      <format attr='border-color' value='#e3e9ef' />
+                      <format attr='border-style' value='solid' />
+                      <format attr='border-width' value='1' />
+                      <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                      <format attr='margin' value='9' />
+                      <format attr='padding' value='10' />
+                      <format attr='background-color' value='#ffffff' />
+                    </zone-style>
+                  </zone>
+                </zone>
+              </zone>
+              <zone fixed-size='388' h='35273' id='3019' is-fixed='true' param='horz' type-v2='layout-flow' w='98974' x='513' y='10272'>
+                <zone h='35273' id='3021' param='horz' type-v2='layout-flow' w='98974' x='513' y='10272'>
+                  <zone fixed-size='344' h='35273' id='3006' is-fixed='true' name='DoanhSoDuAn' w='23205' x='513' y='10272'>
+                    <layout-cache cell-count-h='7' minwidth='260' non-cell-size-h='113' type-h='cell' type-w='scalable' />
+                    <zone-style>
+                      <format attr='border-color' value='#e3e9ef' />
+                      <format attr='border-style' value='solid' />
+                      <format attr='border-width' value='1' />
+                      <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                      <format attr='margin' value='9' />
+                      <format attr='padding' value='10' />
+                      <format attr='background-color' value='#ffffff' />
+                    </zone-style>
+                  </zone>
+                  <zone fixed-size='595' h='35273' id='3022' is-fixed='true' param='vert' type-v2='layout-flow' w='38141' x='23718' y='10272'>
+                    <zone fixed-size='597' h='32364' id='3007' is-fixed='true' name='SanLuongThang' w='38141' x='23718' y='10272'>
+                      <layout-cache cell-count-w='18' minheight='179' non-cell-size-w='31' type-h='scalable' type-w='cell' />
+                      <zone-style>
+                        <format attr='border-color' value='#e3e9ef' />
+                        <format attr='border-style' value='solid' />
+                        <format attr='border-width' value='1' />
+                        <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                        <format attr='margin' value='9' />
+                        <format attr='padding' value='10' />
+                        <format attr='background-color' value='#ffffff' />
+                      </zone-style>
+                    </zone>
+                    <zone h='2909' id='3018' name='SanLuongThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='38141' x='23718' y='42636'>
+                      <zone-style>
+                        <format attr='border-color' value='#e6e6e6' />
+                        <format attr='border-style' value='solid' />
+                        <format attr='border-width' value='1' />
+                        <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                        <format attr='margin' value='3' />
+                        <format attr='padding' value='3' />
+                        <format attr='background-color' value='#ffffff' />
+                      </zone-style>
+                    </zone>
+                  </zone>
+                  <zone h='35273' id='3024' param='vert' type-v2='layout-flow' w='37627' x='61859' y='10272'>
+                    <zone h='32183' id='3008' name='DoanhSoThang' w='37627' x='61859' y='10272'>
+                      <layout-cache minheight='180' type-h='scalable' type-w='cell' />
+                      <zone-style>
+                        <format attr='border-color' value='#e3e9ef' />
+                        <format attr='border-style' value='solid' />
+                        <format attr='border-width' value='1' />
+                        <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                        <format attr='margin' value='9' />
+                        <format attr='padding' value='10' />
+                        <format attr='background-color' value='#ffffff' />
+                      </zone-style>
+                    </zone>
+                    <zone h='3090' id='3023' leg-item-layout='horz' name='DoanhSoThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='37627' x='61859' y='42455'>
+                      <zone-style>
+                        <format attr='border-color' value='#f5f5f5' />
+                        <format attr='border-style' value='solid' />
+                        <format attr='border-width' value='1' />
+                        <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                        <format attr='margin' value='3' />
+                        <format attr='padding' value='3' />
+                        <format attr='background-color' value='#ffffff' />
+                      </zone-style>
+                    </zone>
+                  </zone>
+                </zone>
+              </zone>
+              <zone h='26953' id='3012' param='horz' type-v2='layout-flow' w='98974' x='513' y='45545'>
+                <zone h='26953' id='3026' param='vert' type-v2='layout-flow' w='49101' x='513' y='45545'>
+                  <zone h='2727' id='3025' leg-item-layout='horz' name='DongTienThang' pane-specification-id='0' param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' show-title='false' type-v2='color' w='49101' x='513' y='45545'>
+                    <zone-style>
+                      <format attr='border-color' value='#f5f5f5' />
+                      <format attr='border-style' value='solid' />
+                      <format attr='border-width' value='1' />
+                      <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                      <format attr='margin' value='4' />
+                      <format attr='background-color' value='#ffffff' />
+                    </zone-style>
+                  </zone>
+                  <zone h='24226' id='3010' name='DongTienThang' w='49101' x='513' y='48272'>
+                    <layout-cache minheight='180' type-h='scalable' type-w='cell' />
+                    <zone-style>
+                      <format attr='border-color' value='#e3e9ef' />
+                      <format attr='border-style' value='solid' />
+                      <format attr='border-width' value='1' />
+                      <_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />
+                      <format attr='margin' value='9' />
+                      <format attr='padding' value='10' />
+                      <format attr='background-color' value='#ffffff' />
+                    </zone-style>
+                  </zone>
+                </zone>
+                <zone h='26953' id='3011' name='DongTienDuAn' w='49873' x='49614' y='45545'>
+                  <layout-cache minwidth='260' type-h='cell' type-w='scalable' />
                   <zone-style>
                     <format attr='border-color' value='#e3e9ef' />
                     <format attr='border-style' value='solid' />
@@ -3633,9 +3969,9 @@
                   </zone-style>
                 </zone>
               </zone>
-              <zone h='26772' id='3015' param='horz' type-v2='layout-flow' w='98974' x='513' y='72499'>
-                <zone h='26772' id='3013' name='CongNoDuAn' w='52307' x='513' y='72499'>
-                  <layout-cache cell-count-h='7' minwidth='288' non-cell-size-h='111' type-h='cell' type-w='scalable' />
+              <zone h='26772' id='3015' param='horz' type-v2='layout-flow' w='98974' x='513' y='72498'>
+                <zone h='26772' id='3013' name='CongNoDuAn' w='52307' x='513' y='72498'>
+                  <layout-cache minwidth='288' type-h='cell' type-w='scalable' />
                   <zone-style>
                     <format attr='border-color' value='#e3e9ef' />
                     <format attr='border-style' value='solid' />
@@ -3646,8 +3982,8 @@
                     <format attr='background-color' value='#ffffff' />
                   </zone-style>
                 </zone>
-                <zone h='26772' id='3014' name='CongNoTuoi' w='46666' x='52820' y='72499'>
-                  <layout-cache cell-count-h='6' minwidth='200' non-cell-size-h='113' type-h='cell' type-w='scalable' />
+                <zone h='26772' id='3014' name='CongNoTuoi' w='46666' x='52820' y='72498'>
+                  <layout-cache minwidth='200' type-h='cell' type-w='scalable' />
                   <zone-style>
                     <format attr='border-color' value='#e3e9ef' />
                     <format attr='border-style' value='solid' />
@@ -3668,6 +4004,9 @@
             <format attr='margin' value='8' />
             <format attr='background-color' value='#f5f8fb' />
           </zone-style>
+        </zone>
+        <zone h='7636' id='3027' name='Ring Tiền thu 1' show-title='false' w='7372' x='90385' y='1636'>
+          <layout-cache cell-count-w='1' type-h='fixed' type-w='cell' />
         </zone>
       </zones>
       <simple-id uuid='{F58C43F4-1CFC-4E10-A208-70A9C5493A93}' />
@@ -3711,24 +4050,9 @@
         </viewpoint>
         <viewpoint name='KPI Tiền thu'>
           <zoom type='entire-view' />
-          <selection-collection>
-            <tuple-selection>
-              <tuple-reference>
-                <tuple-descriptor>
-                  <pane-descriptor>
-                    <x-fields />
-                    <y-fields />
-                  </pane-descriptor>
-                  <columns>
-                    <field>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090010000000002:qk]</field>
-                  </columns>
-                </tuple-descriptor>
-                <tuple>
-                  <value>17818872600000</value>
-                </tuple>
-              </tuple-reference>
-            </tuple-selection>
-          </selection-collection>
+        </viewpoint>
+        <viewpoint name='Ring Tiền thu 1'>
+          <zoom type='entire-view' />
         </viewpoint>
         <viewpoint name='SanLuongThang'>
           <zoom type='entire-view' />
@@ -3737,40 +4061,111 @@
           </highlight>
         </viewpoint>
       </viewpoints>
-      <active id='2' />
+      <active id='3027' />
       <simple-id uuid='{A50294A9-8956-4FBC-90C1-780DA7660DEE}' />
     </window>
-        <window class='worksheet' name='Ring Sản lượng'>
-      <cards><edge name='left'><strip size='160'></strip></edge></cards>
-      <viewpoint><zoom type='entire-view' /></viewpoint>
+    <window class='worksheet' name='Ring Sản lượng'>
+      <cards>
+        <edge name='left'>
+          <strip size='160' />
+        </edge>
+      </cards>
+      <viewpoint>
+        <zoom type='entire-view' />
+      </viewpoint>
       <simple-id uuid='{BA46EF8C-0FC9-4DC8-9DC9-D8D5194EF4D8}' />
     </window>
     <window class='worksheet' name='Ring Doanh số'>
-      <cards><edge name='left'><strip size='160'></strip></edge></cards>
-      <viewpoint><zoom type='entire-view' /></viewpoint>
+      <cards>
+        <edge name='left'>
+          <strip size='160' />
+        </edge>
+      </cards>
+      <viewpoint>
+        <zoom type='entire-view' />
+      </viewpoint>
       <simple-id uuid='{4A0511DC-8254-4E17-B95C-E4925A9F576E}' />
     </window>
     <window class='worksheet' name='Ring Tiền thu'>
-      <cards><edge name='left'><strip size='160'></strip></edge></cards>
-      <viewpoint><zoom type='entire-view' /></viewpoint>
+      <cards>
+        <edge name='left'>
+          <strip size='160' />
+        </edge>
+      </cards>
+      <viewpoint>
+        <zoom type='entire-view' />
+      </viewpoint>
       <simple-id uuid='{4836E6C7-6F3A-49CE-A780-0E35CBCC4BBA}' />
     </window>
     <window class='worksheet' name='KPI Sản lượng (pct)'>
-      <cards><edge name='left'><strip size='160'></strip></edge></cards>
-      <viewpoint><zoom type='entire-view' /></viewpoint>
+      <cards>
+        <edge name='left'>
+          <strip size='160' />
+        </edge>
+      </cards>
+      <viewpoint>
+        <zoom type='entire-view' />
+      </viewpoint>
       <simple-id uuid='{F6E9D098-FC68-4822-B850-4076EC58C302}' />
     </window>
     <window class='worksheet' name='KPI Doanh số (pct)'>
-      <cards><edge name='left'><strip size='160'></strip></edge></cards>
-      <viewpoint><zoom type='entire-view' /></viewpoint>
+      <cards>
+        <edge name='left'>
+          <strip size='160' />
+        </edge>
+      </cards>
+      <viewpoint>
+        <zoom type='entire-view' />
+      </viewpoint>
       <simple-id uuid='{51AA4FD9-CE72-40DA-8513-7C16FB84A1CE}' />
     </window>
     <window class='worksheet' name='KPI Tiền thu (pct)'>
-      <cards><edge name='left'><strip size='160'></strip></edge></cards>
-      <viewpoint><zoom type='entire-view' /></viewpoint>
+      <cards>
+        <edge name='left'>
+          <strip size='160' />
+        </edge>
+      </cards>
+      <viewpoint>
+        <zoom type='entire-view' />
+      </viewpoint>
       <simple-id uuid='{AA006628-80C9-459C-9079-A057495E90B9}' />
     </window>
-<window class='worksheet' hidden='true' name='CongNoDuAn'>
+    <window class='worksheet' name='Ring Tiền thu 1'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='31'>
+            <card type='columns' />
+          </strip>
+          <strip size='31'>
+            <card type='rows' />
+          </strip>
+          <strip size='31' />
+        </edge>
+        <edge name='right'>
+          <strip size='160'>
+            <card param='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' type='color' />
+          </strip>
+        </edge>
+      </cards>
+      <viewpoint>
+        <zoom type='entire-view' />
+        <highlight>
+          <color-one-way>
+            <field>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]</field>
+            <field>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[clct:Calculation_0013900913811477:nk]</field>
+          </color-one-way>
+        </highlight>
+      </viewpoint>
+      <simple-id uuid='{E4613839-40BB-4EE5-A6B4-4D36BEB01881}' />
+    </window>
+    <window class='worksheet' hidden='true' name='CongNoDuAn'>
       <cards>
         <edge name='left'>
           <strip size='160'>
