@@ -121,6 +121,59 @@ def ref_cntd(name): return f"[{DS}].[ctd:{name}:qk]"
 def inst_cntd(name): return f"            <column-instance column='[{name}]' derivation='Cntd' name='[ctd:{name}:qk]' pivot='key' type='quantitative' />"
 
 
+# ─── KPI card with %HT vs KH line (BAN + delta) ─────────────────────────────
+def kpi_card_pct(sheet_name: str, calc: Calc, title_vn: str, pct_calc: Calc,
+                 pct_text: str, pct_color: str, sub_text: str):
+    """BAN card: uppercase label + big navy number + a coloured %HT-vs-KH line.
+    Combines the KPI number and its plan-comparison in one card (replaces the
+    separate ring row, which won't render reliably in a wide-short grid cell).
+    pct_calc's value drives nothing at render (we show pct_text literally) but is
+    included so the card is self-describing; sub_text = e.g. 'so kế hoạch'."""
+    field = calc.ref()
+    label = esc(title_vn.upper())
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <layout-options>
+        <title><formatted-text><run fontsize='9' bold='true' fontcolor='#5A6B7B'>{label}</run></formatted-text></title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='{DS}' />
+          </datasources>
+          <datasource-dependencies datasource='{DS}'>
+{calc.dep_col()}
+{calc.inst()}
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style />
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Automatic' />
+            <encodings><text column='{field}' /></encodings>
+            <customized-label>
+              <formatted-text>
+                <run bold='true' fontalignment='1' fontcolor='#0f2a47' fontsize='20'><![CDATA[<{field}>]]></run>
+                <run fontalignment='1'>&#10;</run>
+                <run fontalignment='1' fontsize='10' bold='true' fontcolor='{pct_color}'>{esc(pct_text)}</run>
+                <run fontalignment='1' fontsize='10' fontcolor='#8A97A6'>  {esc(sub_text)}</run>
+              </formatted-text>
+            </customized-label>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows /><cols />
+      </table>
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
 # ─── KPI card ───────────────────────────────────────────────────────────────
 def kpi_card(sheet_name: str, calc: Calc, title_vn: str) -> str:
     """KPI card cloned EXACTLY from the user's Desktop-authored `KPI Seed`
@@ -133,6 +186,9 @@ def kpi_card(sheet_name: str, calc: Calc, title_vn: str) -> str:
     proven safe by the seed's `Revenue KPI` card, which also carries a title."""
     field = calc.ref()
     label = esc(title_vn.upper())
+    # Proven card (renders the number): layout-options title (muted label) +
+    # single big-number customized-label, cull=true. Font 20px keeps the number
+    # inside the cell without top-clipping when the KPI row is >= ~200px tall.
     return f"""    <worksheet name='{esc(sheet_name)}'>
       <layout-options>
         <title><formatted-text><run fontsize='9' bold='true' fontcolor='#5A6B7B'>{label}</run></formatted-text></title>
@@ -348,6 +404,9 @@ def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
           </style-rule>
           <style-rule element='table'><format attr='background-color' value='#00000000' /></style-rule>
           <style-rule element='worksheet'><format attr='display-field-labels' scope='rows' value='false' /></style-rule>
+          <style-rule element='gridline'><format attr='stroke-size' scope='cols' value='0' /><format attr='line-visibility' scope='cols' value='off' /><format attr='stroke-size' scope='rows' value='0' /><format attr='line-visibility' scope='rows' value='off' /></style-rule>
+          <style-rule element='zeroline'><format attr='stroke-size' value='0' /><format attr='line-visibility' value='off' /></style-rule>
+          <style-rule element='table-div'><format attr='stroke-size' scope='cols' value='0' /><format attr='line-visibility' scope='cols' value='off' /><format attr='stroke-size' scope='rows' value='0' /><format attr='line-visibility' scope='rows' value='off' /></style-rule>
         </style>
         <panes>
           <pane selection-relaxation-option='selection-relaxation-allow'>
@@ -357,9 +416,8 @@ def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
           <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='{zero}' x-index='1'>
             <view><breakdown value='auto' /></view>
             <mark class='Pie' />
-            <mark-sizing mark-sizing-setting='marks-scaling-off' />
             <style><style-rule element='mark'>
-              <format attr='size' value='0.72' />
+              <format attr='size' value='0.60' />
               <format attr='mark-labels-show' value='false' />
               <format attr='mark-color' value='#FFFFFF' />
             </style-rule></style>
@@ -367,12 +425,11 @@ def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
           <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='{zero}'>
             <view><breakdown value='auto' /></view>
             <mark class='Pie' />
-            <mark-sizing mark-sizing-setting='marks-scaling-off' />
             <encodings>
               <color column='{mn}' palette='ring_gauge' type='palette' />
               <size column='{mv}' />
             </encodings>
-            <style><style-rule element='mark'><format attr='size' value='1.10' /></style-rule></style>
+            <style><style-rule element='mark'><format attr='size' value='1.0' /></style-rule></style>
           </pane>
         </panes>
         <rows>{dummy}</rows>
