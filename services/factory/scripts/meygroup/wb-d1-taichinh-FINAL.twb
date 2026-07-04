@@ -2000,13 +2000,13 @@
   <column aggregation='Count' caption='Agent Id' datatype='string' default-type='nominal' name='[AgentId]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Count' caption='Aging Bucket' datatype='string' default-type='nominal' name='[AgingBucket]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Sum' caption='Amount Collected Vnd' datatype='integer' default-type='quantitative' name='[AmountCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Amount Due Vnd' datatype='integer' default-type='quantitative' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Công nợ (tỷ)' datatype='integer' default-type='quantitative' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Attrition Rate' datatype='real' default-type='quantitative' name='[AttritionRate]' pivot='key' role='measure' type='quantitative' user-datatype='real' visual-totals='Default' />
   <column aggregation='Count' caption='Blocking Department' datatype='string' default-type='nominal' name='[BlockingDepartment]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Sum' caption='Booking Count' datatype='integer' default-type='quantitative' name='[BookingCount]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Cash Collected Kpi Vnd' datatype='integer' default-type='quantitative' name='[CashCollectedKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Cash Collected Plan Vnd' datatype='integer' default-type='quantitative' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Cash Collected Vnd' datatype='integer' default-type='quantitative' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' name='[CashCollectedKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' datatype='string' default-type='nominal' name='[City]' pivot='key' role='dimension' semantic-role='[City].[Name]' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Year' caption='Closed Date' datatype='datetime' default-type='ordinal' name='[ClosedDate]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
   <column aggregation='Count' caption='Collection Id' datatype='integer' default-type='ordinal' name='[CollectionId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
@@ -2016,7 +2016,7 @@
   <column aggregation='Year' caption='Created Date' datatype='datetime' default-type='ordinal' name='[CreatedDate]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
   <column aggregation='Count' caption='Customer Segment' datatype='string' default-type='nominal' name='[CustomerSegment]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Sum' caption='Deal Count' datatype='integer' default-type='quantitative' name='[DealCount]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Deal Value Vnd' datatype='integer' default-type='quantitative' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Doanh số (tỷ)' datatype='integer' default-type='quantitative' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Delay Weeks' datatype='integer' default-type='quantitative' name='[DelayWeeks]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Year' caption='Due Date' datatype='datetime' default-type='ordinal' name='[DueDate]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
   <column aggregation='Count' caption='Financial Id' datatype='integer' default-type='ordinal' name='[FinancialId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
@@ -2042,9 +2042,9 @@
   <column aggregation='Count' caption='Project Id' datatype='integer' default-type='ordinal' name='[ProjectId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' caption='Project Name' datatype='string' default-type='nominal' name='[ProjectName]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Count' datatype='string' default-type='nominal' name='[Province]' pivot='key' role='dimension' semantic-role='[State].[Name]' type='nominal' user-datatype='string' visual-totals='Default' />
-  <column aggregation='Sum' caption='Revenue Kpi Vnd' datatype='integer' default-type='quantitative' name='[RevenueKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Revenue Plan Vnd' datatype='integer' default-type='quantitative' name='[RevenuePlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Revenue Vnd' datatype='integer' default-type='quantitative' name='[RevenueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' name='[RevenueKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' name='[RevenuePlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' name='[RevenueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' datatype='integer' default-type='ordinal' name='[SaleId (Collections)]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' caption='Sale Id' datatype='integer' default-type='ordinal' name='[SaleId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' caption='San Giao Dich' datatype='string' default-type='nominal' name='[SanGiaoDich]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
@@ -2057,8 +2057,8 @@
   <column aggregation='Count' caption='Unit Type' datatype='string' default-type='nominal' name='[UnitType]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
   <column aggregation='Sum' caption='Units Inventory' datatype='integer' default-type='quantitative' name='[UnitsInventory]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Units Opened' datatype='integer' default-type='quantitative' name='[UnitsOpened]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Units Sold Kpi' datatype='integer' default-type='quantitative' name='[UnitsSoldKpi]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-  <column aggregation='Sum' caption='Units Sold Plan' datatype='integer' default-type='quantitative' name='[UnitsSoldPlan]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' name='[UnitsSoldKpi]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+  <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' name='[UnitsSoldPlan]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Units Sold' datatype='integer' default-type='quantitative' name='[UnitsSold]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Sum' caption='Visit Count' datatype='integer' default-type='quantitative' name='[VisitCount]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
   <column aggregation='Count' caption='Agencies' datatype='table' default-type='quantitative' name='[__tableau_internal_object_id__].[Agencies (Extract.Agencies)_38235686A3B14517A0A65B7B239FB917]' pivot='key' role='measure' type='quantitative' user-datatype='table' visual-totals='Default' />
@@ -2226,7 +2226,7 @@
       <column aggregation='Count' caption='Agent Id' datatype='string' default-type='nominal' layered='true' name='[AgentId]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Count' caption='Aging Bucket' datatype='string' default-type='nominal' layered='true' name='[AgingBucket]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Sum' caption='Amount Collected Vnd' datatype='integer' default-type='quantitative' layered='true' name='[AmountCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-      <column aggregation='Sum' caption='Amount Due Vnd' datatype='integer' default-type='quantitative' layered='true' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='Công nợ (tỷ)' datatype='integer' default-type='quantitative' layered='true' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Sum' caption='Attrition Rate' datatype='real' default-type='quantitative' layered='true' name='[AttritionRate]' pivot='key' role='measure' type='quantitative' user-datatype='real' visual-totals='Default' />
       <column aggregation='Count' caption='Blocking Department' datatype='string' default-type='nominal' layered='true' name='[BlockingDepartment]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Sum' caption='Booking Count' datatype='integer' default-type='quantitative' layered='true' name='[BookingCount]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
@@ -2284,9 +2284,9 @@
       <column caption='Gauge dummy' datatype='string' name='[Calculation_00900119000001]' role='dimension' type='nominal'>
         <calculation class='tableau' formula='&quot;dummy&quot;' />
       </column>
-      <column aggregation='Sum' caption='Cash Collected Kpi Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-      <column aggregation='Sum' caption='Cash Collected Plan Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-      <column aggregation='Sum' caption='Cash Collected Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Count' datatype='string' default-type='nominal' layered='true' name='[City]' pivot='key' role='dimension' semantic-role='[City].[Name]' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Year' caption='Closed Date' datatype='datetime' default-type='ordinal' layered='true' name='[ClosedDate]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
       <column aggregation='Count' caption='Collection Id' datatype='integer' default-type='ordinal' layered='true' name='[CollectionId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
@@ -2297,7 +2297,7 @@
       <column aggregation='Count' datatype='string' default-type='nominal' layered='true' name='[CustomerSegment (Leads)]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Count' caption='Customer Segment' datatype='string' default-type='nominal' layered='true' name='[CustomerSegment]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Sum' caption='Deal Count' datatype='integer' default-type='quantitative' layered='true' name='[DealCount]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-      <column aggregation='Sum' caption='Deal Value Vnd' datatype='integer' default-type='quantitative' layered='true' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='Doanh số (tỷ)' datatype='integer' default-type='quantitative' layered='true' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Sum' caption='Delay Weeks' datatype='integer' default-type='quantitative' layered='true' name='[DelayWeeks]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Count' datatype='string' default-type='nominal' layered='true' name='[Department]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Count' datatype='string' default-type='nominal' layered='true' name='[District]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
@@ -2337,10 +2337,10 @@
       <column aggregation='Count' datatype='string' default-type='nominal' layered='true' name='[Province]' pivot='key' role='dimension' semantic-role='[State].[Name]' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Count' datatype='string' default-type='nominal' layered='true' name='[Region (MonthlyFinancial)]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Count' datatype='string' default-type='nominal' layered='true' name='[Region]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
-      <column aggregation='Sum' caption='Revenue Kpi Vnd' datatype='integer' default-type='quantitative' layered='true' name='[RevenueKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-      <column aggregation='Sum' caption='Revenue Plan Vnd' datatype='integer' default-type='quantitative' layered='true' name='[RevenuePlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' layered='true' name='[RevenueKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' layered='true' name='[RevenuePlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Sum' datatype='integer' default-type='quantitative' layered='true' name='[RevenueVnd (Agencies)]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-      <column aggregation='Sum' caption='Revenue Vnd' datatype='integer' default-type='quantitative' layered='true' name='[RevenueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' layered='true' name='[RevenueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Count' datatype='integer' default-type='ordinal' layered='true' name='[SaleId (Collections)]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Count' caption='Sale Id' datatype='integer' default-type='ordinal' layered='true' name='[SaleId]' pivot='key' role='dimension' type='ordinal' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Count' caption='San Giao Dich' datatype='string' default-type='nominal' layered='true' name='[SanGiaoDich]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
@@ -2365,9 +2365,9 @@
       <column aggregation='Count' caption='Unit Type' datatype='string' default-type='nominal' layered='true' name='[UnitType]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
       <column aggregation='Sum' caption='Units Inventory' datatype='integer' default-type='quantitative' layered='true' name='[UnitsInventory]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Sum' caption='Units Opened' datatype='integer' default-type='quantitative' layered='true' name='[UnitsOpened]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-      <column aggregation='Sum' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSold (MonthlyFinancial)]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-      <column aggregation='Sum' caption='Units Sold Kpi' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldKpi]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-      <column aggregation='Sum' caption='Units Sold Plan' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldPlan]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSold (MonthlyFinancial)]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldKpi]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+      <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldPlan]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Sum' caption='Units Sold' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSold]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Sum' caption='Visit Count' datatype='integer' default-type='quantitative' layered='true' name='[VisitCount]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
       <column aggregation='Count' caption='Agencies' datatype='table' default-type='quantitative' layered='true' name='[__tableau_internal_object_id__].[Agencies (Extract.Agencies)_38235686A3B14517A0A65B7B239FB917]' pivot='key' role='measure' type='quantitative' user-datatype='table' visual-totals='Default' />
@@ -2578,7 +2578,7 @@
             <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
           </datasources>
           <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column aggregation='Sum' caption='Amount Due Vnd' datatype='integer' default-type='quantitative' layered='true' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Công nợ (tỷ)' datatype='integer' default-type='quantitative' layered='true' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
             <column aggregation='Count' datatype='string' default-type='nominal' layered='true' name='[ProjectName (Collections)]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
             <column-instance column='[ProjectName (Collections)]' derivation='None' name='[none:ProjectName (Collections):nk]' pivot='key' type='nominal' />
             <column-instance column='[AmountDueVnd]' derivation='Sum' name='[sum:AmountDueVnd:qk]' pivot='key' type='quantitative' />
@@ -2625,7 +2625,7 @@
           </datasources>
           <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
             <column aggregation='Count' caption='Aging Bucket' datatype='string' default-type='nominal' layered='true' name='[AgingBucket]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
-            <column aggregation='Sum' caption='Amount Due Vnd' datatype='integer' default-type='quantitative' layered='true' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Công nợ (tỷ)' datatype='integer' default-type='quantitative' layered='true' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
             <column-instance column='[AgingBucket]' derivation='None' name='[none:AgingBucket:nk]' pivot='key' type='nominal' />
             <column-instance column='[AmountDueVnd]' derivation='Sum' name='[sum:AmountDueVnd:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
@@ -2666,7 +2666,7 @@
             <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
           </datasources>
           <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column aggregation='Sum' caption='Deal Value Vnd' datatype='integer' default-type='quantitative' layered='true' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Doanh số (tỷ)' datatype='integer' default-type='quantitative' layered='true' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
             <column aggregation='Count' caption='Project Name' datatype='string' default-type='nominal' layered='true' name='[ProjectName]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
             <column-instance column='[ProjectName]' derivation='None' name='[none:ProjectName:nk]' pivot='key' type='nominal' />
             <column-instance column='[DealValueVnd]' derivation='Sum' name='[sum:DealValueVnd:qk]' pivot='key' type='quantitative' />
@@ -2709,9 +2709,9 @@
           </datasources>
           <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
             <column aggregation='Year' datatype='datetime' default-type='ordinal' layered='true' name='[Month]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
-            <column aggregation='Sum' caption='Revenue Kpi Vnd' datatype='integer' default-type='quantitative' layered='true' name='[RevenueKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-            <column aggregation='Sum' caption='Revenue Plan Vnd' datatype='integer' default-type='quantitative' layered='true' name='[RevenuePlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-            <column aggregation='Sum' caption='Revenue Vnd' datatype='integer' default-type='quantitative' layered='true' name='[RevenueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' layered='true' name='[RevenueKpiVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' layered='true' name='[RevenuePlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' layered='true' name='[RevenueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
             <column-instance column='[Month]' derivation='Month' name='[mn:Month:ok]' pivot='key' type='ordinal' />
             <column-instance column='[RevenueKpiVnd]' derivation='Sum' name='[sum:RevenueKpiVnd:qk]' pivot='key' type='quantitative' />
             <column-instance column='[RevenuePlanVnd]' derivation='Sum' name='[sum:RevenuePlanVnd:qk]' pivot='key' type='quantitative' />
@@ -2794,7 +2794,7 @@
             <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
           </datasources>
           <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column aggregation='Sum' caption='Cash Collected Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
             <column aggregation='Count' datatype='string' default-type='nominal' layered='true' name='[ProjectName (MonthlyFinancial)]' pivot='key' role='dimension' type='nominal' user-datatype='string' visual-totals='Default' />
             <column-instance column='[ProjectName (MonthlyFinancial)]' derivation='None' name='[none:ProjectName (MonthlyFinancial):nk]' pivot='key' type='nominal' />
             <column-instance column='[CashCollectedVnd]' derivation='Sum' name='[sum:CashCollectedVnd:qk]' pivot='key' type='quantitative' />
@@ -2805,7 +2805,8 @@
           <style-rule element='axis'>
             <format attr='tick-color' value='#E3E9EF' />
           </style-rule>
-        </style>
+        
+          <style-rule element='axis'><format attr='title' class='0' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[sum:CashCollectedVnd:qk]' scope='cols' value='Tiền thu (tỷ)' /></style-rule></style>
         <panes>
           <pane selection-relaxation-option='selection-relaxation-allow'>
             <view>
@@ -2838,8 +2839,8 @@
             <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
           </datasources>
           <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column aggregation='Sum' caption='Cash Collected Plan Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-            <column aggregation='Sum' caption='Cash Collected Vnd' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedPlanVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' layered='true' name='[CashCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
             <column aggregation='Year' datatype='datetime' default-type='ordinal' layered='true' name='[Month]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
             <column-instance column='[Month]' derivation='Month' name='[mn:Month:ok]' pivot='key' type='ordinal' />
             <column-instance column='[CashCollectedPlanVnd]' derivation='Sum' name='[sum:CashCollectedPlanVnd:qk]' pivot='key' type='quantitative' />
@@ -2906,7 +2907,7 @@
           </datasources>
           <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
             <column aggregation='Sum' caption='Amount Collected Vnd' datatype='integer' default-type='quantitative' layered='true' name='[AmountCollectedVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-            <column aggregation='Sum' caption='Amount Due Vnd' datatype='integer' default-type='quantitative' layered='true' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Công nợ (tỷ)' datatype='integer' default-type='quantitative' layered='true' name='[AmountDueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
             <column caption='Công nợ phải thu' datatype='integer' default-format='n#,##0,,,&quot;tỷ&quot;' name='[Calculation_0090010000000003]' role='measure' type='quantitative'>
               <calculation class='tableau' formula='SUM([AmountDueVnd]) - SUM([AmountCollectedVnd])' />
             </column>
@@ -2959,7 +2960,7 @@
             <column caption='Tổng doanh số' datatype='integer' default-format='n#,##0,,,&quot;tỷ&quot;' name='[Calculation_0090010000000001]' role='measure' type='quantitative'>
               <calculation class='tableau' formula='SUM([DealValueVnd])' />
             </column>
-            <column aggregation='Sum' caption='Deal Value Vnd' datatype='integer' default-type='quantitative' layered='true' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Doanh số (tỷ)' datatype='integer' default-type='quantitative' layered='true' name='[DealValueVnd]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
             <column-instance column='[Calculation_0090010000000001]' derivation='User' name='[usr:Calculation_0090010000000001:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
           <aggregation value='true' />
@@ -3107,9 +3108,9 @@
           </datasources>
           <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
             <column aggregation='Year' datatype='datetime' default-type='ordinal' layered='true' name='[Month]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />
-            <column aggregation='Sum' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSold (MonthlyFinancial)]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-            <column aggregation='Sum' caption='Units Sold Kpi' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldKpi]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-            <column aggregation='Sum' caption='Units Sold Plan' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldPlan]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSold (MonthlyFinancial)]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldKpi]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
+            <column aggregation='Sum' caption='Kế hoạch (KHNS)' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldPlan]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
             <column-instance column='[Month]' derivation='Month' name='[mn:Month:ok]' pivot='key' type='ordinal' />
             <column-instance column='[UnitsSold (MonthlyFinancial)]' derivation='Sum' name='[sum:UnitsSold (MonthlyFinancial):qk]' pivot='key' type='quantitative' />
             <column-instance column='[UnitsSoldKpi]' derivation='Sum' name='[sum:UnitsSoldKpi:qk]' pivot='key' type='quantitative' />
