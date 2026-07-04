@@ -279,23 +279,24 @@ def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
     as a solid dot — the earlier bug)."""
     dat = f"[{DS}].[usr:{dat_calc.cid}:qk]"
     rem = f"[{DS}].[usr:{remain_calc.cid}:qk]"
-    zero = f"[{DS}].[sum:{zero_calc.cid}:qk]"
+    # min0 measure: User-derived (matches Superstore Donut Seed usr:...737307)
+    zero = f"[{DS}].[usr:{zero_calc.cid}:qk]"
     dummy = f"[{DS}].[none:{dummy_calc.cid}:nk]"
     mn = f"[{DS}].[:Measure Names]"
     mv = f"[{DS}].[Multiple Values]"
-    # zero_calc is a measure literal 0; its column-instance is a Sum (not usr).
-    zero_dep = (f"            <column caption='{esc(zero_calc.caption)}' datatype='integer' "
-                f"name='[{zero_calc.cid}]' role='measure' type='quantitative'>\n"
-                f"              <calculation class='tableau' formula='{esc(zero_calc.formula)}' />\n"
-                f"            </column>\n"
-                f"            <column-instance column='[{zero_calc.cid}]' derivation='Sum' "
-                f"name='[sum:{zero_calc.cid}:qk]' pivot='key' type='quantitative' />")
+    zero_dep = (zero_calc.dep_col() + "\n" + zero_calc.inst())
     dummy_dep = (dummy_calc.dep_col() + "\n"
                  f"            <column-instance column='[{dummy_calc.cid}]' derivation='None' "
                  f"name='[none:{dummy_calc.cid}:nk]' pivot='key' type='nominal' />")
     deps = "\n".join([pct_calc.dep_col(), dat_calc.dep_col(), remain_calc.dep_col(),
                       pct_calc.inst(), dat_calc.inst(), remain_calc.inst(),
                       zero_dep, dummy_dep])
+    # Cloned VERBATIM from the user's `Donut Seed` (pasted Superstore `pies`):
+    # cols = (min0 + min0) → two zero-width axes at same x → panes overlay.
+    # rows = gauge dummy dim (single row). Pane id='1' (x-index='1') = the WHITE
+    # hole pie ON TOP (smaller). Pane id='2' = the colored donut BEHIND (bigger,
+    # color=Measure Names Đạt/Còn-lại, size=Multiple Values). The white pie
+    # punches the hole → donut. % shown big in the hole via the title.
     return f"""    <worksheet name='{esc(sheet_name)}'>
       <layout-options>
         <title><formatted-text><run fontsize='21' bold='true' fontcolor='{ring_color}'>{esc(center_pct_text)}</run></formatted-text></title>
@@ -314,43 +315,58 @@ def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
               <groupfilter function='member' level='[:Measure Names]' member='&quot;{rem}&quot;' />
             </groupfilter>
           </filter>
+          <manual-sort column='{mn}' direction='ASC'>
+            <dictionary>
+              <bucket>&quot;{dat}&quot;</bucket>
+              <bucket>&quot;{rem}&quot;</bucket>
+            </dictionary>
+          </manual-sort>
           <slices><column>{mn}</column></slices>
           <aggregation value='true' />
         </view>
         <style>
           <style-rule element='axis'>
-            <format attr='display' class='0' field='{zero}' scope='cols' value='false' />
             <format attr='display' class='1' field='{zero}' scope='cols' value='false' />
+            <encoding attr='space' class='1' field='{zero}' field-type='quantitative' fold='true' scope='cols' type='space' />
+            <format attr='display' class='0' field='{zero}' scope='cols' value='false' />
             <format attr='tick-color' value='#00000000' />
           </style-rule>
+          <style-rule element='header'>
+            <format attr='border-width' data-class='total' value='0' />
+            <format attr='border-style' data-class='total' value='none' />
+          </style-rule>
           <style-rule element='label'><format attr='display' field='{dummy}' value='false' /></style-rule>
+          <style-rule element='pane'>
+            <format attr='border-width' data-class='total' value='0' />
+            <format attr='border-style' data-class='total' value='none' />
+          </style-rule>
+          <style-rule element='table'><format attr='background-color' value='#00000000' /></style-rule>
+          <style-rule element='worksheet'><format attr='display-field-labels' scope='rows' value='false' /></style-rule>
         </style>
         <panes>
           <pane selection-relaxation-option='selection-relaxation-allow'>
             <view><breakdown value='auto' /></view>
             <mark class='Pie' />
           </pane>
-          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='{zero}'>
+          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='{zero}' x-index='1'>
             <view><breakdown value='auto' /></view>
             <mark class='Pie' />
-            <encodings>
-              <color column='{mn}' palette='ring_gauge' type='palette' />
-              <wedge-size column='{mv}' />
-            </encodings>
-            <style><style-rule element='mark'><format attr='size' value='1.50' /></style-rule></style>
+            <mark-sizing mark-sizing-setting='marks-scaling-off' />
+            <style><style-rule element='mark'>
+              <format attr='size' value='0.72' />
+              <format attr='mark-labels-show' value='false' />
+              <format attr='mark-color' value='#FFFFFF' />
+            </style-rule></style>
           </pane>
-          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='{zero}' x-index='1'>
+          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='{zero}'>
             <view><breakdown value='auto' /></view>
             <mark class='Pie' />
             <mark-sizing mark-sizing-setting='marks-scaling-off' />
             <encodings>
               <color column='{mn}' palette='ring_gauge' type='palette' />
-              <wedge-size column='{mv}' />
+              <size column='{mv}' />
             </encodings>
-            <style><style-rule element='mark'>
-              <format attr='size' value='0.90' />
-              <format attr='mark-color' value='#FFFFFF' />
-            </style-rule></style>
+            <style><style-rule element='mark'><format attr='size' value='1.10' /></style-rule></style>
           </pane>
         </panes>
         <rows>{dummy}</rows>
