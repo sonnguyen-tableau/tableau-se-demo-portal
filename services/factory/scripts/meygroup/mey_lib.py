@@ -319,8 +319,8 @@ def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
         </view>
         <style>
           <style-rule element='axis'>
-            <format attr='display' class='0' field='{zero}' scope='rows' value='false' />
-            <format attr='display' class='1' field='{zero}' scope='rows' value='false' />
+            <format attr='display' class='0' field='{zero}' scope='cols' value='false' />
+            <format attr='display' class='1' field='{zero}' scope='cols' value='false' />
             <format attr='tick-color' value='#00000000' />
           </style-rule>
           <style-rule element='label'><format attr='display' field='{dummy}' value='false' /></style-rule>
@@ -329,14 +329,17 @@ def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
           <pane selection-relaxation-option='selection-relaxation-allow'>
             <view><breakdown value='auto' /></view>
             <mark class='Pie' />
-            <mark-sizing mark-sizing-setting='marks-scaling-off' />
+          </pane>
+          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='{zero}'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Pie' />
             <encodings>
               <color column='{mn}' palette='ring_gauge' type='palette' />
               <wedge-size column='{mv}' />
             </encodings>
-            <style><style-rule element='mark'><format attr='size' value='1.20' /></style-rule></style>
+            <style><style-rule element='mark'><format attr='size' value='1.50' /></style-rule></style>
           </pane>
-          <pane id='1' selection-relaxation-option='selection-relaxation-allow' y-axis-name='{zero}' y-index='1'>
+          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='{zero}' x-index='1'>
             <view><breakdown value='auto' /></view>
             <mark class='Pie' />
             <mark-sizing mark-sizing-setting='marks-scaling-off' />
@@ -345,13 +348,13 @@ def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
               <wedge-size column='{mv}' />
             </encodings>
             <style><style-rule element='mark'>
-              <format attr='size' value='0.62' />
+              <format attr='size' value='0.90' />
               <format attr='mark-color' value='#FFFFFF' />
             </style-rule></style>
           </pane>
         </panes>
-        <rows>({zero} + {zero})</rows>
-        <cols>{dummy}</cols>
+        <rows>{dummy}</rows>
+        <cols>({zero} + {zero})</cols>
         <tooltip-style tooltip-mode='none' />
       </table>
       <simple-id uuid='{U()}' />
@@ -374,17 +377,26 @@ def bullet_chart(sheet_name, title_vn, month_field, actual_calc_name, plan_calc_
     def sinst(n): return f"            <column-instance column='[{n}]' derivation='Sum' name='[sum:{n}:qk]' pivot='key' type='quantitative' />"
     act, plan = sref(actual_calc_name), sref(plan_calc_name)
     month_inst = f"[{DS}].[mn:{month_field}:ok]"
+    kpi = sref(kpi_calc_name) if kpi_calc_name else None
+    measures = [actual_calc_name, plan_calc_name] + ([kpi_calc_name] if kpi_calc_name else [])
     dep_names = [
         f"            <column aggregation='Year' datatype='datetime' default-type='ordinal' layered='true' name='[{month_field}]' pivot='key' role='dimension' type='ordinal' user-datatype='datetime' visual-totals='Default' />",
-        rawcol(actual_calc_name), rawcol(plan_calc_name),
+    ] + [rawcol(n) for n in measures] + [
         f"            <column-instance column='[{month_field}]' derivation='Month' name='[mn:{month_field}:ok]' pivot='key' type='ordinal' />",
-        sinst(actual_calc_name), sinst(plan_calc_name),
-    ]
+    ] + [sinst(n) for n in measures]
     deps = "\n".join(dep_names)
-    # TRUE dual-axis: two measures on rows (plan first = behind, actual second =
-    # front), each its own <pane> keyed by y-axis-name, axes synchronized so they
-    # share scale and overlay. Plan pane = wide grey ghost; actual pane = thin
-    # brand-blue in front. mark-layer-order puts actual on top.
+    mn = f"[{DS}].[:Measure Names]"
+    # Grouped/dodged bars — the exact idiom of the user's working Bullet Seed:
+    # rows = measure-blend (sum:actual + sum:plan [+ sum:kpi]); cols = (Month /
+    # :Measure Names) so the measures dodge side-by-side within each month;
+    # color = Measure Names bound to the mey KHNS/KPI palette. Renders reliably
+    # on Cloud (an overlaid dual-axis via <join-axes> is rejected — 500000).
+    rows_blend = " + ".join([act, plan] + ([kpi] if kpi else []))
+    # Measure Names filter keeps only our series, in order actual/plan/kpi.
+    members = "\n".join(
+        f"              <groupfilter function='member' level='[:Measure Names]' member='&quot;{sref(n)}&quot;' />"
+        for n in measures)
+    order = "\n".join(f"              <bucket>&quot;{sref(n)}&quot;</bucket>" for n in measures)
     return f"""    <worksheet name='{esc(sheet_name)}'>
       <layout-options>
         <title><formatted-text><run fontname='Tableau Bold' fontsize='13' bold='true' fontcolor='#0F2A47'>{esc(title_vn)}</run></formatted-text></title>
@@ -397,6 +409,16 @@ def bullet_chart(sheet_name, title_vn, month_field, actual_calc_name, plan_calc_
           <datasource-dependencies datasource='{DS}'>
 {deps}
           </datasource-dependencies>
+          <filter class='categorical' column='{mn}'>
+            <groupfilter function='union' user:op='manual'>
+{members}
+            </groupfilter>
+          </filter>
+          <manual-sort column='{mn}' direction='ASC'>
+            <dictionary>
+{order}
+            </dictionary>
+          </manual-sort>
           <aggregation value='true' />
         </view>
         <style>
@@ -409,29 +431,20 @@ def bullet_chart(sheet_name, title_vn, month_field, actual_calc_name, plan_calc_
           </style-rule>
         </style>
         <panes>
-          <pane selection-relaxation-option='selection-relaxation-allow' y-axis-name='{plan}'>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
             <view><breakdown value='auto' /></view>
             <mark class='Bar' />
+            <encodings>
+              <color column='{mn}' palette='mey_khns_kpi' type='palette' />
+              <text column='[{DS}].[Multiple Values]' />
+            </encodings>
             <style>
-              <style-rule element='mark'><format attr='mark-color' value='#D6E0EA' /><format attr='mark-bar-size' value='0.86' /></style-rule>
-            </style>
-          </pane>
-          <pane id='1' selection-relaxation-option='selection-relaxation-allow' y-axis-name='{act}'>
-            <view><breakdown value='auto' /></view>
-            <mark class='Bar' />
-            <style>
-              <style-rule element='mark'><format attr='mark-color' value='#1B75BC' /><format attr='mark-bar-size' value='0.44' /></style-rule>
+              <style-rule element='mark'><format attr='mark-bar-size' value='0.80' /></style-rule>
             </style>
           </pane>
         </panes>
-        <rows>{plan}{act}</rows>
-        <cols>{month_inst}</cols>
-        <join-axes>
-          <axis-mapping-set>
-            <axis-mapping to='{plan}'>{plan}</axis-mapping>
-            <axis-mapping to='{plan}'>{act}</axis-mapping>
-          </axis-mapping-set>
-        </join-axes>
+        <rows>[{DS}].[Multiple Values]</rows>
+        <cols>([{DS}].[mn:{month_field}:ok] / {mn})</cols>
       </table>
       <simple-id uuid='{U()}' />
     </worksheet>"""
@@ -565,6 +578,11 @@ def workbook(calcs, sheets_xml, sheet_names, dashboard_xml, dash_name):
     <color-palette name='ring_gauge' type='regular'>
       <color>#1F8A70</color>
       <color>#E7EDF3</color>
+    </color-palette>
+    <color-palette name='mey_khns_kpi' type='regular'>
+      <color>#1B75BC</color>
+      <color>#C7D2DE</color>
+      <color>#C29B54</color>
     </color-palette>
   </preferences>
   {ds_block}
