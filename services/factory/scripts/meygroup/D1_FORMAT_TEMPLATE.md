@@ -33,3 +33,16 @@ Sản lượng 90%, Doanh số 89%, Tiền thu 87% vs KPI.
 Rename measure captions: RevenueVnd/CashCollectedVnd/UnitsSold(MF)→'Thực hiện';
 *PlanVnd/UnitsSoldPlan→'Kế hoạch (KHNS)'; *KpiVnd/UnitsSoldKpi→'KPI';
 DealValueVnd→'Doanh số (tỷ)'; AmountDueVnd→'Công nợ (tỷ)'.
+
+## DATA-LOGIC: công nợ còn phải thu = due − collected (NOT full deal value)
+`AmountDueVnd` per project = the FULL contractual amount (= deal value), so
+plotting SUM(AmountDueVnd) makes công-nợ charts identical to Doanh số — WRONG.
+Outstanding công nợ = SUM(AmountDueVnd) − SUM(AmountCollectedVnd). Use an
+aggregate calc for both công-nợ charts (per-project + aging). Then aging 'Đã thu'
+bucket = 0 and the total = 6.401 tỷ = the KPI card. (User caught this on D1.)
+
+## KPI 2-line + data labels (user upgrades to replicate on D2–D5)
+- KPI cards: 2-line label = big number + small %HT-vs-KHNS line (▲102% so KHNS,
+  green if ≥100%, amber if <100%). Needs tall-enough cell (type-h='cell').
+- Ranking bars: SHOW the value as a mark label at the bar end (Doanh số, Dòng
+  tiền, Công nợ, Aging) — big readability win, apply to every ranking.
