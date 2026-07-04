@@ -545,13 +545,20 @@ BODY      = "#5A6B7B"   # secondary text
 # manifest (see workbook()). value = corner radius in px.
 ROUNDED = "<_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />"
 
-def leaf(name, minw=80, w=100000):
+def leaf(name, minw=80, w=100000, kpi=False):
     # Floating card: soft border + rounded corners + generous gutter (margin) +
     # inner padding so each viz breathes — the premium card treatment matching
     # the approved v3 mockup + the user's Superstore reference.
+    # KPI cards: type-h='cell' (NOT scalable) so the BAN number sizes to its
+    # natural cell and never gets scaled-away/culled — this was the root cause of
+    # KPI numbers vanishing (the user's working _seed_desktop2 uses cell). Charts
+    # keep scalable so they fill the card.
+    cache = (f"                <layout-cache cell-count-h='1' non-cell-size-h='32' type-h='cell' type-w='cell' />\n"
+             if kpi else
+             f"                <layout-cache minwidth='{minw}' type-h='scalable' type-w='scalable' />\n")
     return (f"              <zone h='100000' id='{_zid()}' name='{esc(name)}' w='{w}' x='0' y='0'>\n"
-            f"                <layout-cache minwidth='{minw}' type-h='scalable' type-w='scalable' />\n"
-            f"                <zone-style>"
+            + cache
+            + f"                <zone-style>"
             f"<format attr='border-color' value='{BORDER}' />"
             f"<format attr='border-style' value='solid' />"
             f"<format attr='border-width' value='1' />"
@@ -583,16 +590,17 @@ def header_band(title_vn: str, subtitle_vn: str) -> str:
               f"          </zone>")
     return band + "\n" + stripe
 
-def hrow(names, h, minw=80, weights=None):
+def hrow(names, h, minw=80, weights=None, kpi=False):
     """Horizontal row. NOTE: Tableau layout-flow splits EQUALLY regardless of
     zone w= — `weights` only helps in nested layouts; for true different widths
-    put a chart on its own row."""
+    put a chart on its own row. kpi=True → cells use type-h='cell' so BAN
+    numbers render (see leaf())."""
     if weights:
         total = sum(weights)
         ws = [int(100000 * wt / total) for wt in weights]
-        body = "\n".join(leaf(n, minw, w=ws[i]) for i, n in enumerate(names))
+        body = "\n".join(leaf(n, minw, w=ws[i], kpi=kpi) for i, n in enumerate(names))
     else:
-        body = "\n".join(leaf(n, minw) for n in names)
+        body = "\n".join(leaf(n, minw, kpi=kpi) for n in names)
     return (f"          <zone h='{h}' id='{_zid()}' param='horz' type-v2='layout-flow' w='100000' x='0' y='0'>\n{body}\n          </zone>")
 
 def dashboard(name, rows_xml, width=1400, height=1100):
