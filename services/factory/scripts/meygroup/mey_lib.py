@@ -82,6 +82,12 @@ class Calc:
 
 
 def load_ds_block(calcs: list[Calc]) -> str:
+    """Inject calc-field <column> defs before the sqlproxy datasource's real
+    structural close. NOTE: the seed block embeds a copy of the datasource XML
+    inside a <![CDATA[ ... </datasource> ... ]]> (a repository-location), so the
+    FIRST </datasource> is inside CDATA — injecting there corrupts the XML.
+    rfind() correctly targets the LAST </datasource> (the real structural close
+    of the sqlproxy datasource), which is what we want."""
     block = SEED_BLOCK.read_text(encoding="utf-8")
     calc_xml = "\n".join(c.full_col() for c in calcs)
     idx = block.rfind("</datasource>")
