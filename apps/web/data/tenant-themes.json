@@ -41,7 +41,8 @@
     "sidebarTextColor": "#ffffff",
     "fontFamily": "Inter",
     "tone": "professional",
-    "logoUrl": "/tenants/nam-a-bank-logo.png"
+    "logoUrl": "/tenants/nam-a-bank-logo.png",
+    "logoLayout": "wordmark"
   },
   {
     "tenantId": "meygroup",
@@ -52,6 +53,7 @@
     "sidebarTextColor": "#ffffff",
     "fontFamily": "Inter",
     "tone": "professional",
-    "logoUrl": "/tenants/meygroup-logo.png"
+    "logoUrl": "/tenants/meygroup-logo.png",
+    "logoLayout": "wordmark"
   }
 ]

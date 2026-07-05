@@ -27,6 +27,7 @@ const putSchema = z.object({
   sidebarTextColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   fontFamily: z.string().max(80),
   logoUrl: z.string().url().max(2048).or(z.literal("")).optional(),
+  logoLayout: z.enum(["icon", "wordmark"]).optional(),
   tone: z.enum(["professional", "playful", "technical"]),
 });
 
@@ -41,10 +42,11 @@ export async function PUT(req: Request): Promise<Response> {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { logoUrl, sidebarTextColor, ...rest } = parsed.data;
+  const { logoUrl, logoLayout, sidebarTextColor, ...rest } = parsed.data;
   const theme = await setTenantTheme({
     ...rest,
     ...(logoUrl !== undefined ? { logoUrl } : {}),
+    ...(logoLayout !== undefined ? { logoLayout } : {}),
     ...(sidebarTextColor !== undefined ? { sidebarTextColor } : {}),
   });
   return NextResponse.json(theme);

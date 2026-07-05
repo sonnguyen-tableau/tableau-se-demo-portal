@@ -104,6 +104,7 @@ const THEMES = [
     fontFamily: "Inter",
     tone: "professional" as const,
     logoUrl: "/tenants/nam-a-bank-logo.png",
+    logoLayout: "wordmark" as const,
   },
   {
     tenantId: "meygroup",
@@ -115,6 +116,7 @@ const THEMES = [
     fontFamily: "Inter",
     tone: "professional" as const,
     logoUrl: "/tenants/meygroup-logo.png",
+    logoLayout: "wordmark" as const,
   },
 ];
 

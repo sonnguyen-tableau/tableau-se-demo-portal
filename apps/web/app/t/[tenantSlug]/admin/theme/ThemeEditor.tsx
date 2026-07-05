@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { TenantTheme, Tone } from "@/lib/tenant-theme";
+import type { LogoLayout, TenantTheme, Tone } from "@/lib/tenant-theme";
 
 const FONT_OPTIONS = ["Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Source Sans Pro"];
+const LOGO_LAYOUT_OPTIONS: { value: LogoLayout; label: string; desc: string }[] = [
+  { value: "icon", label: "Biểu tượng", desc: "Logo vuông/gọn, hiện kèm tên công ty bên cạnh" },
+  { value: "wordmark", label: "Logo chữ (ngang)", desc: "Logo đã có sẵn tên → hiện to, không kèm chữ trùng" },
+];
 const TONE_OPTIONS: { value: Tone; label: string; desc: string }[] = [
   { value: "professional", label: "Chuyên nghiệp", desc: "Nghiêm túc, rõ ràng, tin cậy" },
   { value: "playful", label: "Năng động", desc: "Thân thiện, sáng tạo, gần gũi" },
@@ -127,6 +131,27 @@ export function ThemeEditor({ initial, tenantId }: Props) {
                 placeholder="https://example.com/logo.png"
                 className={inputCls}
               />
+            </Field>
+
+            <Field label="Kiểu logo" hint="Logo dạng chữ ngang (đã chứa tên công ty) sẽ hiện to trên nền trắng, không kèm chữ trùng">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {LOGO_LAYOUT_OPTIONS.map((o) => {
+                  const active = (form.logoLayout ?? "icon") === o.value;
+                  return (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => set("logoLayout", o.value)}
+                      className={`rounded-xl border p-4 text-left transition ${
+                        active ? "border-sf-blue-70 bg-sf-blue-10" : "border-sf-neutral-3 bg-white hover:border-sf-blue-70"
+                      }`}
+                    >
+                      <p className={`text-sm font-semibold ${active ? "text-sf-blue-80" : "text-sf-neutral-9"}`}>{o.label}</p>
+                      <p className="mt-0.5 text-xs text-sf-neutral-5">{o.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
             </Field>
           </section>
 
@@ -266,28 +291,38 @@ function Preview({ theme }: { theme: TenantTheme }) {
   return (
     <div className="overflow-hidden rounded-xl border border-sf-neutral-3 shadow-sf-sm">
       {/* Sidebar preview */}
-      <div
-        className="flex items-center gap-2.5 px-4 py-3"
-        style={{ backgroundColor: theme.neutralColor }}
-      >
-        {theme.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={theme.logoUrl} alt="logo" className="h-7 w-7 rounded object-contain" />
-        ) : (
-          <div
-            className="flex h-7 w-7 items-center justify-center rounded text-xs font-bold text-white"
-            style={{ backgroundColor: theme.primaryColor }}
-          >
-            {theme.companyName.slice(0, 1)}
+      {theme.logoLayout === "wordmark" && theme.logoUrl ? (
+        <div className="flex flex-col gap-2 px-3 py-3" style={{ backgroundColor: theme.neutralColor }}>
+          <div className="flex items-center justify-center rounded-lg bg-white px-2.5 py-2 shadow-sm ring-1 ring-black/5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={theme.logoUrl} alt="logo" className="h-7 w-auto max-h-7 object-contain" />
           </div>
-        )}
-        <div>
-          <p className="text-xs font-bold leading-tight" style={{ fontFamily: theme.fontFamily, color: theme.sidebarTextColor ?? "#ffffff" }}>
-            {theme.companyName || "Tên công ty"}
-          </p>
-          <p className="text-[10px] uppercase tracking-widest" style={{ color: `${theme.sidebarTextColor ?? "#ffffff"}80` }}>Analytics Portal</p>
+          <p className="px-0.5 text-[10px] uppercase tracking-widest" style={{ color: `${theme.sidebarTextColor ?? "#ffffff"}80` }}>Analytics Portal</p>
         </div>
-      </div>
+      ) : (
+        <div
+          className="flex items-center gap-2.5 px-4 py-3"
+          style={{ backgroundColor: theme.neutralColor }}
+        >
+          {theme.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={theme.logoUrl} alt="logo" className="h-7 w-7 rounded object-contain" />
+          ) : (
+            <div
+              className="flex h-7 w-7 items-center justify-center rounded text-xs font-bold text-white"
+              style={{ backgroundColor: theme.primaryColor }}
+            >
+              {theme.companyName.slice(0, 1)}
+            </div>
+          )}
+          <div>
+            <p className="text-xs font-bold leading-tight" style={{ fontFamily: theme.fontFamily, color: theme.sidebarTextColor ?? "#ffffff" }}>
+              {theme.companyName || "Tên công ty"}
+            </p>
+            <p className="text-[10px] uppercase tracking-widest" style={{ color: `${theme.sidebarTextColor ?? "#ffffff"}80` }}>Analytics Portal</p>
+          </div>
+        </div>
+      )}
 
       {/* Nav items preview */}
       <div className="space-y-0.5 px-2 py-2" style={{ backgroundColor: theme.neutralColor }}>

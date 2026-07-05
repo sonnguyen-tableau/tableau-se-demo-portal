@@ -9,6 +9,12 @@ import { join } from "path";
 
 export type Tone = "professional" | "playful" | "technical";
 
+// How the logo asset is shaped, so the sidebar header can render it correctly:
+// - "icon": square/compact mark → small boxed icon paired with the company name.
+// - "wordmark": wide logo that already includes the company name → render full
+//   width on its own, no redundant text beside it.
+export type LogoLayout = "icon" | "wordmark";
+
 export interface TenantTheme {
   tenantId: string;
   companyName: string;
@@ -18,6 +24,7 @@ export interface TenantTheme {
   sidebarTextColor: string;
   fontFamily: string;
   logoUrl?: string | undefined;
+  logoLayout?: LogoLayout | undefined;
   tone: Tone;
 }
 
@@ -110,6 +117,11 @@ export async function setTenantTheme(
       : existing.logoUrl !== undefined
         ? { logoUrl: existing.logoUrl }
         : {}),
+    ...(isLogoLayout(input.logoLayout)
+      ? { logoLayout: input.logoLayout }
+      : existing.logoLayout !== undefined
+        ? { logoLayout: existing.logoLayout }
+        : {}),
   };
 
   if (hasKv()) {
@@ -175,4 +187,8 @@ function pickHex(candidate: string | undefined, fallback: string): string {
 
 function isTone(v: unknown): v is Tone {
   return v === "professional" || v === "playful" || v === "technical";
+}
+
+function isLogoLayout(v: unknown): v is LogoLayout {
+  return v === "icon" || v === "wordmark";
 }

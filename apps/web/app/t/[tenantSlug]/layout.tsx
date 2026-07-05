@@ -45,6 +45,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
   const theme = {
     primary: rawTheme.primaryColor,
     logoUrl: rawTheme.logoUrl,
+    logoLayout: rawTheme.logoLayout ?? "icon",
     companyName: rawTheme.companyName,
     cssText: themeToCssVariables(rawTheme),
   } as const;
@@ -66,26 +67,47 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
       {/* ── Sidebar ────────────────────────────────────────────────────────── */}
       <SidebarWrapper>
         {/* Brand header */}
-        <div className="flex items-center gap-3 px-5 py-5">
-          <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white/8 ring-1 ring-white/10"
-          >
-            {theme.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={theme.logoUrl} alt={`${theme.companyName} logo`} className="h-full w-full object-contain" />
-            ) : tenantSlug === "vincomretail" ? (
-              <VincomRetailIcon size={22} />
-            ) : (
-              <SalesforceBankIcon size={22} />
-            )}
-          </span>
-          <div className="flex flex-col leading-tight min-w-0">
-            <span className="text-body-sm font-bold truncate" style={{ color: "var(--sidebar-text, #fff)" }}>{theme.companyName}</span>
-            <span className="text-meta font-medium uppercase tracking-[0.16em]" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 50%, transparent)" }}>
-              {tenantSlug === "vincomretail" ? "Retail Intelligence" : "Analytics Portal"}
+        {theme.logoLayout === "wordmark" && theme.logoUrl ? (
+          // Wide logo already contains the company name → render it full width,
+          // no boxed icon and no redundant company-name text beside it. The
+          // wordmark sits on a light plate because these logos use dark/colored
+          // ink that would be unreadable directly on the dark sidebar (e.g. Mey
+          // Group's "MEY" ink matches the sidebar's navy exactly).
+          <div className="flex flex-col gap-2 px-4 py-5">
+            <div className="flex items-center justify-center rounded-xl bg-white px-3 py-2.5 shadow-elev-1 ring-1 ring-black/5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={theme.logoUrl}
+                alt={`${theme.companyName} logo`}
+                className="h-9 w-auto max-h-9 object-contain"
+              />
+            </div>
+            <span className="px-1 text-meta font-medium uppercase tracking-[0.16em]" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 50%, transparent)" }}>
+              Analytics Portal
             </span>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-3 px-5 py-5">
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white/8 ring-1 ring-white/10"
+            >
+              {theme.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={theme.logoUrl} alt={`${theme.companyName} logo`} className="h-full w-full object-contain" />
+              ) : tenantSlug === "vincomretail" ? (
+                <VincomRetailIcon size={22} />
+              ) : (
+                <SalesforceBankIcon size={22} />
+              )}
+            </span>
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="text-body-sm font-bold truncate" style={{ color: "var(--sidebar-text, #fff)" }}>{theme.companyName}</span>
+              <span className="text-meta font-medium uppercase tracking-[0.16em]" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 50%, transparent)" }}>
+                {tenantSlug === "vincomretail" ? "Retail Intelligence" : "Analytics Portal"}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Tenant badge */}
         <div className="mx-4 mt-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5 backdrop-blur-sm">
