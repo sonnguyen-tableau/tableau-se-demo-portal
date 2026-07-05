@@ -83,6 +83,18 @@ from Superstore's `pies`/`Segment` sheet + the user's `Ring Tiền thu 1`:
   dashboard `<window>`** or Cloud rejects publish with 400011 "sheet has no
   visual representation". See `mey_lib.ring_card()`.
 
+
+### Floating ring gauge — ONLY on absolutely-positioned (tiled) KPI cards
+A floating `is-fixed` ring zone anchors to absolute px, so it aligns correctly
+ONLY when the KPI cards are themselves tiled (real x/y/w/h — as in a user-
+Desktop-formatted dashboard). When KPI cards are code-authored via layout-flow
+(x=0 y=0 w=100000 h=100000 = relative), there is NO absolute frame and any ring
+x straddles the card boundary (spent 4 nudges on Mey D2 before accepting this).
+→ For a code-authored flow KPI strip, DON'T float a ring. Use the 2-line pct
+card instead (number + '▲102% so KHNS' run) — it renders inline, no coords,
+never straddles. Reserve floating rings for dashboards the user has tiled on
+Desktop (D1).
+
 ## 4 — 3-layer bullet (Thực hiện / KHNS / KPI) = GROUPED bars, not overlaid
 
 An overlaid dual-axis via hand-authored `<join-axes>` is REJECTED by Cloud

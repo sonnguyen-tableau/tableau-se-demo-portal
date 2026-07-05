@@ -2722,6 +2722,9 @@
             <customized-label>
               <formatted-text>
                 <run bold='true' fontalignment='1' fontcolor='#0f2a47' fontsize='18'><![CDATA[<[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_0090020000000002:qk]>]]></run>
+              
+                <run fontalignment='1'>&#10;</run>
+                <run fontalignment='1' fontsize='10' bold='true' fontcolor='#1f8a70'>▲ 102% so KHNS</run>
               </formatted-text>
             </customized-label>
             <style>
@@ -3129,136 +3132,6 @@
       </table>
       <simple-id uuid='{301B2116-DF20-4454-A28C-46FC195ADD0C}' />
     </worksheet>
-  <worksheet name='Ring Deal'>
-      <repository-location derived-from='https://prod-apsoutheast-c.online.tableau.com/t/vietnam/workbooks/MeyGroup-TaiChinh/3035293?rev=' id='RingSnlng' path='/t/vietnam/workbooks/MeyGroup-TaiChinh' revision='' site='vietnam' />
-      <table>
-        <view>
-          <datasources>
-            <datasource caption='meygroup' name='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj' />
-          </datasources>
-          <datasource-dependencies datasource='sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj'>
-            <column caption='Pct HT SL' datatype='real' default-format='p0%' name='[Calculation_009001100000011]' role='measure' type='quantitative'>
-              <calculation class='tableau' formula='SUM([UnitsSold (MonthlyFinancial)]) / SUM([UnitsSoldKpi])' />
-            </column>
-            <column caption='Đạt SL' datatype='real' default-format='p0%' name='[Calculation_009001100000012]' role='measure' type='quantitative'>
-              <calculation class='tableau' formula='MIN([Calculation_009001100000011],1)' />
-            </column>
-            <column caption='Còn lại - SL' datatype='real' name='[Calculation_009001100000013]' role='measure' type='quantitative'>
-              <calculation class='tableau' formula='1 - [Calculation_009001100000012]' />
-            </column>
-            <column caption='min0' datatype='integer' name='[Calculation_00900119000000]' role='measure' type='quantitative'>
-              <calculation class='tableau' formula='MIN(0)' />
-            </column>
-            <column caption='Gauge dummy' datatype='string' name='[Calculation_00900119000001]' role='dimension' type='nominal'>
-              <calculation class='tableau' formula='&quot;dummy&quot;' />
-            </column>
-            <column aggregation='Sum' caption='Thực hiện' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSold (MonthlyFinancial)]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-            <column aggregation='Sum' caption='KPI' datatype='integer' default-type='quantitative' layered='true' name='[UnitsSoldKpi]' pivot='key' role='measure' type='quantitative' user-datatype='integer' visual-totals='Default' />
-            <column-instance column='[Calculation_00900119000001]' derivation='None' name='[none:Calculation_00900119000001:nk]' pivot='key' type='nominal' />
-            <column-instance column='[Calculation_009001100000012]' derivation='User' name='[usr:Calculation_009001100000012:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_009001100000013]' derivation='User' name='[usr:Calculation_009001100000013:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[Calculation_00900119000000]' derivation='User' name='[usr:Calculation_00900119000000:qk]' pivot='key' type='quantitative' />
-          </datasource-dependencies>
-          <filter class='categorical' column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]'>
-            <groupfilter function='union' user:op='manual'>
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000012:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000013:qk]&quot;' />
-            </groupfilter>
-          </filter>
-          <manual-sort column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' direction='ASC'>
-            <dictionary>
-              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000012:qk]&quot;</bucket>
-              <bucket>&quot;[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000013:qk]&quot;</bucket>
-            </dictionary>
-          </manual-sort>
-          <slices>
-            <column>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]</column>
-          </slices>
-          <aggregation value='true' />
-        </view>
-        <style>
-          <style-rule element='axis'>
-            <format attr='display' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
-            <encoding attr='space' class='1' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' field-type='quantitative' fold='true' scope='cols' type='space' />
-            <format attr='display' class='0' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' scope='cols' value='false' />
-            <format attr='tick-color' value='#00000000' />
-          </style-rule>
-          <style-rule element='label'>
-            <format attr='display' field='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]' value='false' />
-          </style-rule>
-          <style-rule element='table'>
-            <format attr='background-color' value='#00000000' />
-          </style-rule>
-          <style-rule element='worksheet'>
-            <format attr='display-field-labels' scope='rows' value='false' />
-          </style-rule>
-          <style-rule element='gridline'>
-            <format attr='line-visibility' scope='cols' value='off' />
-            <format attr='line-visibility' scope='rows' value='off' />
-          </style-rule>
-          <style-rule element='zeroline'>
-            <format attr='line-visibility' value='off' />
-          </style-rule>
-          <style-rule element='table-div'>
-            <format attr='line-visibility' scope='rows' value='off' />
-            <format attr='line-visibility' scope='cols' value='off' />
-          </style-rule>
-          <style-rule element='header-div'>
-            <format attr='line-visibility' scope='rows' value='off' />
-            <format attr='line-visibility' scope='cols' value='off' />
-          </style-rule>
-        </style>
-        <panes>
-          <pane selection-relaxation-option='selection-relaxation-allow'>
-            <view>
-              <breakdown value='auto' />
-            </view>
-            <mark class='Pie' />
-          </pane>
-          <pane id='1' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]' x-index='1'>
-            <view>
-              <breakdown value='auto' />
-            </view>
-            <mark class='Pie' />
-            <encodings>
-              <text column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000012:qk]' />
-            </encodings>
-            <customized-label>
-              <formatted-text>
-                <run fontalignment='1' fontsize='11'><![CDATA[<[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_009001100000012:qk]>]]></run>
-              </formatted-text>
-            </customized-label>
-            <style>
-              <style-rule element='mark'>
-                <format attr='size' value='1.2039999961853027' />
-                <format attr='mark-color' value='#FFFFFF' />
-                <format attr='mark-labels-show' value='true' />
-                <format attr='mark-labels-cull' value='true' />
-              </style-rule>
-            </style>
-          </pane>
-          <pane id='2' selection-relaxation-option='selection-relaxation-allow' x-axis-name='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk]'>
-            <view>
-              <breakdown value='auto' />
-            </view>
-            <mark class='Pie' />
-            <encodings>
-              <color column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[:Measure Names]' />
-              <size column='[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[Multiple Values]' />
-            </encodings>
-            <style>
-              <style-rule element='mark'>
-                <format attr='size' value='2' />
-              </style-rule>
-            </style>
-          </pane>
-        </panes>
-        <rows>[sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[none:Calculation_00900119000001:nk]</rows>
-        <cols>([sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk] + [sqlproxy.052gxnr1oq3gkv13grj2s0u1xyqj].[usr:Calculation_00900119000000:qk])</cols>
-        <tooltip-style tooltip-mode='none' />
-      </table>
-      <simple-id uuid='{6DC8CDFE-1F42-4E56-871E-3B41A93F0B6E}' />
-    </worksheet>
   </worksheets>
   <dashboards>
     <dashboard enable-sort-zone-taborder='true' name='Kinh Doanh &amp;amp; Phễu'>
@@ -3320,16 +3193,11 @@
           </zone>
           <zone-style><format attr='border-color' value='#000000' /><format attr='border-style' value='none' /><format attr='border-width' value='0' /><format attr='margin' value='8' /><format attr='background-color' value='#F5F8FB' /></zone-style>
         </zone>
-              <zone fixed-size='92' h='6800' id='9001' is-fixed='true' name='Ring Deal' show-title='false' w='4200' x='55200' y='2200'>
-          <layout-cache minwidth='84' type-h='fixed' type-w='scalable' />
-          <zone-style><format attr='border-style' value='none' /><format attr='border-width' value='0' /><format attr='background-color' value='#ffffff' /></zone-style>
-        </zone>
       </zones>
       <simple-id uuid='{8A0F9A4C-6EEC-4A86-A0C4-BB0F5EC80B1C}' />
     </dashboard>
   </dashboards>
   <windows>
-    <window class='worksheet' hidden='true' name='Ring Deal'></window>
     <window class='worksheet' hidden='true' name='KPI Leads'></window>
     <window class='worksheet' hidden='true' name='KPI Booking'></window>
     <window class='worksheet' hidden='true' name='KPI Deal'></window>
@@ -3354,8 +3222,6 @@
         <viewpoint name='DealDuAn'><zoom type='entire-view' /></viewpoint>
         <viewpoint name='PhanKhuc'><zoom type='entire-view' /></viewpoint>
         <viewpoint name='LoaiSP'><zoom type='entire-view' /></viewpoint>
-      
-        <viewpoint name='Ring Deal'><zoom type='entire-view' /></viewpoint>
       </viewpoints>
     </window>
   </windows>
