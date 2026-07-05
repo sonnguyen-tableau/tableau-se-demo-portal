@@ -46,3 +46,21 @@ bucket = 0 and the total = 6.401 tỷ = the KPI card. (User caught this on D1.)
   green if ≥100%, amber if <100%). Needs tall-enough cell (type-h='cell').
 - Ranking bars: SHOW the value as a mark label at the bar end (Doanh số, Dòng
   tiền, Công nợ, Aging) — big readability win, apply to every ranking.
+
+## D2 Phễu — user Desktop refinements (learned 2026-07-05, now in skill + mey_lib)
+- **KPI height**: give the KPI strip a FIXED pixel height (zone is-fixed
+  fixed-size≈136, leaf non-cell-size-h≈33) so the 2-line KPI shows in full — a
+  short cell clips the %-line. This was the user's first D2 fix.
+- **Funnel**: NOT a bar chart. mark=Automatic, measure on ROWS + empty cols,
+  color BY Status stage (ds-level map dark→light), size BY measure, 2-line
+  custom label, computed-sort DESC, drop 'Lost' via a union filter. Now coded as
+  `mey_lib.funnel_chart()`; called from build_mey_d2.py.
+- **Welded legend**: DealThang (hero, ~60% wide) + its color legend share a
+  vertical container; chart bottom corners squared (corner-radius-bottom-*=0,
+  margin/padding-bottom=0), legend bottom corners rounded (=14) → one seamless
+  card. Hand-tuned corner/inner/outer padding — do on Desktop, don't regenerate.
+- **Cross-filter**: 6 dashboard filter-actions (one per chart). Desktop-authored.
+- **Ranking palette is fragile**: a Desktop re-save can strip `palette='Mey
+  Sequential Blue' type='palette'` off the ranking `<color>` lines AND empty
+  `<preferences>` → default gradient. Surgical fix: restore the 4 <color-palette>
+  defs + re-add palette= to each ranking color line, republish Overwrite.

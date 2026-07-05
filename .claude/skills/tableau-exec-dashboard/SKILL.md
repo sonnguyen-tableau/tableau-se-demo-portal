@@ -53,10 +53,20 @@ height and clips/vanishes at another. Fixed size pins `h/100000` to stable px.
 - **The dashboard leaf zone MUST use `type-h='cell'`, not `type-h='scalable'`** —
   scalable culls the number (only the label shows). This was THE root cause of
   KPI numbers disappearing. `mey_lib.leaf(kpi=True)` / `hrow(kpi=True)`.
-- **KPI-with-comparison (2-line) card**: add runs after the number — `<run>&#10;
-  </run>` newline + `<run fontsize='10' bold fontcolor='#1f8a70'>▲ 102% so KHNS
-  </run>`. Renders only when the cell is tall enough (≥ ~200px). The user's D1
-  uses `KPI ... (pct)` variants with this. Green ▲ for ≥100%, gold/amber for <100%.
+- **KPI-with-comparison (2-line) card**: `<customized-label>` with 3 runs —
+  `<run bold fontsize='18' fontcolor='#0f2a47'>` big number, then a line-break
+  run `<run fontalignment='1'>Æ&#10;</run>`, then `<run bold fontsize='10'
+  fontcolor='#1f8a70'>▲ 102% so KHNS</run>`. Green ▲ for ≥100%, gold/amber `#c29b54`
+  for <100%. (The literal `Æ` before `&#10;` is how Tableau Desktop encodes a
+  hard line-break inside a customized label — harmless, keep it; that's why the
+  round-tripped XML shows `Æ`.)
+- **The 2-line card needs a TALLER cell or the % line clips** — this is the fix
+  the user applied on D2: give the KPI strip a fixed pixel height instead of a
+  flow weight. On the dashboard the KPI row zone becomes `<zone is-fixed='true'
+  fixed-size='136' ...>` (was a flow `h='20000'`), and each KPI leaf's
+  `<layout-cache>` gets `cell-count-w='1'` + `non-cell-size-h='33'`. Enough
+  height = both the 18pt number AND the 10pt %-line render; too short = only the
+  number shows. Pair with `type-h='cell'` (never `scalable`).
 
 ## 3 — Donut % gauge / ring (dual-pie hole-punch)
 
@@ -105,6 +115,49 @@ dictionary to order actual→plan→kpi. `mey_lib.bullet_chart()`. Use qualified
 field names where a measure exists in >1 table (e.g. `[UnitsSold
 (MonthlyFinancial)]`, not `[UnitsSold]` which resolves to Projects' static one).
 
+## 4b — Funnel chart (user technique, learned on D2 Phễu)
+
+The premium funnel is NOT a horizontal bar chart. The user's live D2 form
+(clone this):
+- **Mark `class='Automatic'`** (Tableau picks the funnel-ish mark), NOT `Bar`.
+- **`rows = [usr:CalcId:qk]` (the measure), `cols` empty** — measure on rows +
+  size encoding is what gives the funnel its tapered silhouette (a bar chart puts
+  the measure on cols).
+- Encodings: `<color column='[none:Status:nk]'>` (color BY STAGE, a dimension —
+  not a gradient-by-measure), `<size column='[usr:CalcId:qk]'>` (width = volume),
+  and TWO text encodings (stage name + measure).
+- **Color the stages** with a datasource-level `<encoding attr='color'
+  field='[none:Status:nk]'>` map, sequential blue dark→light by funnel depth
+  (Deal `#3d6a98` → Lead `#b9ddf1`). Same ds-level mechanism as §5.
+- **2-line custom mark label** via `<customized-label>`: run 1 = stage name
+  (bold 11pt), line-break run (`Æ&#10;`), run 2 = the count (9pt). Then
+  `mark-labels-show=true` + `mark-labels-cull=true`.
+- **Sort = `<computed-sort direction='DESC' using='[usr:CalcId:qk]'>`** on the
+  Status dimension — orders stages by descending volume so the funnel always
+  tapers correctly. (Supersedes the old "manual-sort Lead→…→Lost" advice below —
+  computed-sort is what the user actually shipped; it self-orders and needs no
+  hand-maintained bucket dictionary.)
+- **Drop terminal/off-path stages** from the funnel with a `<filter
+  class='categorical'>` `groupfilter function='union'` including only the
+  progression members (Lead/NET/Visit/Booking/Deal) — the user excluded `Lost`
+  so the shape reads as one clean pipeline. Also **hide the measure axis**
+  (`<style-rule element='axis'><format attr='display' ... value='false'>`).
+
+## 4c — Dashboard filter actions = cross-filtering (user upgrade on D2)
+
+The user makes every chart a cross-filter source so clicking a bar/segment/month
+filters the whole dashboard. Emit a top-level `<actions>` block (sibling of
+`<worksheets>`), one `<action>` per source sheet:
+`<action caption='Filter N (generated)'><activation type='on-select'
+auto-clear='true'/><source dashboard='<DashName>' type='sheet' worksheet='<Sheet>'/>
+<command command='tsc:tsl-filter'><param name='special-fields' value='all'/><param
+name='target' value='<DashName>'/></command></action>`.
+Each TARGET sheet then carries `<filter class='categorical' column='[..].[Action
+(<Field>)]'>` + a `<groupfilter ... user:ui-action-filter='[ActionN_<hex>]'>` and
+lists those Action columns in its `<slices>`. On D2 there are 6 actions (one per
+chart incl. DealThang). These are fiddly to hand-author reliably — if building
+fresh, prefer authoring the actions once on Desktop then cloning the block.
+
 ## 5 — Unified color palette (one set, no rainbow)
 
 Colors for `[:Measure Names]` live in ONE **datasource-level**
@@ -116,6 +169,19 @@ datasource-level map wins. Standard palette:
 - Thực hiện `#1b75bc` · Kế hoạch (KHNS) `#9fb3c8` · KPI `#c29b54`
 - ranking bars + share = a sequential blue palette; ring = `#1f8a70`/`#e7edf3`.
 See `recolor_bullets.py`.
+
+**Ranking-bar palette is stored differently from the [:Measure Names] map** and
+is FRAGILE across a Desktop round-trip. A single-measure ranking bar keeps its
+palette as a worksheet-level attribute: `<color column='[..].[usr:CalcId:qk]'
+palette='Mey Sequential Blue' type='palette' />`, and the palette itself is
+DEFINED in the workbook `<preferences>` block (`<color-palette name='Mey
+Sequential Blue' type='ordered-sequential'><color>…`). When the user re-saves on
+Desktop, Tableau can **drop `palette=`/`type=` from the color line AND empty out
+`<preferences>`** — the bars then render as a default gradient. Fix (surgical, no
+rebuild): (1) restore the 4 `<color-palette>` defs into `<preferences>`; (2)
+re-add `palette='Mey Sequential Blue' type='palette'` to each bare ranking
+`<color>` line. Republish Overwrite. (Happened on D2 — 4 ranking bars; the
+bullet's ds-level Measure-Names map survived, only the ranking palettes broke.)
 
 ## 6 — Ranking bars + data labels (user upgrade, apply everywhere)
 
@@ -135,6 +201,20 @@ Lead→NET→Visit→Booking→Deal→Lost; aging buckets).
   `Thực hiện / Kế hoạch (KHNS) / KPI` and axes read Vietnamese
   (`Doanh số (tỷ)`, `Công nợ (tỷ)`). Bullet legends look best as a `type-v2
   ='color'` zone stacked at the BOTTOM of each bullet card.
+- **Legend welded to its chart into ONE seamless card** (user's exact D2
+  technique — learn this): put the chart zone and its color-legend zone in a
+  shared vertical container, then round only the OUTER corners so the pair reads
+  as a single rounded card:
+  - Chart zone (top): keep `corner-radius='14'` but ADD `corner-radius-bottom-left
+    ='0'` + `corner-radius-bottom-right='0'`, and `margin-bottom='0'` +
+    `padding-bottom='0'` (square bottom edge, no gap toward the legend).
+  - Legend zone (bottom): `<zone type-v2='color' leg-item-layout='horz'
+    show-title='false' param='[..].[:Measure Names]'>` with `corner-radius-bottom
+    -left='14'` + `corner-radius-bottom-right='14'` (round bottom only), a lighter
+    `border-color='#f5f5f5'`, `margin-top='0'` + `padding-top` trimmed so it hugs
+    the chart. Result: top corners rounded by the chart, bottom corners by the
+    legend, flat seam between → one continuous card. The user hand-tuned every
+    corner-radius / margin / padding value; these are the shipped numbers.
 
 ## 8 — seed-block extraction (CDATA safety)
 

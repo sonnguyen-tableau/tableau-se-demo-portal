@@ -7,6 +7,19 @@ Layout (fixed 1560x1100, rounded cards, unified TH/KHNS/KPI colors):
 - Deal theo Phân khúc KH · Deal theo Loại sản phẩm
 KPI numbers, rings and colors get finalized by the user on Desktop (same flow
 as D1); this build gives correct data + the standard chart set.
+
+User Desktop refinements applied to the LIVE workbook (2026-07-05), captured for
+reference — these are hand-tuned pixel/interaction items best done on Desktop,
+NOT regenerated here (they don't round-trip cleanly from code):
+- KPI strip: fixed pixel height (zone is-fixed fixed-size≈136, leaf non-cell-
+  size-h≈33) so the 2-line KPI (số + '▲102% so KHNS') shows in full.
+- Row-2 layout: asymmetric — Phễu + Nguồn khách stacked left (~40%), DealThang
+  right (~60%) as the hero chart, with its color legend WELDED beneath it into a
+  single rounded card (chart bottom corners squared, legend bottom corners
+  rounded). See tableau-exec-dashboard skill §7.
+- 6 dashboard filter-actions (one per chart) for cross-filtering. Skill §4c.
+The funnel below IS now code-authored via mey_lib.funnel_chart (learned). If you
+rebuild + republish, re-apply the layout/actions on Desktop or clone them.
 """
 import sys
 from pathlib import Path
@@ -44,14 +57,14 @@ def build():
     sheets.append(M.kpi_card("KPI Tỷ lệ chốt", k_conv, "Tỷ lệ chốt"))
     sheets.append(M.kpi_card("KPI Lost", k_lost, "Lost"))
 
-    # Chart 1: Phễu 6 giai đoạn — horizontal bars, sequential blue.
-    sheets.append(M.chart("PheuGiaiDoan", "Phễu Kinh doanh (Lead → Deal)",
-        [M.raw_dep("Status", "Count", "string", "dimension", "nominal", "nominal"),
-         f_cnt.dep_col().strip()],
-        [M.inst_dim("Status"), f_cnt.inst().strip()],
-        rows=M.ref_dim("Status"), cols=f_cnt.ref(),
-        mark="Bar", encodings=[("color", f_cnt.ref())], color_palette="Mey Sequential Blue",
-        data_label=f_cnt.ref()))
+    # Chart 1: Phễu Kinh doanh — TRUE funnel (user's D2 technique, mey_lib.funnel_chart):
+    # mark=Automatic, measure-on-rows + size-encoding = tapered silhouette, color
+    # BY Status stage (ds-level map, dark→light by depth), 2-line custom label,
+    # computed-sort DESC, and drop the terminal 'Lost' stage so it reads as one
+    # clean pipeline. (Was a plain sequential-blue Bar; the user reshaped it on
+    # Desktop → learned + encoded here. See tableau-exec-dashboard skill §4b.)
+    sheets.append(M.funnel_chart("PheuGiaiDoan", "Phễu Kinh doanh (Lead → Deal)",
+        "Status", f_cnt, include_stages=["Lead", "NET", "Visit", "Booking", "Deal"]))
 
     # Chart 2: Leads theo Nguồn khách
     sheets.append(M.chart("NguonKhach", "Leads theo Nguồn khách",

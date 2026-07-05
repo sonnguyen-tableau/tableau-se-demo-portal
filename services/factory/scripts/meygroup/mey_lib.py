@@ -340,6 +340,103 @@ def chart(sheet_name, title_vn, deps, insts, rows, cols, mark="Bar", encodings=N
     </worksheet>"""
 
 
+# ─── Funnel chart (user's D2 technique — learned from live-polished workbook) ──
+def funnel_chart(sheet_name, title_vn, stage_dim, count_calc: "Calc",
+                 include_stages=None):
+    """Premium funnel — the form the user hand-built on D2 Phễu (NOT a bar chart).
+
+    Key differences from chart(mark='Bar'):
+    - mark class='Automatic' (Tableau's funnel-ish mark), measure on ROWS with
+      empty cols → tapered silhouette (a bar puts the measure on cols).
+    - color BY STAGE dimension (not gradient-by-measure) + size BY the measure.
+    - 2-line custom mark label: stage name (bold 11pt) over the count (9pt).
+    - computed-sort DESC by the measure → stages always taper correctly (no
+      hand-maintained manual-sort dictionary).
+    - optional include_stages: a list of stage members to KEEP (e.g. drop 'Lost'
+      so the funnel reads as one clean pipeline). Renders a categorical union
+      filter.
+    - stage colors come from the datasource-level color map (see COLOR_MAP);
+      author a `<encoding attr='color' field='[none:<stage>:nk]'>` there, dark→
+      light by funnel depth. Same ds-level mechanism as the bullet Measure-Names.
+
+    stage_dim: raw field name for the funnel stage, e.g. 'Status'.
+    count_calc: the volume Calc (COUNTD immune to fan-out).
+    """
+    ref_dim = f"[{DS}].[none:{stage_dim}:nk]"
+    ref_cnt = count_calc.ref()
+    deps = (M_raw_dep(stage_dim, "Count", "string", "dimension", "nominal", "nominal")
+            + "\n" + count_calc.dep_col())
+    insts = inst_dim(stage_dim) + "\n" + count_calc.inst()
+
+    # optional stage filter (union of kept members) — the clean way to drop 'Lost'
+    filt = ""
+    if include_stages:
+        members = "\n".join(
+            f"              <groupfilter function='member' level='[none:{stage_dim}:nk]' "
+            f"member='&quot;{esc(s)}&quot;' />" for s in include_stages)
+        filt = (f"\n          <filter class='categorical' column='{ref_dim}'>\n"
+                f"            <groupfilter function='union' user:ui-enumeration='inclusive' "
+                f"user:ui-marker='enumerate'>\n{members}\n"
+                f"            </groupfilter>\n          </filter>")
+
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <layout-options>
+        <title><formatted-text><run fontname='Tableau Bold' fontsize='13' bold='true' fontcolor='#0F2A47'>{esc(title_vn)}</run></formatted-text></title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='meygroup' name='{DS}' />
+          </datasources>
+          <datasource-dependencies datasource='{DS}'>
+{deps}
+{insts}
+          </datasource-dependencies>{filt}
+          <computed-sort column='{ref_dim}' direction='DESC' using='{ref_cnt}' />
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='axis'>
+            <format attr='display' class='0' field='{ref_cnt}' scope='rows' value='false' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Automatic' />
+            <encodings>
+              <color column='{ref_dim}' />
+              <size column='{ref_cnt}' />
+              <text column='{ref_dim}' />
+              <text column='{ref_cnt}' />
+            </encodings>
+            <customized-label>
+              <formatted-text>
+                <run bold='true' fontalignment='1' fontsize='11'>&lt;{ref_dim}&gt;</run>
+                <run fontalignment='1'>&#10;</run>
+                <run fontalignment='1' fontsize='9'>&lt;{ref_cnt}&gt;</run>
+              </formatted-text>
+            </customized-label>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>{ref_cnt}</rows>
+        <cols />
+      </table>
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
+# small shim so funnel_chart can call raw_dep without the module-qualified name
+def M_raw_dep(*a, **k):
+    return raw_dep(*a, **k).strip()
+
+
 # ─── Ring / donut % gauge (dual-pie donut, cloned from Superstore2 `Segment`) ─
 def ring_card(sheet_name, pct_calc: Calc, dat_calc: Calc, remain_calc: Calc,
               zero_calc: Calc, dummy_calc: Calc, center_pct_text: str,
