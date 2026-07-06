@@ -310,22 +310,6 @@ async function buildRichContent(
   const anthropicContent: RichBuildResult["anthropicContent"] = [];
   const isPulseTool = PULSE_TOOLS.has(toolName);
 
-  // TEMP DIAGNOSTIC: dump the raw shape of every tool-result block so we can see
-  // exactly what get-view-image returns (type, typeof data, keys, mimeType).
-  try {
-    console.log(JSON.stringify({
-      kind: "chat.rawblocks",
-      tool: toolName,
-      blocks: content.map((b) => ({
-        type: b.type,
-        dataType: typeof b.data,
-        dataLen: typeof b.data === "string" ? b.data.length : undefined,
-        mimeType: b.mimeType,
-        keys: Object.keys(b as Record<string, unknown>),
-      })),
-    }));
-  } catch { /* ignore */ }
-
   for (const block of content) {
     if (block.type === "image" && typeof block.data === "string") {
       const declaredMime = typeof block.mimeType === "string" ? block.mimeType.toLowerCase() : "";
