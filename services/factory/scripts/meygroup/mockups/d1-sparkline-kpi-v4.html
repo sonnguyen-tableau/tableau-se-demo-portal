@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --bg:#EDF2F7; --card:#FFFFFF; --navy:#0B2545; --navy2:#123A63;
+    --brand:#1B75BC; --cyan:#29ABE2; --ink:#0F2A47; --body:#64748B; --line:#E7EDF3;
+    --actual:#1B75BC; --plan:#D6E0EA; --plan-ink:#93A6B8; --gold:#C29B54;
+    --good:#1F8A70; --near:#B7823A; --low:#C0492E;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{font-family:'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  .canvas{width:1560px;background:var(--bg);padding-bottom:30px;}
+
+  /* Header */
+  .hero{position:relative;height:98px;overflow:hidden;
+    background:linear-gradient(112deg,#0B2545 0%,#123A63 48%,#1B75BC 104%);
+    padding:0 38px;display:flex;align-items:center;justify-content:space-between;}
+  .hero::after{content:"";position:absolute;right:0;top:0;width:560px;height:100%;
+    background:radial-gradient(130% 150% at 88% 15%,rgba(143,211,240,.28),rgba(143,211,240,0) 62%);}
+  .brand{display:flex;align-items:center;gap:14px;z-index:2;}
+  .mark{width:42px;height:42px;border-radius:11px;background:linear-gradient(150deg,#29ABE2,#1B75BC 60%,#0B2545);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(11,37,69,.4);}
+  .mark span{font-weight:800;font-size:21px;color:#fff;}
+  .brand .name{font-size:19px;font-weight:800;color:#fff;letter-spacing:.4px;}
+  .brand .name b{color:#8FD3F0;}
+  .brand .sub{font-size:10.5px;color:#AFCDE4;margin-top:3px;letter-spacing:.7px;text-transform:uppercase;}
+  .hero .rpt{z-index:2;text-align:right;}
+  .hero .rpt .t{font-size:14.5px;color:#fff;font-weight:700;letter-spacing:.3px;}
+  .hero .rpt .d{font-size:10.5px;color:#9FC2DE;margin-top:3px;letter-spacing:.3px;}
+  .goldline{height:2px;background:linear-gradient(90deg,var(--gold) 0%,#E4CE9A 34%,transparent 78%);}
+
+  .note{padding:16px 30px 2px;font-size:12px;color:var(--body);line-height:1.5;}
+  .note b{color:var(--ink);}
+  .compare-lab{padding:16px 30px 6px;font-size:11.5px;font-weight:700;letter-spacing:1.3px;
+    text-transform:uppercase;color:var(--navy2);}
+
+  /* ── KPI strip ── */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:8px 30px 6px;}
+  .kpi{position:relative;background:var(--card);border-radius:16px;padding:16px 20px 14px;
+    box-shadow:0 1px 2px rgba(15,42,71,.04),0 10px 26px rgba(15,42,71,.055);overflow:hidden;}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--cyan),var(--brand));}
+  .kpi.k2::before{background:linear-gradient(var(--brand),var(--navy));}
+  .kpi.k3::before{background:linear-gradient(#2FBF9A,#1F8A70);}
+  .kpi.k4::before{background:linear-gradient(#DCC079,var(--gold));}
+  .kpi .toprow{display:flex;align-items:center;justify-content:space-between;}
+  .kpi .lab{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--body);font-weight:600;}
+  .chip{display:inline-flex;align-items:center;gap:3px;font-weight:700;padding:2px 8px;border-radius:20px;font-size:10px;}
+  .chip.up{color:var(--good);background:rgba(31,138,112,.11);}
+  .chip.flat{color:var(--brand);background:rgba(27,117,188,.10);}
+  .chip.warn{color:var(--near);background:rgba(183,130,58,.12);}
+  .kpi .val{font-size:29px;font-weight:800;color:var(--ink);letter-spacing:-.5px;line-height:1;margin-top:9px;}
+  .kpi .val .u{font-size:14px;font-weight:700;color:var(--body);margin-left:3px;}
+  .kpi .foot{margin-top:8px;font-size:10px;color:var(--body);}
+
+  /* sparkline block */
+  .spark{margin-top:10px;height:44px;width:100%;position:relative;}
+  .spark svg{width:100%;height:44px;display:block;overflow:visible;}
+  .spark .mlab{position:absolute;bottom:-3px;left:0;right:0;display:flex;justify-content:space-between;
+    font-size:8px;color:#AFC0D0;padding:0 1px;}
+
+  /* variant B: number left, spark right */
+  .kpi.styB .body{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;}
+  .kpi.styB .lft{flex:none;}
+  .kpi.styB .spark{flex:1;margin-top:0;height:52px;min-width:120px;}
+  .kpi.styB .spark svg{height:52px;}
+
+  /* ring (variant A + C) */
+  .ring{width:50px;height:50px;border-radius:50%;flex:none;position:relative;}
+  .ring::after{content:"";position:absolute;inset:7px;background:var(--card);border-radius:50%;}
+  .ring .pv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;font-size:10.5px;font-weight:800;color:var(--ink);}
+  .kpi.styA .body,.kpi.styC .body{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .kpi.styC .stack{flex:1;}
+  .kpi.styC .spark{margin-top:8px;height:34px;}
+  .kpi.styC .spark svg{height:34px;}
+
+  .divider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:20px 30px 4px;}
+
+  /* section label */
+  .seclabel{display:flex;align-items:center;gap:12px;padding:18px 30px 8px;}
+  .seclabel .n{width:20px;height:20px;border-radius:6px;background:linear-gradient(140deg,var(--cyan),var(--brand));
+    color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;}
+  .seclabel .t{font-size:11.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--navy2);}
+  .seclabel .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent);}
+
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:0 30px;}
+  .panel{background:var(--card);border-radius:16px;padding:18px 20px 16px;
+    box-shadow:0 1px 2px rgba(15,42,71,.04),0 10px 26px rgba(15,42,71,.05);display:flex;flex-direction:column;}
+  .panel h3{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .panel .hint{font-size:10.5px;color:var(--body);margin-top:3px;}
+
+  /* ranking bars with rank number (Superstore/Asset style) */
+  .hbar{display:flex;flex-direction:column;gap:11px;margin-top:16px;}
+  .hbar .r{display:grid;grid-template-columns:20px 118px 1fr 52px;align-items:center;gap:9px;}
+  .hbar .rk{font-size:10px;font-weight:800;color:#AFC0D0;text-align:center;}
+  .hbar .r.top .rk{color:var(--brand);}
+  .hbar .nm{font-size:11px;color:var(--ink);text-align:right;line-height:1.15;font-weight:500;}
+  .hbar .track{height:16px;background:#F1F5FA;border-radius:6px;overflow:hidden;}
+  .hbar .fill{height:100%;border-radius:6px;}
+  .hbar .v{font-size:11px;font-weight:800;color:var(--ink);text-align:right;}
+
+  /* highlight-one-bar monthly (Superstore emphasis) */
+  .colc{display:flex;align-items:flex-end;justify-content:space-between;gap:9px;height:150px;margin-top:16px;
+    border-bottom:1px solid var(--line);padding-top:6px;}
+  .colc .slot{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;}
+  .colc .bar{width:62%;background:#D6E0EA;border-radius:5px 5px 0 0;position:relative;}
+  .colc .slot.hi .bar{background:linear-gradient(var(--cyan),var(--brand));}
+  .colc .tick{position:absolute;left:18%;right:18%;height:2px;background:var(--gold);border-radius:2px;z-index:3;}
+  .colc .vlab{position:absolute;top:-16px;font-size:9px;font-weight:800;color:var(--ink);white-space:nowrap;}
+  .colc .slot.hi .vlab{color:var(--brand);}
+  .mlabels{display:flex;justify-content:space-between;margin-top:7px;}
+  .mlabels .m{flex:1;text-align:center;font-size:10px;color:var(--body);}
+  .legend3{display:flex;gap:14px;margin:11px 0 2px;font-size:10.5px;color:var(--body);}
+  .legend3 .li{display:flex;align-items:center;gap:5px;}
+  .legend3 .sw{width:11px;height:11px;border-radius:3px;}
+  .legend3 .sw.hi{background:linear-gradient(var(--cyan),var(--brand));}
+  .legend3 .sw.pl{background:#D6E0EA;}
+  .legend3 .sw.line{width:13px;height:0;border-top:2px solid var(--gold);border-radius:0;}
+
+  .foot-note{padding:18px 30px 0;font-size:10px;color:#9FB0C0;letter-spacing:.2px;}
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="hero">
+    <div class="brand">
+      <div class="mark"><span>M</span></div>
+      <div>
+        <div class="name">MEY <b>GROUP</b></div>
+        <div class="sub">Báo cáo Sản lượng · Doanh số · Dòng tiền · Công nợ</div>
+      </div>
+    </div>
+    <div class="rpt"><div class="t">Kết quả thực hiện H1 2026</div><div class="d">Cập nhật T1–T6 · Đơn vị: tỷ VND</div></div>
+  </div>
+  <div class="goldline"></div>
+
+  <div class="note">
+    <b>Nâng cấp KPI theo workbook mẫu (Superstore / Finance #RWFD / VOTD):</b> thêm
+    <b>sparkline 6 tháng (T1→T6)</b> vào mỗi thẻ KPI để thấy xu hướng, kèm chip
+    ▲%HT so KHNS. Dưới đây là 3 kiểu thẻ để bạn chọn — cùng dữ liệu thật của Mey.
+  </div>
+
+  <!-- ===== VARIANT A: ring only (hiện tại đã duyệt) ===== -->
+  <div class="compare-lab">Kiểu A — Ring gauge (bản đang LIVE, để đối chiếu)</div>
+  <div class="kpis">
+    <div class="kpi styA k1"><div class="lab">Sản lượng bán</div>
+      <div class="body"><div class="stack"><div class="val">2.335<span class="u">căn</span></div>
+      <div class="foot"><span class="chip up">▲ 102% so KHNS</span></div></div>
+      <div class="ring" style="background:conic-gradient(var(--good) 0 90%,#EAF0F5 90% 100%)"><div class="pv">90%</div></div></div></div>
+    <div class="kpi styA k2"><div class="lab">Doanh số</div>
+      <div class="body"><div class="stack"><div class="val">24.220<span class="u">tỷ</span></div>
+      <div class="foot"><span class="chip up">▲ 101% so KHNS</span></div></div>
+      <div class="ring" style="background:conic-gradient(var(--brand) 0 89%,#EAF0F5 89% 100%)"><div class="pv">89%</div></div></div></div>
+    <div class="kpi styA k3"><div class="lab">Tiền thu</div>
+      <div class="body"><div class="stack"><div class="val">17.819<span class="u">tỷ</span></div>
+      <div class="foot"><span class="chip warn">98% so KHNS</span></div></div>
+      <div class="ring" style="background:conic-gradient(#1F8A70 0 87%,#EAF0F5 87% 100%)"><div class="pv">87%</div></div></div></div>
+    <div class="kpi styA k4"><div class="lab">Công nợ phải thu</div>
+      <div class="body"><div class="stack"><div class="val">6.401<span class="u">tỷ</span></div>
+      <div class="foot"><span class="chip flat">96% chưa đến hạn</span></div></div>
+      <div class="ring" style="background:conic-gradient(var(--gold) 0 4%,#EAF0F5 4% 100%)"><div class="pv">4%</div></div></div></div>
+  </div>
+
+  <!-- ===== VARIANT B: sparkline chủ đạo (Superstore) ===== -->
+  <div class="compare-lab">Kiểu B — Sparkline chủ đạo (giống Superstore Dashboard) &nbsp;◆ đề xuất</div>
+  <div class="kpis">
+    <div class="kpi styB k1"><div class="toprow"><span class="lab">Sản lượng bán</span><span class="chip up">▲ 102% so KHNS</span></div>
+      <div class="body"><div class="lft"><div class="val">2.335<span class="u">căn</span></div></div>
+        <div class="spark" data-series="k1"></div></div></div>
+    <div class="kpi styB k2"><div class="toprow"><span class="lab">Doanh số</span><span class="chip up">▲ 101% so KHNS</span></div>
+      <div class="body"><div class="lft"><div class="val">24.220<span class="u">tỷ</span></div></div>
+        <div class="spark" data-series="k2"></div></div></div>
+    <div class="kpi styB k3"><div class="toprow"><span class="lab">Tiền thu</span><span class="chip warn">98% so KHNS</span></div>
+      <div class="body"><div class="lft"><div class="val">17.819<span class="u">tỷ</span></div></div>
+        <div class="spark" data-series="k3"></div></div></div>
+    <div class="kpi styB k4"><div class="toprow"><span class="lab">Công nợ phải thu</span><span class="chip flat">luỹ kế</span></div>
+      <div class="body"><div class="lft"><div class="val">6.401<span class="u">tỷ</span></div></div>
+        <div class="spark" data-series="k4"></div></div></div>
+  </div>
+
+  <!-- ===== VARIANT C: hybrid ring + sparkline ===== -->
+  <div class="compare-lab">Kiểu C — Hybrid: ring %HT + sparkline nhỏ</div>
+  <div class="kpis">
+    <div class="kpi styC k1"><div class="lab">Sản lượng bán</div>
+      <div class="body"><div class="stack"><div class="val">2.335<span class="u">căn</span></div><div class="spark" data-series="k1"></div></div>
+      <div class="ring" style="background:conic-gradient(var(--good) 0 90%,#EAF0F5 90% 100%)"><div class="pv">90%</div></div></div></div>
+    <div class="kpi styC k2"><div class="lab">Doanh số</div>
+      <div class="body"><div class="stack"><div class="val">24.220<span class="u">tỷ</span></div><div class="spark" data-series="k2"></div></div>
+      <div class="ring" style="background:conic-gradient(var(--brand) 0 89%,#EAF0F5 89% 100%)"><div class="pv">89%</div></div></div></div>
+    <div class="kpi styC k3"><div class="lab">Tiền thu</div>
+      <div class="body"><div class="stack"><div class="val">17.819<span class="u">tỷ</span></div><div class="spark" data-series="k3"></div></div>
+      <div class="ring" style="background:conic-gradient(#1F8A70 0 87%,#EAF0F5 87% 100%)"><div class="pv">87%</div></div></div></div>
+    <div class="kpi styC k4"><div class="lab">Công nợ phải thu</div>
+      <div class="body"><div class="stack"><div class="val">6.401<span class="u">tỷ</span></div><div class="spark" data-series="k4"></div></div>
+      <div class="ring" style="background:conic-gradient(var(--gold) 0 4%,#EAF0F5 4% 100%)"><div class="pv">4%</div></div></div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- context: các panel dưới giữ nguyên như bản đã duyệt, minh hoạ thêm 2 kỹ thuật mẫu -->
+  <div class="seclabel"><span class="n">1</span><span class="t">Kỹ thuật mẫu bổ sung — nhấn 1 cột (Superstore) &amp; ranking có số thứ tự (Asset/PM)</span><span class="rule"></span></div>
+  <div class="grid3">
+    <div class="panel">
+      <h3>Doanh số theo Tháng — nhấn tháng cao nhất</h3>
+      <div class="hint">Cột T6 tô đậm brand, còn lại xám nhạt · vạch vàng = KPI</div>
+      <div class="legend3"><div class="li"><span class="sw hi"></span>Thực hiện</div><div class="li"><span class="sw pl"></span>Tháng khác</div><div class="li"><span class="sw line"></span>KPI</div></div>
+      <div class="colc">
+        <div class="slot"><div class="bar" style="height:57%"><div class="vlab">2.900</div><div class="tick" style="bottom:64%"></div></div></div>
+        <div class="slot"><div class="bar" style="height:71%"><div class="vlab">3.600</div><div class="tick" style="bottom:77%"></div></div></div>
+        <div class="slot"><div class="bar" style="height:82%"><div class="vlab">4.200</div><div class="tick" style="bottom:88%"></div></div></div>
+        <div class="slot"><div class="bar" style="height:75%"><div class="vlab">3.850</div><div class="tick" style="bottom:80%"></div></div></div>
+        <div class="slot"><div class="bar" style="height:87%"><div class="vlab">4.450</div><div class="tick" style="bottom:93%"></div></div></div>
+        <div class="slot hi"><div class="bar" style="height:100%"><div class="vlab">5.100</div><div class="tick" style="bottom:104%"></div></div></div>
+      </div>
+      <div class="mlabels"><div class="m">T1</div><div class="m">T2</div><div class="m">T3</div><div class="m">T4</div><div class="m">T5</div><div class="m">T6</div></div>
+    </div>
+
+    <div class="panel">
+      <h3>Doanh số theo Dự án</h3>
+      <div class="hint">Xếp hạng + số thứ tự · giá trị ký luỹ kế · tỷ VND</div>
+      <div class="hbar">
+        <div class="r top"><div class="rk">1</div><div class="nm">MH Capital PQ</div><div class="track"><div class="fill" style="width:100%;background:linear-gradient(90deg,#123A63,#0B2545)"></div></div><div class="v">14.810</div></div>
+        <div class="r"><div class="rk">2</div><div class="nm">Rivea Hanoi</div><div class="track"><div class="fill" style="width:22%;background:linear-gradient(90deg,#1B75BC,#123A63)"></div></div><div class="v">3.205</div></div>
+        <div class="r"><div class="rk">3</div><div class="nm">Galia Hanoi</div><div class="track"><div class="fill" style="width:18%;background:linear-gradient(90deg,#29ABE2,#1B75BC)"></div></div><div class="v">2.732</div></div>
+        <div class="r"><div class="rk">4</div><div class="nm">Bãi Lữ</div><div class="track"><div class="fill" style="width:13%;background:linear-gradient(90deg,#5FB4E5,#29ABE2)"></div></div><div class="v">1.917</div></div>
+        <div class="r"><div class="rk">5</div><div class="nm">MP Harmony PQ</div><div class="track"><div class="fill" style="width:7%;background:linear-gradient(90deg,#8FD3F0,#5FB4E5)"></div></div><div class="v">1.057</div></div>
+        <div class="r"><div class="rk">6</div><div class="nm">Thanh Chương</div><div class="track"><div class="fill" style="width:2.5%;background:linear-gradient(90deg,#BFE3F5,#8FD3F0)"></div></div><div class="v">316</div></div>
+        <div class="r"><div class="rk">7</div><div class="nm">MP Ciel PQ</div><div class="track"><div class="fill" style="width:1.5%;background:#D6ECF8"></div></div><div class="v">182</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Dòng tiền thu theo Dự án</h3>
+      <div class="hint">Xếp hạng + số thứ tự · tiền thực thu · tỷ VND</div>
+      <div class="hbar">
+        <div class="r top"><div class="rk">1</div><div class="nm">MH Capital PQ</div><div class="track"><div class="fill" style="width:100%;background:linear-gradient(90deg,#1B75BC,#0B2545)"></div></div><div class="v">5.329</div></div>
+        <div class="r"><div class="rk">2</div><div class="nm">Galia Hanoi</div><div class="track"><div class="fill" style="width:20%;background:linear-gradient(90deg,#29ABE2,#1B75BC)"></div></div><div class="v">1.057</div></div>
+        <div class="r"><div class="rk">3</div><div class="nm">Rivea Hanoi</div><div class="track"><div class="fill" style="width:12%;background:linear-gradient(90deg,#5FB4E5,#29ABE2)"></div></div><div class="v">650</div></div>
+        <div class="r"><div class="rk">4</div><div class="nm">Bãi Lữ</div><div class="track"><div class="fill" style="width:9%;background:linear-gradient(90deg,#8FD3F0,#5FB4E5)"></div></div><div class="v">484</div></div>
+        <div class="r"><div class="rk">5</div><div class="nm">MP Harmony PQ</div><div class="track"><div class="fill" style="width:6%;background:linear-gradient(90deg,#BFE3F5,#8FD3F0)"></div></div><div class="v">320</div></div>
+        <div class="r"><div class="rk">6</div><div class="nm">Thanh Chương</div><div class="track"><div class="fill" style="width:1.2%;background:linear-gradient(90deg,#D6ECF8,#BFE3F5)"></div></div><div class="v">61</div></div>
+        <div class="r"><div class="rk">7</div><div class="nm">MP Ciel PQ</div><div class="track"><div class="fill" style="width:0.5%;background:#D6ECF8"></div></div><div class="v">10</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-note">Mey Group · Demo Tableau — mockup nâng cấp KPI (sparkline) + kỹ thuật từ workbook mẫu. Dữ liệu H1-2026: 2.335 căn · 24.220 tỷ · tiền thu 17.819 tỷ · công nợ 6.401 tỷ.</div>
+</div>
+
+<script>
+  // Monthly series (T1..T6) — dữ liệu thật Mey Group H1-2026
+  const SERIES = {
+    k1: [300, 330, 405, 390, 420, 500],            // Sản lượng (căn)
+    k2: [2900, 3600, 4200, 3850, 4450, 5100],       // Doanh số (tỷ)
+    k3: [980, 1120, 1390, 1280, 1440, 1700],        // Tiền thu (tỷ)
+    k4: [3200, 3900, 4700, 5200, 5800, 6401],       // Công nợ luỹ kế (tỷ)
+  };
+  const COLORS = { k1:'#1F8A70', k2:'#1B75BC', k3:'#29ABE2', k4:'#C29B54' };
+
+  function drawSpark(el){
+    const key = el.dataset.series;
+    const data = SERIES[key]; const color = COLORS[key];
+    const W = el.clientWidth || 200, H = el.clientHeight || 44;
+    const pad = 4, min = Math.min(...data), max = Math.max(...data);
+    const rng = (max - min) || 1;
+    const xs = i => pad + i * (W - 2*pad) / (data.length - 1);
+    const ys = v => H - pad - (v - min) / rng * (H - 2*pad);
+    const pts = data.map((v,i)=>`${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+    const areaPts = `${xs(0)},${H} ` + pts + ` ${xs(data.length-1)},${H}`;
+    const lastX = xs(data.length-1), lastY = ys(data[data.length-1]);
+    const gid = 'g_'+key;
+    el.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="${color}" stop-opacity="0.22"/>
+          <stop offset="1" stop-color="${color}" stop-opacity="0"/>
+        </linearGradient></defs>
+        <polygon points="${areaPts}" fill="url(#${gid})"/>
+        <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3" fill="${color}"/>
+        <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="6" fill="${color}" fill-opacity="0.18"/>
+      </svg>
+      <div class="mlab"><span>T1</span><span>T6</span></div>`;
+  }
+  document.querySelectorAll('.spark').forEach(drawSpark);
+</script>
+</body>
+</html>

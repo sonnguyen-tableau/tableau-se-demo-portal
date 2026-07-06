@@ -240,6 +240,93 @@ structural close), because the FIRST `</datasource>` is inside the CDATA.
   won't render standalone — put them on a (throwaway) dashboard to validate, or
   publish them non-hidden if the user needs them as Desktop tabs.
 
+## 10 — Sparkline KPI card (Style B) ★ BEST PRACTICE (D1/D2 V1, 2026-07)
+
+The signature "wow" move from the premium reference workbooks (Superstore
+Dashboard, Financial #RWFD, Company Finance Health #VOTD — all on Tableau Public;
+pull their rendered images via the tableau-public MCP by the `derived-from` repo
+URL in the .twb). Each KPI card = big number on TOP + a 6-month trend sparkline
+BELOW, inside one rounded card.
+
+**Sparkline worksheet** (minimalist Line, everything hidden):
+```
+cols = [ds].[tmn:<DateField>:qk]      # continuous MONTH — derivation='Month-Trunc'
+rows = [ds].[usr:<KpiCalc>:qk]         # the SAME calc the BAN card shows (recomputes /month)
+mark = Line, <format attr='mark-color' value='#1b75bc'/>, size 1.4
+```
+Hide axes/gridlines/zeroline/field-labels: `<style-rule element='axis'><format
+attr='display' value='false'/><format attr='tick-color' value='#00000000'/>` +
+`gridline line-visibility off` + `zeroline off` + `worksheet display-field-labels
+false` (cols & rows). Declare the date COLUMN + its `[tmn:…:qk]` instance + the
+calc + its `[usr:…:qk]` instance. Pick the date grain per KPI (leads →
+CreatedDate, deals → ClosedDate).
+
+**Card layout** — restructure each KPI cell into a vertical flow `[number, spark]`:
+```
+<zone param='vert' ...>              # OUTER = rounded card (border+corner-radius 14+bg #fff)
+  <zone fixed-size='100' name='KPI X' ...>          # number leaf, type-h/w='cell', pad 2
+     <layout-cache cell-count-h='1' non-cell-size-h='33' type-h='cell' type-w='cell'/>
+  <zone name='KPI X Spark' show-title='false' ...>  # spark leaf, type-h/w='scalable', pad 2
+     <layout-cache minheight='100' minwidth='100' type-h='scalable' type-w='scalable'/>
+```
+`show-title='false'` on the spark leaf hides the worksheet name (else it overlaps
+the number). Grow the KPI strip row: it's `is-fixed='true' fixed-size='136'` (a
+PIXEL height, not a weight) → bump to ~210. Register each spark worksheet in
+`<windows>` (hidden) + a dashboard `<viewpoint>`. A 2-line BAN (number + '▲102%
+so KHNS') needs a taller number leaf than a 1-line one.
+
+Reference builders: `build_mey_d2_V1.py` (`sparkline_worksheet`,
+`restructure_kpi_zone`). Live: `Mey Group - Kinh Doanh Pheu V1`.
+
+## 11 — "Nhấn cột cao nhất" — max-column emphasis + gold KPI tick ★ BEST PRACTICE
+
+The Superstore emphasis move for a monthly bar chart: the max month is the
+DARKEST bar, others grade lighter, and a gold horizontal tick marks each month's
+KPI target. Replaces a busy 3-layer TH/KHNS/KPI bullet with one clean series.
+
+- **Color = the measure itself**, graded dark→light. Two ways, both Cloud-safe:
+  (a) flat brand via the `[:Measure Names]` ds-map (D1 V1 final, survives Desktop
+  round-trips), or (b) `palette='Mey Sequential Blue' type='palette'` on a
+  `<color column='[ds].[sum:<measure>:qk]'>` pill (needs the palette in
+  `<preferences>`). **Do NOT color by a highlight DIMENSION** — a boolean/string
+  color pill NEVER binds in hand-authored .twb on this Cloud (falls to Tableau's
+  default orange). See [[tableau-cloud-color-binding-and-emphasis]].
+- **tỷ label**: raw measure on `rows` (drives bar length + color), HIDE its axis
+  (`<format attr='display' class='0' field='[…sum:measure:qk]' scope='rows'
+  value='false'/>`), and put a `SUM(measure)/1e9` display CALC (calc columns DO
+  honor `default-format='n#,##0'`) as the `<text>` label → shows `1.113` not
+  `1.113.000.000.000`.
+- **Gold KPI tick = per-cell `<reference-line>` + MANDATORY `<lod>` pill.** The
+  line renders ONLY if its `value-column` measure is ALSO on a shelf via `<lod
+  column='[ds].[sum:<KpiMeasure>:qk]'/>` in the pane encodings. Missing the lod
+  pill → the reference-line is in the XML but silently NOT drawn (cost a full
+  debug cycle on D2 V1 DealThang). Full form:
+  ```
+  <reference-line axis-column='[ds].[sum:<measure>:qk]' value-column='[ds].[sum:<kpi>:qk]'
+    formula='sum' scope='per-cell' id='kpiline' label-type='none' z-order='1' />
+  ```
+  + `<style-rule element='refline'>` with stroke-color `#c29b54`, stroke-size 3,
+  line-visibility on, line-pattern-only solid, fill-above/below `#00000000`.
+
+Reference: D1 V1 `DoanhSoThang`/`SanLuongThang`/`DongTienThang`, D2 V1 `DealThang`.
+Live: `Mey Group - Tai Chinh V1`. Builder: `build_mey_d1_V1.py`.
+
+## 12 — Surgical-patch workflow ★ (never rebuild a user-touched workbook)
+
+Once a workbook is LIVE and the user may have polished it on Desktop, iterate by
+PATCHING the current live download, NEVER by rebuilding from the seed +
+Overwrite (that wipes their layout — happened on D2 V1, cost the user's KPI-card
+alignment). The `build_mey_d{1,2}_V1.py` scripts encode this:
+1. `populate_revisions` + download the LATEST rev (it carries all Desktop polish
+   the generator lacks — rings, welded legends, cross-filter actions, card sizing).
+2. Swap ONLY the target worksheet(s) in-place with `re.sub`, keeping the SAME
+   NAME so dashboard zones / viewpoints / actions stay wired.
+3. Inject new calcs before the STRUCTURAL `</datasource>` (`rfind`, NOT the first
+   one — it's inside a CDATA copy). Verify `count('<![CDATA[')==count(']]>')`.
+4. Publish as a NEW `... V1` name (never Overwrite the user's original).
+5. Bust the render cache with `opt.vf("<AnyDimension>","<value>")`; sample bar
+   pixels with pillow to verify colors actually bound (don't trust the thumbnail).
+
 ## Division of labour (what to do in code vs ask the user)
 
 Do in CODE (all proven now): fixed size, KPI/BAN cards + %HT line, donut rings
@@ -251,6 +338,7 @@ never do in code); (2) a brand-new viz type you have no working sample to clone
 
 ## Replicating D1 → a new dashboard (D2…D5 checklist)
 
+For a FRESH dashboard from the seed:
 1. Point `mey_lib.SEED_BLOCK` at the latest good datasources block (has all
    calcs + the color map + ring_gauge palette + CDATA-balanced).
 2. Build KPI cards (`kpi=True` row), the chart set (bullets + rankings), funnel/
@@ -260,3 +348,18 @@ never do in code); (2) a brand-new viz type you have no working sample to clone
 4. Ensure the datasource color map covers the new measures (rewrite hexes).
 5. Publish Overwrite → render → verify no blank sheets → iterate.
 6. Hand to the user for final Desktop micro-alignment only if needed.
+
+## The D1/D2 V1 STANDARD (apply to every dashboard) ★
+
+The approved best-practice bundle, distilled from the final live `... V1`
+workbooks. Every Mey dashboard should have:
+- **§10 Sparkline KPI cards** — 6-month trend Line under each BAN number, one
+  rounded card. The default KPI treatment now (superset of the plain BAN).
+- **§11 Emphasis monthly chart** — max month darkest (Sequential Blue / brand),
+  gold per-cell KPI tick (+lod pill), tỷ display-calc label. Use instead of a
+  3-layer bullet when the story is "how are we tracking vs target each month".
+- Keep: rounded cards, ranking bars + data labels, funnel/aging sorts, %HT rings
+  where a single headline target exists, 100% Vietnamese captions, VND as tỷ.
+- **Always via §12 surgical patch** when the target workbook is already live.
+- Cross-filter actions + final pixel alignment = the user's Desktop pass (they
+  don't survive a code rebuild — flag them, don't try to author them).

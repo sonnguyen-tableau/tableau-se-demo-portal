@@ -319,10 +319,35 @@ function buildRichContent(
         : raw === "image/jpg"
           ? "image/jpeg"
           : "image/png";
-      events.push({ type: "tool_image", mimeType, data: block.data });
+      // Guard the payload before forwarding to Claude. A malformed, empty, or
+      // oversized image (a high-res dashboard PNG can exceed Claude's ~5 MB
+      // base64 limit) makes the Messages API reject the WHOLE turn with
+      // 400 "Could not process image". Validate + size-cap; on failure keep a
+      // text note so the agent degrades gracefully instead of erroring out.
+      const b64 = block.data.trim();
+      const CLAUDE_IMAGE_B64_MAX = 4_800_000; // ~5 MB decoded ceiling, with margin
+      const isValidB64 = b64.length > 100 && /^[A-Za-z0-9+/=\r\n]+$/.test(b64);
+      if (!isValidB64) {
+        anthropicContent.push({
+          type: "text",
+          text: "[Image from tool was empty or unreadable — describe from the underlying data instead.]",
+        });
+        continue;
+      }
+      if (b64.length > CLAUDE_IMAGE_B64_MAX) {
+        // Still surface it in the UI (the browser can render it), but don't send
+        // the too-large payload to Claude — it would 400 the request.
+        events.push({ type: "tool_image", mimeType, data: b64 });
+        anthropicContent.push({
+          type: "text",
+          text: `[Image too large to analyze (${Math.round(b64.length / 1024)} KB base64, over the ${Math.round(CLAUDE_IMAGE_B64_MAX / 1024)} KB limit). Request a smaller/lower-resolution view, or answer from get-view-data / the metrics instead of the screenshot.]`,
+        });
+        continue;
+      }
+      events.push({ type: "tool_image", mimeType, data: b64 });
       anthropicContent.push({
         type: "image",
-        source: { type: "base64", media_type: mimeType, data: block.data },
+        source: { type: "base64", media_type: mimeType, data: b64 },
       });
       continue;
     }
