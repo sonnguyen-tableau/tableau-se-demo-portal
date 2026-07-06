@@ -328,14 +328,8 @@ async function buildRichContent(
 
   for (const block of content) {
     if (block.type === "image" && typeof block.data === "string") {
-      const raw = typeof block.mimeType === "string" ? block.mimeType.toLowerCase() : "";
-      const ALLOWED = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-      const declaredMime = ALLOWED.has(raw)
-        ? raw
-        : raw === "image/jpg"
-          ? "image/jpeg"
-          : "image/png";
-      // Strip a possible data-URI prefix ("data:image/png;base64,....") — Claude's
+      const declaredMime = typeof block.mimeType === "string" ? block.mimeType.toLowerCase() : "";
+      // Strip a possible data-URI prefix ("data:...;base64,....") — Claude's
       // source.data must be RAW base64 or it 400s "Could not process image".
       let b64 = block.data.trim();
       const uriMatch = /^data:([^;]+);base64,(.*)$/s.exec(b64);
@@ -350,34 +344,34 @@ async function buildRichContent(
         continue;
       }
 
-      // Downscale server-side before sending to Claude. Tableau renders
-      // dashboards at high DPI (e.g. 3120×2480 ≈ 7.7 MP); the Messages API
-      // rejects images over its megapixel/size envelope with 400 "Could not
-      // process image" (the raw base64 is a valid PNG — it renders fine in the
-      // browser — but Claude won't accept it). Re-encode to ≤1400px long edge
-      // (well under the ~1568px / 1.15 MP guidance) so it always fits.
-      let sendMime = declaredMime;
+      // ALWAYS rasterize to PNG with sharp before sending to Claude. The Tableau
+      // MCP get-view-image returns image/SVG+XML (confirmed via chat.rawblocks
+      // logs), which Claude does NOT accept (only jpeg/png/gif/webp) — that is
+      // the real cause of the 400 "Could not process image" (the previous
+      // size/mimeType guesses were wrong). sharp reads SVG natively; render it
+      // (and any non-PNG source) to PNG, capped at 1400px long edge. The UI still
+      // gets the original bytes so the browser renders the crisp SVG.
+      const CLAUDE_MIME = "image/png";
       let sendData = b64;
       try {
         const { default: sharp } = await import("sharp");
         const inputBuf = Buffer.from(b64, "base64");
-        const meta = await sharp(inputBuf).metadata();
-        const longEdge = Math.max(meta.width ?? 0, meta.height ?? 0);
+        // density boosts SVG rasterization crispness; ignored for raster inputs.
+        const meta = await sharp(inputBuf, { density: 144 }).metadata();
         const MAX_EDGE = 1400;
-        if (longEdge > MAX_EDGE) {
-          const outBuf = await sharp(inputBuf)
-            .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: "inside", withoutEnlargement: true })
-            .png({ compressionLevel: 8 })
-            .toBuffer();
-          sendData = outBuf.toString("base64");
-          sendMime = "image/png";
-        }
+        const outBuf = await sharp(inputBuf, { density: 144 })
+          .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: "inside", withoutEnlargement: true })
+          .flatten({ background: "#ffffff" })
+          .png({ compressionLevel: 8 })
+          .toBuffer();
+        sendData = outBuf.toString("base64");
         console.log(
           JSON.stringify({
             kind: "chat.image_prepared",
             tool: toolName,
             origDims: `${meta.width}x${meta.height}`,
             origMime: declaredMime,
+            origFormat: meta.format,
             origB64KB: Math.round(b64.length / 1024),
             sentB64KB: Math.round(sendData.length / 1024),
             downscaled: sendData !== b64,
@@ -403,11 +397,12 @@ async function buildRichContent(
         continue;
       }
 
-      // UI still gets the original full-res image; Claude gets the downscaled one.
-      events.push({ type: "tool_image", mimeType: declaredMime, data: b64 });
+      // UI still gets the original image (browsers render SVG crisply); Claude
+      // gets the rasterized PNG.
+      events.push({ type: "tool_image", mimeType: declaredMime || CLAUDE_MIME, data: b64 });
       anthropicContent.push({
         type: "image",
-        source: { type: "base64", media_type: sendMime, data: sendData },
+        source: { type: "base64", media_type: CLAUDE_MIME, data: sendData },
       });
       continue;
     }
