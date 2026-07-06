@@ -42,7 +42,13 @@ interface Message {
   richBlocks?: RichBlock[];
 }
 
-export function ChatPanel(): ReactElement {
+const DEFAULT_SUGGESTIONS = [
+  "Những hạng mục nổi bật nhất kỳ vừa rồi?",
+  "Có biến động nào bất thường không?",
+  "Tóm tắt view này trong 3 ý chính.",
+];
+
+export function ChatPanel({ suggestions }: { suggestions?: string[] }): ReactElement {
   const { snapshot, applyVizAction } = useVizContext();
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
@@ -177,11 +183,7 @@ export function ChatPanel(): ReactElement {
     void send(text);
   };
 
-  const SUGGESTIONS = [
-    "Những danh mục bán chạy nhất quý vừa rồi?",
-    "Tại sao doanh thu giảm vào tháng 3?",
-    "Tóm tắt view này trong 3 ý chính.",
-  ];
+  const SUGGESTIONS = suggestions && suggestions.length > 0 ? suggestions : DEFAULT_SUGGESTIONS;
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-xl border border-sf-neutral-3 bg-white shadow-elev-1">

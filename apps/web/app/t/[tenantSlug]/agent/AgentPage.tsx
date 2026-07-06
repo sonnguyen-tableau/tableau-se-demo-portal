@@ -3,15 +3,15 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useChatAgent, type ChatMessage, type RichBlock } from "@/hooks/useChatAgent";
 import { VegaChart } from "@/components/chart/VegaChart";
+import type { AgentSuggestion } from "@/lib/agent-suggestions";
 
-const SUGGESTIONS: { title: string; subtitle: string; emoji: string }[] = [
-  { title: "Tóm tắt doanh thu tháng này", subtitle: "Tổng quan KPI và xu hướng chính", emoji: "📊" },
-  { title: "Danh mục tăng trưởng mạnh nhất", subtitle: "So sánh top 5 theo tốc độ tăng", emoji: "🚀" },
-  { title: "Hiệu suất các chi nhánh", subtitle: "Xếp hạng theo khu vực", emoji: "🏢" },
-  { title: "Xu hướng thu nhập lãi 6 tháng", subtitle: "Phân tích biến động và mùa vụ", emoji: "📈" },
-];
-
-export function AgentPage({ tenantName }: { tenantName: string }) {
+export function AgentPage({
+  tenantName,
+  suggestions,
+}: {
+  tenantName: string;
+  suggestions: AgentSuggestion[];
+}) {
   const { messages, busy, tools, send, clear } = useChatAgent();
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -118,7 +118,7 @@ export function AgentPage({ tenantName }: { tenantName: string }) {
 
             {/* Suggestion cards */}
             <div className="grid w-full max-w-2xl gap-2 sm:grid-cols-2">
-              {SUGGESTIONS.map((s) => (
+              {suggestions.map((s) => (
                 <button
                   key={s.title}
                   onClick={() => submit(s.title)}

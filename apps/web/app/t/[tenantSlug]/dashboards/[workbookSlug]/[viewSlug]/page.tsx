@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { getLiveCatalog } from "@/lib/tableau-rest";
 import { getTenant } from "@/lib/tenants";
+import { getAgentSuggestions } from "@/lib/agent-suggestions";
 import { env } from "@/lib/env";
 import { isTableauConfigured } from "@/lib/tableau-config";
 import { getSiteForTenant, resolvedSiteViewUrl } from "@/lib/tenant-site";
@@ -163,7 +164,12 @@ export default async function ViewEmbedPage({ params }: PageProps) {
           </div>
           {/* Chat panel — collapsible */}
           <ChatPanelWrapper>
-            <ChatPanel />
+            <ChatPanel
+              suggestions={getAgentSuggestions({
+                slug: tenantSlug,
+                industry: tenantRecord?.industry,
+              }).map((s) => s.title)}
+            />
           </ChatPanelWrapper>
         </div>
       </VizContextProvider>
