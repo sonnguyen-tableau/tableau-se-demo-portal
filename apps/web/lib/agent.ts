@@ -245,7 +245,7 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
         const result = await input.mcp.callTool(call.name, call.input);
 
         // Emit rich events for image, table, and vega specs before the tool_result
-        const richContent = buildRichContent(result.content, call.name);
+        const richContent = await buildRichContent(result.content, call.name);
         for (const ev of richContent.events) {
           if (ev.type === "tool_image") yield { ...ev, id: call.id };
           else if (ev.type === "tool_table") yield { ...ev, id: call.id };
@@ -302,10 +302,10 @@ const PULSE_TOOLS = new Set([
   "generate_pulse_metric_value_insight_bundle",
 ]);
 
-function buildRichContent(
+async function buildRichContent(
   content: Array<{ type: string; text?: string; data?: unknown; mimeType?: string }>,
   toolName = "",
-): RichBuildResult {
+): Promise<RichBuildResult> {
   const events: RichEvent[] = [];
   const anthropicContent: RichBuildResult["anthropicContent"] = [];
   const isPulseTool = PULSE_TOOLS.has(toolName);
@@ -314,18 +314,17 @@ function buildRichContent(
     if (block.type === "image" && typeof block.data === "string") {
       const raw = typeof block.mimeType === "string" ? block.mimeType.toLowerCase() : "";
       const ALLOWED = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-      const mimeType = ALLOWED.has(raw)
+      const declaredMime = ALLOWED.has(raw)
         ? raw
         : raw === "image/jpg"
           ? "image/jpeg"
           : "image/png";
-      // Guard the payload before forwarding to Claude. A malformed, empty, or
-      // oversized image (a high-res dashboard PNG can exceed Claude's ~5 MB
-      // base64 limit) makes the Messages API reject the WHOLE turn with
-      // 400 "Could not process image". Validate + size-cap; on failure keep a
-      // text note so the agent degrades gracefully instead of erroring out.
-      const b64 = block.data.trim();
-      const CLAUDE_IMAGE_B64_MAX = 4_800_000; // ~5 MB decoded ceiling, with margin
+      // Strip a possible data-URI prefix ("data:image/png;base64,....") — Claude's
+      // source.data must be RAW base64 or it 400s "Could not process image".
+      let b64 = block.data.trim();
+      const uriMatch = /^data:([^;]+);base64,(.*)$/s.exec(b64);
+      if (uriMatch && uriMatch[2]) b64 = uriMatch[2].trim();
+
       const isValidB64 = b64.length > 100 && /^[A-Za-z0-9+/=\r\n]+$/.test(b64);
       if (!isValidB64) {
         anthropicContent.push({
@@ -334,20 +333,65 @@ function buildRichContent(
         });
         continue;
       }
-      if (b64.length > CLAUDE_IMAGE_B64_MAX) {
-        // Still surface it in the UI (the browser can render it), but don't send
-        // the too-large payload to Claude — it would 400 the request.
-        events.push({ type: "tool_image", mimeType, data: b64 });
+
+      // Downscale server-side before sending to Claude. Tableau renders
+      // dashboards at high DPI (e.g. 3120×2480 ≈ 7.7 MP); the Messages API
+      // rejects images over its megapixel/size envelope with 400 "Could not
+      // process image" (the raw base64 is a valid PNG — it renders fine in the
+      // browser — but Claude won't accept it). Re-encode to ≤1400px long edge
+      // (well under the ~1568px / 1.15 MP guidance) so it always fits.
+      let sendMime = declaredMime;
+      let sendData = b64;
+      try {
+        const { default: sharp } = await import("sharp");
+        const inputBuf = Buffer.from(b64, "base64");
+        const meta = await sharp(inputBuf).metadata();
+        const longEdge = Math.max(meta.width ?? 0, meta.height ?? 0);
+        const MAX_EDGE = 1400;
+        if (longEdge > MAX_EDGE) {
+          const outBuf = await sharp(inputBuf)
+            .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: "inside", withoutEnlargement: true })
+            .png({ compressionLevel: 8 })
+            .toBuffer();
+          sendData = outBuf.toString("base64");
+          sendMime = "image/png";
+        }
+        console.log(
+          JSON.stringify({
+            kind: "chat.image_prepared",
+            tool: toolName,
+            origDims: `${meta.width}x${meta.height}`,
+            origMime: declaredMime,
+            origB64KB: Math.round(b64.length / 1024),
+            sentB64KB: Math.round(sendData.length / 1024),
+            downscaled: sendData !== b64,
+          }),
+        );
+      } catch (err) {
+        // sharp failed (unexpected format / decode error) — log and skip the
+        // image rather than 400 the whole turn.
+        console.log(
+          JSON.stringify({
+            kind: "chat.image_error",
+            tool: toolName,
+            origMime: declaredMime,
+            origB64KB: Math.round(b64.length / 1024),
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+        events.push({ type: "tool_image", mimeType: declaredMime, data: b64 });
         anthropicContent.push({
           type: "text",
-          text: `[Image too large to analyze (${Math.round(b64.length / 1024)} KB base64, over the ${Math.round(CLAUDE_IMAGE_B64_MAX / 1024)} KB limit). Request a smaller/lower-resolution view, or answer from get-view-data / the metrics instead of the screenshot.]`,
+          text: "[Image could not be prepared for analysis — describe from get-view-data / the metrics instead.]",
         });
         continue;
       }
-      events.push({ type: "tool_image", mimeType, data: b64 });
+
+      // UI still gets the original full-res image; Claude gets the downscaled one.
+      events.push({ type: "tool_image", mimeType: declaredMime, data: b64 });
       anthropicContent.push({
         type: "image",
-        source: { type: "base64", media_type: mimeType, data: b64 },
+        source: { type: "base64", media_type: sendMime, data: sendData },
       });
       continue;
     }
