@@ -48,7 +48,7 @@ export default async function SignInPage({ searchParams }: PageProps) {
         <div className="relative max-w-sm">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-meta font-semibold uppercase tracking-widest text-sf-blue-40 backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-sf-blue-40 animate-pulse" aria-hidden="true" />
-            Powered by Claude + Tableau
+            Powered by Salesforce + Tableau
           </div>
           <h2 className="text-display font-extrabold leading-[1.08] tracking-tight text-white">
             Dữ liệu sẵn sàng.

@@ -173,7 +173,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
         {/* Footer signature */}
         <div className="px-5 py-4 border-t border-white/[0.06]">
           <p className="text-meta leading-relaxed" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 40%, transparent)" }}>
-            Powered by <span className="font-semibold" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 70%, transparent)" }}>Tableau</span> + <span className="font-semibold" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 70%, transparent)" }}>Claude</span>
+            Powered by <span className="font-semibold" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 70%, transparent)" }}>Tableau</span> + <span className="font-semibold" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 70%, transparent)" }}>Salesforce</span>
           </p>
         </div>
       </SidebarWrapper>
