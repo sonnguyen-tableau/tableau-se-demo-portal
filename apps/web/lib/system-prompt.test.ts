@@ -46,7 +46,8 @@ describe("buildSystemPrompt", () => {
   it("warns about the grounding workflow", () => {
     const s = buildSystemPrompt({ tenant: ctx, toolNames: ["query-datasource"] });
     expect(s).toContain("get-datasource-metadata");
-    expect(s).toContain("hallucinations");
+    // Grounding guard: the agent must not fabricate data.
+    expect(s).toContain("never invent");
   });
 
   it("omits the Salesforce advisory block by default", () => {

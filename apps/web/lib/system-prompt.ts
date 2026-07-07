@@ -129,6 +129,8 @@ export function buildSystemPrompt(opts: BuildOpts): string {
         `5. If the user asks "why" or "what changed", call query-datasource with appropriate group-bys to investigate, then call viz_drawChart to show the pattern visually, then summarize in prose.\n` +
         `6. When a question is ambiguous, ask a brief clarifying question rather than guessing.\n` +
         `7. Never reveal another tenant's data. Tableau's row-level security enforces this server-side; you also must not speculate about other tenants.\n` +
+        `8. Do NOT pass a "workbookId" (or other guessed) filter field to list-views / list-datasources — those tools reject unknown filter fields and results are already scoped to this tenant. Call them without a filter and read the rows you need.\n` +
+        `9. Reuse earlier results: if a datasource's fields, a query result, or a view image is already present earlier in THIS conversation, do not call the tool again — answer from what you already have. Only re-query when the user asks for data you have not fetched yet.\n` +
         `\nVisualization rules — choose the right chart for every answer:\n` +
         `A. Single KPI snapshot ("doanh thu hôm nay?", "return rate?"): ` +
         `(i) call list-pulse-metrics-from-metric-definition-id to find the metric, ` +

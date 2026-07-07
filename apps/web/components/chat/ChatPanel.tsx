@@ -57,6 +57,17 @@ export function ChatPanel({ suggestions }: { suggestions?: string[] }): ReactEle
   const [pulseConfig, setPulseConfig] = useState<PulseEmbedConfig | null>(null);
   const pulseConfigRef = useRef<Promise<PulseEmbedConfig | null> | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+  // Stable per-mount conversation id: lets the server retain the full transcript
+  // (incl. tool results) in KV so follow-up questions reuse already-fetched data.
+  const sessionIdRef = useRef<string>(
+    (() => {
+      try {
+        return crypto.randomUUID();
+      } catch {
+        return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+      }
+    })(),
+  );
 
   // Fetch the Pulse JWT + site URL lazily, the first time the agent emits a
   // pulse_card event. Cached in a ref so concurrent events share one request.
@@ -113,7 +124,7 @@ export function ChatPanel({ suggestions }: { suggestions?: string[] }): ReactEle
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, vizContext }),
+        body: JSON.stringify({ message: text, vizContext, chatSessionId: sessionIdRef.current }),
         credentials: "include",
       });
       if (!res.ok || !res.body) {

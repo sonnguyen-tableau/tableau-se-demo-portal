@@ -31,13 +31,52 @@ export interface AgentTurnInput {
   model?: string;
   systemPrompt: string;
   userMessage: string;
-  /** Prior conversation turns for multi-turn continuity. */
+  /** Prior conversation turns for multi-turn continuity (text only). */
   history?: ConversationTurn[] | undefined;
+  /**
+   * Full prior transcript (including tool_use/tool_result blocks) from the
+   * server-side session store. When present it takes precedence over `history`,
+   * so a follow-up turn reuses the data the agent already fetched instead of
+   * re-running the same tools. Images are already stripped by the store.
+   */
+  priorMessages?: Anthropic.MessageParam[] | undefined;
+  /**
+   * When provided, the complete transcript is written to `.messages` after a
+   * clean turn so the caller can persist it. Left untouched on error paths.
+   */
+  transcriptSink?: { messages: Anthropic.MessageParam[] };
   /** Optional MCP session for tool use. When omitted, runs as a plain chat. */
   mcp?: TableauMcpSession;
   /** Enable viz.* client-side tools. The route forwards them to the client. */
   enableVizTools?: boolean;
   signal?: AbortSignal;
+}
+
+const EPHEMERAL = { type: "ephemeral" as const };
+
+/**
+ * Add a prompt-cache breakpoint on the last content block of the last message.
+ * Combined with the cached system + tool definitions, this makes re-sending a
+ * long retained transcript on a follow-up turn nearly free. Returns a shallow
+ * copy — the underlying array we persist stays free of cache markers.
+ */
+function withMessageCache(messages: Anthropic.MessageParam[]): Anthropic.MessageParam[] {
+  if (messages.length === 0) return messages;
+  const out = messages.slice();
+  const lastIdx = out.length - 1;
+  const last = out[lastIdx]!;
+  if (typeof last.content === "string") {
+    out[lastIdx] = {
+      ...last,
+      content: [{ type: "text", text: last.content, cache_control: EPHEMERAL }],
+    };
+  } else if (Array.isArray(last.content) && last.content.length > 0) {
+    const blocks = last.content.slice();
+    const li = blocks.length - 1;
+    blocks[li] = { ...(blocks[li] as object), cache_control: EPHEMERAL } as (typeof blocks)[number];
+    out[lastIdx] = { ...last, content: blocks as typeof last.content };
+  }
+  return out;
 }
 
 /**
@@ -59,16 +98,24 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
       ? t.description.slice(0, MAX_TOOL_DESCRIPTION_CHARS) + "…"
       : t.description,
   }));
+  // Cache the (stable) tool definitions across turns — a breakpoint on the last
+  // tool covers the whole tools array + system prompt for prompt caching.
+  const cachedTools = trimmedTools.length > 0
+    ? trimmedTools.map((t, i) =>
+        i === trimmedTools.length - 1 ? { ...t, cache_control: EPHEMERAL } : t,
+      )
+    : trimmedTools;
 
-  // Build message list: history turns (text only) + current user message.
-  // History must alternate user/assistant; we skip tool-call blocks from prior
-  // turns since they aren't serialised in the history payload.
-  const historyMessages: Anthropic.MessageParam[] = (input.history ?? []).map((t) => ({
-    role: t.role,
-    content: t.content,
-  }));
+  // Build the message list. Prefer the full prior transcript (tool_use +
+  // tool_result blocks) from the session store so the model reuses data it
+  // already fetched. Fall back to the text-only history payload when no
+  // transcript is available (KV off / first turn).
+  const priorMessages: Anthropic.MessageParam[] =
+    input.priorMessages && input.priorMessages.length > 0
+      ? input.priorMessages
+      : (input.history ?? []).map((t) => ({ role: t.role, content: t.content }));
   const messages: Anthropic.MessageParam[] = [
-    ...historyMessages,
+    ...priorMessages,
     { role: "user", content: input.userMessage },
   ];
 
@@ -76,12 +123,13 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
     const baseParams: Anthropic.MessageCreateParamsStreaming = {
       model: input.model ?? DEFAULT_MODEL,
       max_tokens: MAX_TOKENS,
-      system: input.systemPrompt,
-      messages,
+      // Cache the system prompt (stable across the whole conversation).
+      system: [{ type: "text", text: input.systemPrompt, cache_control: EPHEMERAL }],
+      messages: withMessageCache(messages),
       stream: true,
     };
-    if (trimmedTools.length > 0) {
-      baseParams.tools = trimmedTools as unknown as Anthropic.Tool[];
+    if (cachedTools.length > 0) {
+      baseParams.tools = cachedTools as unknown as Anthropic.Tool[];
     }
 
     // Retry on overloaded_error with exponential backoff (up to 3 attempts)
@@ -139,6 +187,8 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
     messages.push({ role: "assistant", content: message.content });
 
     if (toolCalls.length === 0 || !input.mcp) {
+      // Clean terminal turn — hand the full transcript back for persistence.
+      if (input.transcriptSink) input.transcriptSink.messages = messages;
       yield {
         type: "done",
         usage: {

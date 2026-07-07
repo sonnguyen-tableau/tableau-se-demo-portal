@@ -12,6 +12,8 @@ import { getSiteForTenant } from "@/lib/tenant-site";
 import { getTenantDesignMd } from "@/lib/tenant-theme";
 import { getTenant } from "@/lib/tenants";
 import { getLiveCatalog } from "@/lib/tableau-rest";
+import { getChatSession, saveChatSession } from "@/lib/chat-session";
+import type Anthropic from "@anthropic-ai/sdk";
 
 const CHAT_RATE_LIMIT = { windowSeconds: 60, max: 12 } as const;
 
@@ -42,8 +44,13 @@ const historyMessageSchema = z.object({
 const requestSchema = z.object({
   message: z.string().min(1).max(8000),
   vizContext: vizContextSchema,
-  // Prior turns for multi-turn conversation continuity (max 40 messages)
+  // Prior turns for multi-turn conversation continuity (max 40 messages).
+  // Fallback only — the server-side transcript store (keyed by chatSessionId)
+  // is preferred when available since it retains tool_use/tool_result data.
   history: z.array(historyMessageSchema).max(40).optional(),
+  // Opaque client-minted conversation id used to load/save the full transcript
+  // in KV so a follow-up turn reuses already-fetched data instead of re-querying.
+  chatSessionId: z.string().min(8).max(80).optional(),
 });
 
 function sseLine(event: AgentEvent | { type: "open"; tools: readonly string[] }): string {
@@ -126,6 +133,8 @@ export async function POST(req: Request): Promise<Response> {
       let mcp: Awaited<ReturnType<typeof openTableauMcp>> | undefined;
       let lastUsage: { input_tokens?: number; output_tokens?: number } | undefined;
       const toolInFlight = new Map<string, { name: string; startedAt: number }>();
+      // Hoisted so the finally block can persist it after the stream completes.
+      const transcriptSink: { messages: Anthropic.MessageParam[] } = { messages: [] };
       try {
         const site = await getSiteForTenant(tenantId);
         const mcpUrl = site.mcpUrl ?? env.TABLEAU_MCP_URL;
@@ -154,9 +163,10 @@ export async function POST(req: Request): Promise<Response> {
           send({ type: "open", tools: [] });
         }
 
-        const [designMd, tenantRecord] = await Promise.all([
+        const [designMd, tenantRecord, priorMessages] = await Promise.all([
           getTenantDesignMd(ctx.tenantId),
           getTenant(ctx.tenantId),
+          getChatSession(tenantId, userEmail, parsed.data.chatSessionId),
         ]);
 
         const allowedProjects = tenantRecord?.allowedProjects ?? [];
@@ -198,6 +208,8 @@ export async function POST(req: Request): Promise<Response> {
           systemPrompt,
           userMessage: parsed.data.message,
           history: parsed.data.history,
+          priorMessages,
+          transcriptSink,
           enableVizTools: true,
           ...(activeMcp ? { mcp: activeMcp } : {}),
         })) {
@@ -259,6 +271,17 @@ export async function POST(req: Request): Promise<Response> {
           message: msg.slice(0, 200),
         });
       } finally {
+        // Persist the full transcript (tool blocks included) so the next turn
+        // in this conversation reuses already-fetched data. Only set on a clean
+        // terminal turn; a no-op when KV is off or no chatSessionId was sent.
+        if (transcriptSink.messages.length > 0) {
+          await saveChatSession(
+            tenantId,
+            userEmail,
+            parsed.data.chatSessionId,
+            transcriptSink.messages,
+          );
+        }
         if (mcp) {
           try {
             await mcp.close();

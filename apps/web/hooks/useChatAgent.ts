@@ -27,6 +27,14 @@ export interface ChatMessage {
   richBlocks?: RichBlock[];
 }
 
+function newSessionId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
 function appendToAssistant(messages: ChatMessage[], delta: string): ChatMessage[] {
   return mutateLastAssistant(messages, (m) => ({ ...m, content: m.content + delta }));
 }
@@ -96,6 +104,9 @@ export function useChatAgent(vizContext?: {
   const messagesRef = useRef<ChatMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [tools, setTools] = useState<string[] | null>(null);
+  // Stable id for this conversation — lets the server retain the full transcript
+  // (incl. tool results) in KV so follow-ups reuse fetched data. Reset on clear().
+  const sessionIdRef = useRef<string>(newSessionId());
 
   // Keep ref in sync so send() can read current messages synchronously
   const setMessagesAndRef = useCallback((updater: (prev: ChatMessage[]) => ChatMessage[]) => {
@@ -124,7 +135,7 @@ export function useChatAgent(vizContext?: {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, vizContext, history }),
+        body: JSON.stringify({ message: text, vizContext, history, chatSessionId: sessionIdRef.current }),
         credentials: "include",
       });
       if (!res.ok || !res.body) {
@@ -164,6 +175,7 @@ export function useChatAgent(vizContext?: {
     messagesRef.current = [];
     setMessages([]);
     setTools(null);
+    sessionIdRef.current = newSessionId(); // start a fresh server-side transcript
   }, []);
 
   return { messages, busy, tools, send, clear };
