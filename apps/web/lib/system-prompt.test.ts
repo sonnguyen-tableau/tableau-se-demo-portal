@@ -48,4 +48,22 @@ describe("buildSystemPrompt", () => {
     expect(s).toContain("get-datasource-metadata");
     expect(s).toContain("hallucinations");
   });
+
+  it("omits the Salesforce advisory block by default", () => {
+    const s = buildSystemPrompt({ tenant: ctx, toolNames: ["query-datasource"] });
+    expect(s).not.toContain("Salesforce action advisory");
+  });
+
+  it("includes the Salesforce advisory block when enabled", () => {
+    const s = buildSystemPrompt({
+      tenant: ctx,
+      toolNames: ["query-datasource"],
+      salesforceAdvisory: true,
+    });
+    expect(s).toContain("Salesforce action advisory");
+    expect(s).toContain("Data Cloud");
+    expect(s).toContain("Agentforce");
+    // Only recommends on how-to-improve questions, not factual ones.
+    expect(s).toContain("recommendations, next steps");
+  });
 });

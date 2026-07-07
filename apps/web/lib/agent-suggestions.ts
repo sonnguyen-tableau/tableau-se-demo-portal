@@ -61,8 +61,8 @@ const BY_INDUSTRY: Record<string, AgentSuggestion[]> = {
 const BY_SLUG: Record<string, AgentSuggestion[]> = {
   meygroup: [
     { title: "Tổng quan tình hình kinh doanh H1 2026", subtitle: "Doanh thu, số căn bán và mục tiêu", emoji: "📊" },
-    { title: "Tiến độ và tồn kho các dự án", subtitle: "% hoàn thành theo dự án và loại sản phẩm", emoji: "🏗️" },
     { title: "Phễu chuyển đổi khách hàng Lead → Deal", subtitle: "Tỷ lệ rơi rụng qua từng giai đoạn", emoji: "🎯" },
+    { title: "Đề xuất hành động tăng chuyển đổi kênh Digital", subtitle: "Next-best-action trên Salesforce từ dữ liệu phễu", emoji: "🚀" },
     { title: "Deep-dive dự án Meypearl Ciel", subtitle: "Pipeline trước mở bán và cơ hội tăng tốc", emoji: "🔍" },
   ],
   mediamart: BY_INDUSTRY["retail-mediamart"]!,

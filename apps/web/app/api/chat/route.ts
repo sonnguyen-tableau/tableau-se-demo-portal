@@ -188,6 +188,8 @@ export async function POST(req: Request): Promise<Response> {
               : allowedToolNames(),
           designMd,
           ...(allowedWorkbookNames.length > 0 ? { allowedWorkbookNames } : {}),
+          // Salesforce next-best-action advisory: currently gated to Mey Group.
+          salesforceAdvisory: ctx.tenantId === "meygroup",
         });
 
         const activeMcp = guardedMcp ?? mcp;

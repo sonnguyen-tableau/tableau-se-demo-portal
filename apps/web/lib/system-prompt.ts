@@ -26,6 +26,14 @@ interface BuildOpts {
    * When provided, the agent is instructed to stay within this scope.
    */
   allowedWorkbookNames?: string[];
+  /**
+   * When true, the agent turns analytics insights into concrete Salesforce
+   * next-best-actions (Data Cloud / Einstein / Marketing Cloud / Agentforce /
+   * Sales Cloud / Tableau Pulse) — but ONLY when the user asks for
+   * recommendations / how to improve something. Gated per tenant (currently
+   * meygroup) so factual-only demos are unaffected.
+   */
+  salesforceAdvisory?: boolean;
 }
 
 /**
@@ -34,7 +42,7 @@ interface BuildOpts {
  * is included to keep the LLM honest about what's actually available.
  */
 export function buildSystemPrompt(opts: BuildOpts): string {
-  const { tenant, viz, toolNames, designMd, allowedWorkbookNames } = opts;
+  const { tenant, viz, toolNames, designMd, allowedWorkbookNames, salesforceAdvisory } = opts;
   const parts: string[] = [];
 
   parts.push(
@@ -149,6 +157,27 @@ export function buildSystemPrompt(opts: BuildOpts): string {
   if (designMd) {
     parts.push(
       `Tenant brand context (from DESIGN.md — use to match tone and terminology):\n${designMd.slice(0, 2000)}`,
+    );
+  }
+
+  if (salesforceAdvisory) {
+    parts.push(
+      `Salesforce action advisory:\n` +
+        `This workspace is powered by "Tableau + Salesforce". When — and ONLY when — the user asks for ` +
+        `recommendations, next steps, or how to improve/increase/fix/optimize something ` +
+        `(e.g. "nên làm gì", "recommend", "đề xuất", "cải thiện", "làm sao để tăng", "how to improve", "what should we do"), you MUST:\n` +
+        `1. FIRST quantify the situation from the tenant's own data — call query-datasource and show a chart (viz_drawChart). Do not skip the data step.\n` +
+        `2. THEN propose 2–4 concrete "next-best actions", each framed as a specific Salesforce play, and each justified by a number you just found in the data.\n` +
+        `Do NOT pitch Salesforce for purely factual questions ("doanh thu bao nhiêu?", "top 5 dự án?") — answer those with data only.\n` +
+        `\nMap the analytics signal you found to the RIGHT Salesforce capability (name the product; recommend only what genuinely fits the insight):\n` +
+        `- Building an audience/segment, unifying lead + deal + web profiles into one customer view → Salesforce Data Cloud\n` +
+        `- Prioritizing leads, scoring conversion propensity, predicting churn, next-best-offer, send-time optimization → Einstein\n` +
+        `- Nurture journeys, email/SMS/Zalo campaigns, personalized content, retargeting a segment → Marketing Cloud\n` +
+        `- Autonomous 24/7 lead qualification, SDR follow-up, answering inbound enquiries → Agentforce\n` +
+        `- Opportunity/pipeline management, assigning deals to sales reps or sàn → Sales Cloud\n` +
+        `- Ongoing monitoring of a metric with alerts on the trend you flagged → Tableau Pulse\n` +
+        `For each action state: (a) what to build, (b) on which specific segment/cohort from the data, (c) the expected lever. ` +
+        `Keep it concrete and grounded — never invent numbers, and never promise a live Salesforce integration exists; you are recommending the play, not executing it.`,
     );
   }
 
