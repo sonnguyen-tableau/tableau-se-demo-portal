@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Session } from "next-auth";
-import { canAccessTenant, slugify, tenantFromSession } from "./tenant";
+import { canAccessTenant, slugify, tenantFromSession, workspaceDisplayName } from "./tenant";
 
 function makeSession(overrides: Partial<NonNullable<Session["user"]>> = {}): Session {
   return {
@@ -30,6 +30,24 @@ describe("tenantFromSession", () => {
   it("treats tenantId='internal' as internal", () => {
     const ctx = tenantFromSession(makeSession({ tenantId: "internal" }));
     expect(ctx?.isInternal).toBe(true);
+  });
+
+  it("relabels the meygroup workspace name without changing its id", () => {
+    const ctx = tenantFromSession(makeSession({ tenantId: "meygroup", tenantName: "Mey Group" }));
+    expect(ctx?.tenantId).toBe("meygroup"); // identity + Tableau routing unchanged
+    expect(ctx?.tenantName).toBe("MEYGROUP"); // display label only
+  });
+
+  it("leaves other tenants' workspace names untouched", () => {
+    const ctx = tenantFromSession(makeSession({ tenantId: "tenant-acme", tenantName: "Acme" }));
+    expect(ctx?.tenantName).toBe("Acme");
+  });
+});
+
+describe("workspaceDisplayName", () => {
+  it("overrides meygroup and passes others through", () => {
+    expect(workspaceDisplayName("meygroup", "Mey Group")).toBe("MEYGROUP");
+    expect(workspaceDisplayName("nam-a-bank", "Nam A Bank")).toBe("Nam A Bank");
   });
 });
 
