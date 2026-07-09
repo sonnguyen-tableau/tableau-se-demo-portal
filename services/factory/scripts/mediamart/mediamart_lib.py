@@ -591,11 +591,17 @@ def emphasis_month_chart(sheet_name, title_vn, table: str, month_col: str,
 # ─── Ranking bar: horizontal bars colored by measure (sequential emphasis) ──
 def ranking_bar(sheet_name, title_vn, table: str, dim_col: str, value_calc: Calc,
                 bar_color=BRAND, label_calc: Calc = None,
-                dim_caption=None, top_n=None) -> str:
+                dim_caption=None, keep_members: list[str] = None) -> str:
     """Horizontal bars (y=dimension, x=measure) in a FLAT brand color, value
-    labels at bar ends, sorted DESC by the measure. Optional top_n filter.
+    labels at bar ends, sorted DESC by the measure.
+
     (Sequential color-by-measure does NOT bind on this extract path — see
-    emphasis_month_chart; bar length + DESC sort carry the ranking emphasis.)"""
+    emphasis_month_chart; bar length + DESC sort carry the ranking emphasis.)
+
+    NO top-N: the hand-authored top-N categorical <filter> is rejected by Cloud
+    strict-mode ("Error parsing filter"). To limit categories, pass explicit
+    `keep_members` (an inclusive enumerate filter, which DOES parse) or bake the
+    limit into the calc. DESC computed-sort puts the biggest on top regardless."""
     ds = ds_name(table)
     vref = value_calc.ref()
     lref = (label_calc.ref() if label_calc is not None else vref)
@@ -605,19 +611,12 @@ def ranking_bar(sheet_name, title_vn, table: str, dim_col: str, value_calc: Calc
     insts = [t.dim_inst(dim_col), value_calc.inst()]
     if label_calc is not None:
         deps.append(label_calc.dep_col()); insts.append(label_calc.inst())
-    filters = []
-    if top_n:
-        filters.append(
-            f"          <filter class='categorical' column='{dref}'>\n"
-            f"            <groupfilter function='end' user:op='top' user:ui-marker='top'>\n"
-            f"              <groupfilter function='order' column='{vref}' direction='DESC' />\n"
-            f"              <groupfilter function='range' from='1' to='{top_n}' />\n"
-            f"            </groupfilter>\n          </filter>")
+    filters = [categorical_filter(table, dim_col, keep_members)] if keep_members else None
     return chart(
         sheet_name, title_vn, table, deps, insts,
         rows=dref, cols=vref, mark="Bar",
         single_color=bar_color,
-        data_label=lref, filters=filters or None,
+        data_label=lref, filters=filters,
         computed_sort=(dref, vref, "DESC"), bar_size=0.78,
     )
 
@@ -626,9 +625,16 @@ def ranking_bar(sheet_name, title_vn, table: str, dim_col: str, value_calc: Calc
 ROUNDED = "<_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />"
 
 def leaf(name, minw=80, w=100000, kpi=False):
-    cache = (f"                <layout-cache cell-count-h='1' non-cell-size-h='32' type-h='cell' type-w='cell' />\n"
-             if kpi else
-             f"                <layout-cache minwidth='{minw}' type-h='scalable' type-w='scalable' />\n")
+    # kpi=True → type-h='cell' so the BAN number sizes to its natural cell and is
+    # never scaled away. A plain KPI cell takes a large natural height though, so
+    # it ignores the row weight and the card reads airy/tall. For plain (no-spark)
+    # KPI rows we instead use a scalable leaf with a modest minheight so the row's
+    # `h` weight controls the card height (the number still renders — verified).
+    if kpi:
+        cache = (f"                <layout-cache cell-count-h='1' minheight='60' non-cell-size-h='30' "
+                 f"type-h='scalable' type-w='scalable' />\n")
+    else:
+        cache = f"                <layout-cache minwidth='{minw}' type-h='scalable' type-w='scalable' />\n"
     return (f"              <zone h='100000' id='{_zid()}' name='{esc(name)}' w='{w}' x='0' y='0'>\n"
             + cache
             + f"                <zone-style>"
