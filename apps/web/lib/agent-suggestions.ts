@@ -55,6 +55,13 @@ const BY_INDUSTRY: Record<string, AgentSuggestion[]> = {
     { title: "Hiệu suất các cửa hàng theo khu vực", subtitle: "Xếp hạng theo doanh thu", emoji: "🏬" },
     { title: "Tồn kho và vòng quay hàng hóa", subtitle: "Sản phẩm bán chậm cần chú ý", emoji: "📦" },
   ],
+  // In-flight catering quality / complaint management (VACS)
+  "airline-catering": [
+    { title: "Tổng quan chất lượng & khiếu nại tháng này", subtitle: "Chỉ số khiếu nại (PPM), tồn đọng, phản hồi đúng hạn", emoji: "📊" },
+    { title: "Phân tích Pareto các loại khiếu nại", subtitle: "80/20 theo nhóm và tiểu mục khiếu nại", emoji: "🎯" },
+    { title: "Xu hướng dị vật trong suất ăn", subtitle: "Tóc, côn trùng, nhựa, kim loại, thủy tinh...", emoji: "🔬" },
+    { title: "Bảng điểm chất lượng theo hãng bay", subtitle: "Khiếu nại, SLA phản hồi, phạt hợp đồng", emoji: "✈️" },
+  ],
 };
 
 // ── Exact per-tenant sets (override the industry fallback) ────────────────────
@@ -67,6 +74,12 @@ const BY_SLUG: Record<string, AgentSuggestion[]> = {
   ],
   mediamart: BY_INDUSTRY["retail-mediamart"]!,
   vincomretail: BY_INDUSTRY["retail-mall"]!,
+  vacs: [
+    { title: "Tổng quan chất lượng & khiếu nại 2026", subtitle: "Chỉ số khiếu nại (PPM), YoY, phản hồi đúng hạn", emoji: "📊" },
+    { title: "Đâu là loại khiếu nại nhức nhối nhất?", subtitle: "Pareto 80/20 nhóm & tiểu mục khiếu nại", emoji: "🎯" },
+    { title: "Cảnh báo dị vật: kim loại & thủy tinh", subtitle: "Sự cố nguy cơ cao cần ưu tiên xử lý", emoji: "🔬" },
+    { title: "Hãng nào có chất lượng & SLA tốt/kém nhất?", subtitle: "Bảng điểm khiếu nại, phản hồi, phạt hợp đồng", emoji: "✈️" },
+  ],
   "nam-a-bank": [
     { title: "Tóm tắt kết quả kinh doanh 2025", subtitle: "Huy động, cho vay và lợi nhuận", emoji: "📊" },
     { title: "Chất lượng tín dụng: NPL, LDR, CASA", subtitle: "Nợ xấu 2.26% · LDR 70.9% · CASA 14.27%", emoji: "💳" },

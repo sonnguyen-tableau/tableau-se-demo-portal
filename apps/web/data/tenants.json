@@ -1,26 +1,5 @@
 [
   {
-    "id": "vincomretail",
-    "slug": "vincomretail",
-    "name": "Vincom Retail",
-    "industry": "retail-mall",
-    "sourceUrl": "https://vincom.com.vn/",
-    "createdAt": "2026-06-12T00:00:00.000Z",
-    "status": "active",
-    "allowedProjects": ["Demo/Vincom Retail"],
-    "isDefault": false
-  },
-  {
-    "id": "salesforce-bank",
-    "slug": "salesforce-bank",
-    "name": "Salesforce Bank",
-    "industry": "retail-banking",
-    "createdAt": "2026-06-01T00:00:00.000Z",
-    "status": "active",
-    "allowedProjects": ["Demo/Salesforce Bank"],
-    "isDefault": true
-  },
-  {
     "id": "mediamart",
     "slug": "mediamart",
     "name": "MediaMart",
@@ -28,18 +7,10 @@
     "sourceUrl": "https://mediamart.vn/",
     "createdAt": "2026-06-30T00:00:00.000Z",
     "status": "active",
-    "allowedProjects": ["Demo/MediaMart", "MediaMart"],
-    "isDefault": false
-  },
-  {
-    "id": "nam-a-bank",
-    "slug": "nam-a-bank",
-    "name": "Nam A Bank",
-    "industry": "retail-banking",
-    "sourceUrl": "https://www.namabank.com.vn/",
-    "createdAt": "2026-07-01T00:00:00.000Z",
-    "status": "active",
-    "allowedProjects": ["Demo/Nam A Bank"],
+    "allowedProjects": [
+      "Demo/MediaMart",
+      "MediaMart"
+    ],
     "isDefault": false
   },
   {
@@ -50,7 +21,60 @@
     "sourceUrl": "https://meygroup.vn/",
     "createdAt": "2026-07-03T00:00:00.000Z",
     "status": "active",
-    "allowedProjects": ["Demo/Mey Group"],
+    "allowedProjects": [
+      "Demo/Mey Group"
+    ],
+    "isDefault": false
+  },
+  {
+    "id": "nam-a-bank",
+    "slug": "nam-a-bank",
+    "name": "Nam A Bank",
+    "industry": "retail-banking",
+    "sourceUrl": "https://www.namabank.com.vn/",
+    "createdAt": "2026-07-01T00:00:00.000Z",
+    "status": "active",
+    "allowedProjects": [
+      "Demo/Nam A Bank"
+    ],
+    "isDefault": false
+  },
+  {
+    "id": "salesforce-bank",
+    "slug": "salesforce-bank",
+    "name": "Salesforce Bank",
+    "industry": "retail-banking",
+    "createdAt": "2026-06-01T00:00:00.000Z",
+    "status": "active",
+    "allowedProjects": [
+      "Demo/Salesforce Bank"
+    ],
+    "isDefault": true
+  },
+  {
+    "id": "vacs",
+    "slug": "vacs",
+    "name": "VACS",
+    "industry": "airline-catering",
+    "sourceUrl": "https://vnaircaterers.com/",
+    "createdAt": "2026-07-09T00:00:00.000Z",
+    "status": "active",
+    "allowedProjects": [
+      "Demo/VACS"
+    ],
+    "isDefault": false
+  },
+  {
+    "id": "vincomretail",
+    "slug": "vincomretail",
+    "name": "Vincom Retail",
+    "industry": "retail-mall",
+    "sourceUrl": "https://vincom.com.vn/",
+    "createdAt": "2026-06-12T00:00:00.000Z",
+    "status": "active",
+    "allowedProjects": [
+      "Demo/Vincom Retail"
+    ],
     "isDefault": false
   }
 ]

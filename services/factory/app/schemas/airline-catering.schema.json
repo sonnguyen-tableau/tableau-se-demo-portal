@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "airline-catering.schema.json",
+  "title": "Airline Catering QA (VACS) data contract",
+  "description": "Field-name contract for the VACS (Vietnam Airlines Caterers) in-flight catering complaint / compliment / SLA quality demo. Generator emits matching columns; workbook templates reference only fields listed here.",
+  "type": "object",
+  "required": [
+    "Airlines",
+    "Routes",
+    "Complaints",
+    "Compliments",
+    "SLARecords",
+    "MealVolume",
+    "MonthlySummary"
+  ],
+  "properties": {
+    "Airlines": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "AirlineId", "AirlineName", "AirlineCode", "Region",
+              "Country", "ContractTier", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Routes": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "RouteId", "Route", "OriginAirport", "DestAirport",
+              "DestCity", "DestCountry", "HaulType", "DestLat", "DestLon",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Complaints": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ComplaintId", "DepMonth", "Year", "AirlineName", "AirlineCode",
+              "Flight", "Route", "OriginAirport", "DestAirport", "DepDate",
+              "ReceivedDate", "RepliedDate", "ReplyDays", "SLATargetDays",
+              "WithinSLA", "Category", "SubCategory", "RootCauseGroup",
+              "ForeignObjectType", "FlightDelayFlag", "Severity", "Status",
+              "CorrectiveAction", "Summary", "Remark", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Compliments": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ComplimentId", "DepMonth", "Year", "AirlineName", "AirlineCode",
+              "Flight", "Route", "DepDate", "StaffInHonour", "Department",
+              "Summary", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "SLARecords": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "SLAId", "DepMonth", "Year", "AirlineName", "AirlineCode",
+              "Flight", "Route", "DepDate", "BreachType", "DelayMinutes",
+              "PenaltyUsd", "PenaltyVnd", "Status", "Summary", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "MealVolume": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "VolumeId", "Date", "DepMonth", "Year", "AirlineName",
+              "AirlineCode", "OriginAirport", "MealUnits", "Flights", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "MonthlySummary": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "SummaryId", "Month", "Year", "MonthNum", "AirlineName",
+              "AirlineCode", "Meals", "Flights", "Complaints", "FOComplaints",
+              "Compliments", "Penalties", "PenaltyUsd", "PenaltyVnd",
+              "OnTimeReplies", "RepliedTotal", "ComplaintIndexPpm",
+              "PriorYearMeals", "PriorYearComplaints", "TenantId"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

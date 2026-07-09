@@ -8,6 +8,7 @@ from .mediamart import generate_mediamart
 from .meygroup import generate_meygroup
 from .nam_a_bank import generate_nam_a_bank
 from .retail import generate_retail
+from .vacs import generate_vacs
 from .vincommerce import generate_vincommerce
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "generate_meygroup",
     "generate_nam_a_bank",
     "generate_retail",
+    "generate_vacs",
     "generate_vincommerce",
 ]

@@ -58,6 +58,15 @@ const TENANTS = [
     allowedProjects: ["Demo/Mey Group"],
     isDefault: false,
   },
+  {
+    slug: "vacs",
+    name: "VACS",
+    industry: "airline-catering",
+    sourceUrl: "https://vnaircaterers.com/",
+    status: "active" as const,
+    allowedProjects: ["Demo/VACS"],
+    isDefault: false,
+  },
 ];
 
 const THEMES = [
@@ -116,6 +125,18 @@ const THEMES = [
     fontFamily: "Inter",
     tone: "professional" as const,
     logoUrl: "/tenants/meygroup-logo.png",
+    logoLayout: "wordmark" as const,
+  },
+  {
+    tenantId: "vacs",
+    companyName: "Vietnam Airlines Caterers",
+    primaryColor: "#006D99",
+    secondaryColor: "#D09A2D",
+    neutralColor: "#00405A",
+    sidebarTextColor: "#ffffff",
+    fontFamily: "Inter",
+    tone: "professional" as const,
+    logoUrl: "/tenants/vacs-logo.png",
     logoLayout: "wordmark" as const,
   },
 ];
