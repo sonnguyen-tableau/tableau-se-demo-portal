@@ -352,6 +352,76 @@ def kpi_card_delta(sheet_name: str, calc: Calc, title_vn: str,
     </worksheet>"""
 
 
+# ─── Sparkline worksheet (§10 — 6-month mini-trend Line) ────────────────────
+def sparkline(sheet_name: str, table: str, month_col: str, trend_calc: Calc,
+              color: str = BRAND) -> str:
+    """Minimalist Line: a monthly-trended version of a KPI, everything hidden.
+    cols = MONTH(month_col) continuous, rows = the trend calc. Goes UNDER a BAN
+    number in one card. `trend_calc` must be the per-month recomputing form of
+    the headline KPI (e.g. SUM([Complaints])/SUM([Meals])*1e6 → monthly index)."""
+    ds = ds_name(table)
+    mref = f"[{ds}].[tmn:{esc(month_col)}:qk]"
+    vref = trend_calc.ref()
+    month_dep = (f"            <column aggregation='Year' datatype='datetime' default-type='ordinal' "
+                 f"layered='true' name='[{esc(month_col)}]' pivot='key' role='dimension' type='ordinal' "
+                 f"user-datatype='datetime' visual-totals='Default' />")
+    month_inst = (f"            <column-instance column='[{esc(month_col)}]' derivation='Month-Trunc' "
+                  f"name='[tmn:{esc(month_col)}:qk]' pivot='key' type='quantitative' />")
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='{table}' name='{ds}' />
+          </datasources>
+          <datasource-dependencies datasource='{ds}'>
+{month_dep}
+{trend_calc.dep_col()}
+{month_inst}
+{trend_calc.inst()}
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='axis'>
+            <format attr='display' value='false' />
+            <format attr='tick-color' value='#00000000' />
+            <format attr='rule-color' value='#00000000' />
+          </style-rule>
+          <style-rule element='pane'>
+            <format attr='grid-line-show' value='false' />
+            <format attr='zero-line-show' value='false' />
+          </style-rule>
+          <style-rule element='gridline'>
+            <format attr='line-visibility' scope='cols' value='off' />
+            <format attr='line-visibility' scope='rows' value='off' />
+          </style-rule>
+          <style-rule element='zeroline'>
+            <format attr='line-visibility' value='off' />
+          </style-rule>
+          <style-rule element='worksheet'>
+            <format attr='display-field-labels' scope='cols' value='false' />
+            <format attr='display-field-labels' scope='rows' value='false' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Line' />
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-color' value='{color}' />
+                <format attr='size' value='1.4' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>{vref}</rows>
+        <cols>{mref}</cols>
+      </table>
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
 # ─── Generic chart ──────────────────────────────────────────────────────────
 def chart(sheet_name, title_vn, table: str, deps, insts, rows, cols, mark="Bar",
           encodings=None, filters=None, color_palette=None, single_color=None,
@@ -442,6 +512,89 @@ def categorical_filter(table: str, col: str, keep_members: list[str]) -> str:
             f"            </groupfilter>\n          </filter>")
 
 
+# ─── §11 Emphasis monthly chart: max column darkest + value labels ──────────
+def emphasis_month_chart(sheet_name, title_vn, table: str, month_col: str,
+                         value_calc: Calc, label_calc: Calc = None,
+                         color_palette="VACS Sequential Blue",
+                         hide_axis=True) -> str:
+    """Monthly bar where the MAX month is the DARKEST (color = the measure via a
+    sequential palette — the Superstore emphasis move; the max value maps to the
+    darkest palette stop). §11. `value_calc` drives bar length + color; the value
+    is shown as a mark label (via `label_calc` if given, else `value_calc`
+    itself). The raw-measure axis is hidden so only the labelled bars show.
+
+    NOTE: the gold per-cell <reference-line> target tick (Mey sqlproxy path) does
+    NOT render on this federated-extract Cloud path — dropped in favour of value
+    labels + the target stated in the title. Emphasis coloring is the wow move.
+    """
+    ds = ds_name(table)
+    vref = value_calc.ref()
+    lref = (label_calc.ref() if label_calc is not None else vref)
+    mref = f"[{ds}].[mn:{esc(month_col)}:ok]"
+    month_dep = (f"            <column aggregation='Year' datatype='datetime' default-type='ordinal' "
+                 f"layered='true' name='[{esc(month_col)}]' pivot='key' role='dimension' type='ordinal' "
+                 f"user-datatype='datetime' visual-totals='Default' />")
+    month_inst = f"            <column-instance column='[{esc(month_col)}]' derivation='Month' name='[mn:{esc(month_col)}:ok]' pivot='key' type='ordinal' />"
+    deps = [month_dep, value_calc.dep_col()]
+    insts = [month_inst, value_calc.inst()]
+    if label_calc is not None:
+        deps.append(label_calc.dep_col()); insts.append(label_calc.inst())
+    deps_x = "\n".join(deps)
+    insts_x = "\n".join(insts)
+    axis_hide = (f"            <format attr='display' class='0' field='{vref}' scope='rows' value='false' />\n"
+                 if hide_axis else "")
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <layout-options>
+        <title><formatted-text><run fontname='Tableau Bold' fontsize='13' bold='true' fontcolor='{NAVY}'>{esc(title_vn)}</run></formatted-text></title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='{table}' name='{ds}' />
+          </datasources>
+          <datasource-dependencies datasource='{ds}'>
+{deps_x}
+{insts_x}
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='pane'>
+            <format attr='grid-line-show' value='false' />
+            <format attr='zero-line-show' value='false' />
+          </style-rule>
+          <style-rule element='axis'>
+{axis_hide}            <format attr='rule-color' value='#C3CDD8' />
+            <format attr='tick-color' value='#E3E9EF' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Bar' />
+            <encodings>
+              <color column='{vref}' palette='{color_palette}' type='palette' />
+              <text column='{lref}' />
+            </encodings>
+            <customized-label><formatted-text>
+              <run bold='true' fontalignment='1' fontcolor='{NAVY}' fontsize='10'>&lt;{lref}&gt;</run>
+            </formatted-text></customized-label>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-bar-size' value='0.66' />
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>{vref}</rows>
+        <cols>{mref}</cols>
+      </table>
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
 # ─── Dashboard layout-flow ──────────────────────────────────────────────────
 ROUNDED = "<_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />"
 
@@ -491,6 +644,51 @@ def header_band(title_vn: str, subtitle_vn: str, h: int = 4600) -> str:
 
 def hrow(names, h, minw=80, kpi=False):
     body = "\n".join(leaf(n, minw, kpi=kpi) for n in names)
+    return (f"          <zone h='{h}' id='{_zid()}' param='horz' type-v2='layout-flow' w='100000' x='0' y='0'>\n{body}\n          </zone>")
+
+
+def _bare_leaf(name, show_title=True):
+    """A leaf zone with NO card chrome (border/bg) — used inside a composite
+    spark-KPI card so the outer vert zone owns the single rounded frame."""
+    st = "" if show_title else "show-title='false' "
+    return (f"                <zone h='100000' id='{_zid()}' {st}name='{esc(name)}' w='100000' x='0' y='0'>\n"
+            f"                  <layout-cache minwidth='40' type-h='scalable' type-w='scalable' />\n"
+            f"                  <zone-style><format attr='border-style' value='none' /><format attr='border-width' value='0' />"
+            f"<format attr='margin' value='0' /><format attr='padding' value='2' /></zone-style>\n"
+            f"                </zone>")
+
+
+def _spark_kpi_card(number_sheet: str, spark_sheet: str, w=100000):
+    """One composite card = OUTER rounded vert zone containing [number leaf
+    (fixed cell height) over spark leaf (scalable fill)]. The number leaf uses
+    type-h='cell' (BAN renders on the extract path); the spark fills the rest.
+    show-title='false' on the spark hides the worksheet-name overlay."""
+    number_leaf = (
+        f"                <zone h='42000' id='{_zid()}' name='{esc(number_sheet)}' w='100000' x='0' y='0'>\n"
+        f"                  <layout-cache cell-count-h='1' non-cell-size-h='30' type-h='cell' type-w='cell' />\n"
+        f"                  <zone-style><format attr='border-style' value='none' /><format attr='border-width' value='0' />"
+        f"<format attr='margin' value='0' /><format attr='padding' value='2' /></zone-style>\n"
+        f"                </zone>")
+    spark_leaf = (
+        f"                <zone h='58000' id='{_zid()}' name='{esc(spark_sheet)}' show-title='false' w='100000' x='0' y='0'>\n"
+        f"                  <layout-cache minheight='40' minwidth='40' type-h='scalable' type-w='scalable' />\n"
+        f"                  <zone-style><format attr='border-style' value='none' /><format attr='border-width' value='0' />"
+        f"<format attr='margin' value='0' /><format attr='padding' value='2' /></zone-style>\n"
+        f"                </zone>")
+    return (
+        f"              <zone h='100000' id='{_zid()}' param='vert' type-v2='layout-flow' w='{w}' x='0' y='0'>\n"
+        f"{number_leaf}\n{spark_leaf}\n"
+        f"                <zone-style>"
+        f"<format attr='border-color' value='{BORDER}' /><format attr='border-style' value='solid' />"
+        f"<format attr='border-width' value='1' />{ROUNDED}"
+        f"<format attr='margin' value='9' /><format attr='padding' value='8' />"
+        f"<format attr='background-color' value='{BG_CARD}' /></zone-style>\n"
+        f"              </zone>")
+
+
+def spark_hrow(pairs, h):
+    """Row of composite spark-KPI cards. `pairs` = [(number_sheet, spark_sheet), ...]."""
+    body = "\n".join(_spark_kpi_card(n, s) for n, s in pairs)
     return (f"          <zone h='{h}' id='{_zid()}' param='horz' type-v2='layout-flow' w='100000' x='0' y='0'>\n{body}\n          </zone>")
 
 def dashboard(name, rows_xml, width=1560, height=1180):
