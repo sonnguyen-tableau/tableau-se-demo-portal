@@ -179,6 +179,7 @@ export default async function SignInPage({ searchParams }: PageProps) {
                   { email: "namabank@demo.com", role: "Nam A Bank" },
                   { email: "meygroup@demo.com", role: "Mey Group" },
                   { email: "vacs@demo.com", role: "VACS" },
+                  { email: "shb@demo.com", role: "SHB" },
                 ].map((u) => (
                   <div key={u.email} className="flex items-center justify-between gap-2">
                     <span className="font-mono text-caption text-sf-neutral-6">{u.email}</span>

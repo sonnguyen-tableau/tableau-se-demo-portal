@@ -67,6 +67,15 @@ const TENANTS = [
     allowedProjects: ["Demo/VACS"],
     isDefault: false,
   },
+  {
+    slug: "shb",
+    name: "SHB",
+    industry: "sme-corporate-banking",
+    sourceUrl: "https://www.shb.com.vn/",
+    status: "active" as const,
+    allowedProjects: ["Demo/SHB"],
+    isDefault: false,
+  },
 ];
 
 const THEMES = [
@@ -137,6 +146,18 @@ const THEMES = [
     fontFamily: "Inter",
     tone: "professional" as const,
     logoUrl: "/tenants/vacs-logo.png",
+    logoLayout: "wordmark" as const,
+  },
+  {
+    tenantId: "shb",
+    companyName: "Ngân hàng SHB",
+    primaryColor: "#F58220",
+    secondaryColor: "#2E3192",
+    neutralColor: "#2E3192",
+    sidebarTextColor: "#ffffff",
+    fontFamily: "Inter",
+    tone: "professional" as const,
+    logoUrl: "/tenants/shb-logo.png",
     logoLayout: "wordmark" as const,
   },
 ];

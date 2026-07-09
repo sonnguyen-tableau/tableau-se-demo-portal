@@ -1,0 +1,793 @@
+"""VACS workbook builder library — self-contained .twbx with per-table datasources.
+
+BREAKTHROUGH (probed 2026-07-09): a self-contained extract-workbook (federated
+→ hyper named-connection, .hyper packaged inside the .twbx) RENDERS on this
+Tableau Cloud with `skip_connection_check=True` — no fragile sqlproxy seed block
+required.
+
+ARCHITECTURE: one `<datasource>` PER TABLE (each a single-relation federated
+hyper connection to the SAME packaged vacs.hyper). Every VACS worksheet is
+single-table, so each sheet points at its table's datasource — no cross-table
+join/relationship is ever needed at render time, and every field name is BARE
+(no `[Field (Table)]` qualification, because each datasource is isolated).
+  → A single datasource that lists many unjoined sibling <relation>s is INVALID
+    federated XML and renders BLANK (learned the hard way on D1 v1).
+
+The published `Demo/VACS` datasource still serves the MCP AI agent; these
+embedded workbooks power the portal dashboards.
+
+Design system (VACS brand): blue #006D99, deep #00405A, gold #D09A2D.
+100% Vietnamese labels.
+"""
+from __future__ import annotations
+
+import uuid
+import zipfile
+from pathlib import Path
+
+CONN_PREFIX = "hyperconn"
+HYPER = Path("/tmp/shb/shb.hyper")
+
+_ZID = [3000]
+def _zid() -> int:
+    _ZID[0] += 1
+    return _ZID[0]
+
+def reset_zids():
+    _ZID[0] = 3000
+
+def U() -> str:
+    return "{" + str(uuid.uuid4()).upper() + "}"
+
+def esc(s: str) -> str:
+    return (s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;'))
+
+
+# ─── Design tokens (SHB brand: orange #F58220, indigo #2E3192) ──────────────
+BG_PAGE = "#F3F6F8"
+BG_CARD = "#FFFFFF"
+BORDER  = "#E1E5EF"
+NAVY    = "#2E3192"   # SHB indigo — header band, titles, deep sequential end
+BRAND   = "#F58220"   # SHB orange — KPI accents, primary highlight
+GOLD    = "#F58220"   # alias (some helpers use GOLD for the emphasis/accent)
+CYAN    = "#5C60C9"    # lighter indigo accent
+BODY    = "#5A6B7B"
+GOOD    = "#1E9E6A"
+WARN    = "#E8A317"
+BAD     = "#D64545"
+
+
+# ─── Schema: table → [(col, datatype, role)] (SHB SME corporate banking) ────
+_SCHEMA: dict[str, list[tuple[str, str, str]]] = {
+    "IndustrySummary": [
+        ("IndustryId", "integer", "dimension"), ("Industry", "string", "dimension"),
+        ("IndustryGroup", "string", "dimension"), ("RiskTier", "string", "dimension"),
+        ("TradeIntensity", "string", "dimension"), ("ClientCount", "integer", "measure"),
+        ("OutstandingVnd", "integer", "measure"), ("DepositsVnd", "integer", "measure"),
+        ("CasaVnd", "integer", "measure"), ("NplVnd", "integer", "measure"),
+        ("NplPct", "real", "measure"), ("CasaPct", "real", "measure"),
+        ("GrowthYoYPct", "real", "measure"), ("ProductsPerClient", "real", "measure"),
+        ("LimitGrantedVnd", "integer", "measure"), ("LimitUtilPct", "real", "measure"),
+        ("TradeFinanceVnd", "integer", "measure"), ("NiiVnd", "integer", "measure"),
+        ("FeeIncomeVnd", "integer", "measure"), ("RevenuePerClientVnd", "integer", "measure"),
+        ("NewToBank", "integer", "measure"), ("TenantId", "string", "dimension"),
+    ],
+    "SmeClients": [
+        ("ClientId", "string", "dimension"), ("ClientName", "string", "dimension"),
+        ("Industry", "string", "dimension"), ("IndustryGroup", "string", "dimension"),
+        ("Region", "string", "dimension"), ("Segment", "string", "dimension"),
+        ("OutstandingVnd", "integer", "measure"), ("LimitGrantedVnd", "integer", "measure"),
+        ("LimitUtilPct", "real", "measure"), ("DepositsVnd", "integer", "measure"),
+        ("CasaPct", "real", "measure"), ("ProductCount", "integer", "measure"),
+        ("Products", "string", "dimension"), ("TradeFinanceVnd", "integer", "measure"),
+        ("DebtGroup", "string", "dimension"), ("RiskTier", "string", "dimension"),
+        ("NewToBank", "integer", "measure"), ("RelationshipYears", "integer", "measure"),
+        ("TenantId", "string", "dimension"),
+    ],
+}
+
+_DT_ATTR = {
+    "string": ("string", "nominal", "nominal"),
+    "integer": ("integer", "ordinal", "ordinal"),
+    "integer_m": ("integer", "quantitative", "quantitative"),
+    "real": ("real", "quantitative", "quantitative"),
+    "datetime": ("datetime", "ordinal", "ordinal"),
+}
+
+
+def ds_name(table: str) -> str:
+    return f"federated.{table.lower()}"
+
+
+def _col_def(col: str, dt: str, role: str) -> str:
+    if role == "measure":
+        key = "real" if dt == "real" else "integer_m"
+        agg = "Sum"
+    else:
+        key = dt
+        agg = "Year" if dt == "datetime" else "Count"
+    datatype, deftype, typ = _DT_ATTR[key]
+    return (f"    <column aggregation='{agg}' caption='{esc(col)}' datatype='{datatype}' "
+            f"default-type='{deftype}' name='[{esc(col)}]' pivot='key' role='{role}' "
+            f"type='{typ}' user-datatype='{datatype}' visual-totals='Default' />")
+
+
+# ─── Table accessor ─────────────────────────────────────────────────────────
+class Table:
+    """Bare-field-name accessor scoped to one table's isolated datasource."""
+    def __init__(self, name: str):
+        self.name = name
+        self.ds = ds_name(name)
+        self._roles = {c: (dt, role) for c, dt, role in _SCHEMA[name]}
+
+    # raw dependency <column> for a worksheet's datasource-dependencies
+    def dep(self, col: str, agg=None, caption=None) -> str:
+        dt, role = self._roles[col]
+        if role == "measure":
+            a = agg or "Sum"
+            datatype = "real" if dt == "real" else "integer"
+            return (f"            <column aggregation='{a}' datatype='{datatype}' default-type='quantitative' "
+                    f"layered='true' name='[{esc(col)}]' pivot='key' role='measure' type='quantitative' "
+                    f"user-datatype='{datatype}' visual-totals='Default' />")
+        # dimension
+        if dt == "datetime":
+            return (f"            <column aggregation='Year' datatype='datetime' default-type='ordinal' "
+                    f"layered='true' name='[{esc(col)}]' pivot='key' role='dimension' type='ordinal' "
+                    f"user-datatype='datetime' visual-totals='Default' />")
+        datatype = "integer" if dt == "integer" else "string"
+        deftype = "ordinal" if dt == "integer" else "nominal"
+        typ = "ordinal" if dt == "integer" else "nominal"
+        cap = f" caption='{esc(caption)}'" if caption else ""
+        return (f"            <column aggregation='Count'{cap} datatype='{datatype}' default-type='{deftype}' "
+                f"layered='true' name='[{esc(col)}]' pivot='key' role='dimension' type='{typ}' "
+                f"user-datatype='{datatype}' visual-totals='Default' />")
+
+    def dim_inst(self, col: str) -> str:
+        return f"            <column-instance column='[{esc(col)}]' derivation='None' name='[none:{esc(col)}:nk]' pivot='key' type='nominal' />"
+
+    def month_inst(self, col: str) -> str:
+        return f"            <column-instance column='[{esc(col)}]' derivation='Month' name='[mn:{esc(col)}:ok]' pivot='key' type='ordinal' />"
+
+    def agg_inst(self, col: str, agg="Sum") -> str:
+        return f"            <column-instance column='[{esc(col)}]' derivation='{agg}' name='[{agg.lower()[:3]}:{esc(col)}:qk]' pivot='key' type='quantitative' />"
+
+    def dim(self, col: str) -> str:  # ref
+        return f"[{self.ds}].[none:{esc(col)}:nk]"
+
+    def month(self, col: str) -> str:
+        return f"[{self.ds}].[mn:{esc(col)}:ok]"
+
+    def measure(self, col: str, agg="sum") -> str:
+        return f"[{self.ds}].[{agg[:3]}:{esc(col)}:qk]"
+
+
+# ─── Calc field (bound to a table's datasource) ─────────────────────────────
+class Calc:
+    def __init__(self, table: str, cid, caption, dt, role, ct, formula, fmt=None):
+        self.table = table
+        self.ds = ds_name(table)
+        self.cid = f"Calculation_{cid}"
+        self.caption = caption
+        self.dt = dt
+        self.role = role
+        self.ct = ct
+        self.formula = formula
+        self.fmt = fmt
+
+    def full_col(self) -> str:
+        fs = f" default-format='{esc(self.fmt)}'" if self.fmt else ""
+        return (f"    <column caption='{esc(self.caption)}' datatype='{self.dt}'{fs} "
+                f"name='[{self.cid}]' role='{self.role}' type='{self.ct}'>\n"
+                f"      <calculation class='tableau' formula='{esc(self.formula)}' />\n"
+                f"    </column>")
+
+    def dep_col(self) -> str:
+        fs = f" default-format='{esc(self.fmt)}'" if self.fmt else ""
+        return (f"            <column caption='{esc(self.caption)}' datatype='{self.dt}'{fs} "
+                f"name='[{self.cid}]' role='{self.role}' type='{self.ct}' />")
+
+    def inst(self, kind=None) -> str:
+        k = kind or ("qk" if self.ct == "quantitative" else "nk")
+        typ = "quantitative" if k == "qk" else "nominal"
+        return (f"            <column-instance column='[{self.cid}]' derivation='User' "
+                f"name='[usr:{self.cid}:{k}]' pivot='key' type='{typ}' />")
+
+    def ref(self, kind=None) -> str:
+        k = kind or ("qk" if self.ct == "quantitative" else "nk")
+        return f"[{self.ds}].[usr:{self.cid}:{k}]"
+
+
+# ─── Datasource block (single table, single relation) ───────────────────────
+def datasource_block(table: str, calcs: list[Calc]) -> str:
+    conn = f"{CONN_PREFIX}_{table.lower()}"
+    cols_map = "\n".join(
+        f"        <map key='[{esc(c)}]' value='[{table}].[{esc(c)}]' />"
+        for c, _dt, _role in _SCHEMA[table])
+    col_defs = "\n".join(_col_def(c, dt, role) for c, dt, role in _SCHEMA[table])
+    calc_defs = ("\n" + "\n".join(c.full_col() for c in calcs)) if calcs else ""
+    return f"""  <datasource caption='{table}' inline='true' name='{ds_name(table)}' version='18.1'>
+    <connection class='federated'>
+      <named-connections>
+        <named-connection caption='{table}' name='{conn}'>
+          <connection class='hyper' authentication='auth-none' dbname='Data/Datasources/shb.hyper' schema='Extract' server='' default-settings='yes' />
+        </named-connection>
+      </named-connections>
+      <relation connection='{conn}' name='{table}' table='[Extract].[{table}]' type='table' />
+      <cols>
+{cols_map}
+      </cols>
+    </connection>
+    <aliases enabled='yes' />
+{col_defs}{calc_defs}
+  </datasource>"""
+
+
+# ─── KPI card (BAN) ─────────────────────────────────────────────────────────
+# CRITICAL (learned on VACS): a text-only `Automatic` mark with EMPTY rows/cols
+# renders fine STANDALONE but blanks out inside a dashboard cell when the
+# datasource is a federated .hyper extract (mey's sqlproxy datasource tolerated
+# empty rows/cols; the extract path does not). FIX: put the measure on <rows>
+# with mark class='Text' → guarantees a mark in the dashboard cell. The row
+# axis is hidden so only the big number shows. Gridlines/zero-line hidden too.
+def _kpi_body(calc: Calc, label_run: str, value_run: str) -> str:
+    field = calc.ref()
+    return f"""      <table>
+        <view>
+          <datasources>
+            <datasource caption='{calc.table}' name='{calc.ds}' />
+          </datasources>
+          <datasource-dependencies datasource='{calc.ds}'>
+{calc.dep_col()}
+{calc.inst()}
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='axis'>
+            <format attr='display' class='0' field='{field}' scope='rows' value='false' />
+          </style-rule>
+          <style-rule element='pane'>
+            <format attr='grid-line-show' value='false' />
+            <format attr='zero-line-show' value='false' />
+          </style-rule>
+          <style-rule element='gridline'>
+            <format attr='line-visibility' scope='rows' value='off' />
+            <format attr='line-visibility' scope='cols' value='off' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Text' />
+            <encodings><text column='{field}' /></encodings>
+            <customized-label>
+              <formatted-text>
+{value_run}
+              </formatted-text>
+            </customized-label>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>{field}</rows><cols />
+      </table>"""
+
+
+def kpi_card(sheet_name: str, calc: Calc, title_vn: str, value_color=NAVY, size=22) -> str:
+    field = calc.ref()
+    label = esc(title_vn.upper())
+    value_run = (f"                <run bold='true' fontalignment='1' fontcolor='{value_color}' "
+                 f"fontsize='{size}'><![CDATA[<{field}>]]></run>")
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <layout-options>
+        <title><formatted-text><run fontsize='9' bold='true' fontcolor='#5A6B7B'>{label}</run></formatted-text></title>
+      </layout-options>
+{_kpi_body(calc, label, value_run)}
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
+def kpi_card_delta(sheet_name: str, calc: Calc, title_vn: str,
+                   delta_text: str, delta_color: str, sub_text: str, size=22,
+                   value_color=NAVY) -> str:
+    field = calc.ref()
+    label = esc(title_vn.upper())
+    value_run = (
+        f"                <run bold='true' fontalignment='1' fontcolor='{value_color}' fontsize='{size}'><![CDATA[<{field}>]]></run>\n"
+        f"                <run fontalignment='1'>&#10;</run>\n"
+        f"                <run fontalignment='1' fontsize='10' bold='true' fontcolor='{delta_color}'>{esc(delta_text)}</run>\n"
+        f"                <run fontalignment='1' fontsize='10' fontcolor='#8A97A6'>  {esc(sub_text)}</run>")
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <layout-options>
+        <title><formatted-text><run fontsize='9' bold='true' fontcolor='#5A6B7B'>{label}</run></formatted-text></title>
+      </layout-options>
+{_kpi_body(calc, label, value_run)}
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
+# ─── Sparkline worksheet (§10 — 6-month mini-trend Line) ────────────────────
+def sparkline(sheet_name: str, table: str, month_col: str, trend_calc: Calc,
+              color: str = BRAND) -> str:
+    """Minimalist Line: a monthly-trended version of a KPI, everything hidden.
+    cols = MONTH(month_col) continuous, rows = the trend calc. Goes UNDER a BAN
+    number in one card. `trend_calc` must be the per-month recomputing form of
+    the headline KPI (e.g. SUM([Complaints])/SUM([Meals])*1e6 → monthly index)."""
+    ds = ds_name(table)
+    mref = f"[{ds}].[tmn:{esc(month_col)}:qk]"
+    vref = trend_calc.ref()
+    month_dep = (f"            <column aggregation='Year' datatype='datetime' default-type='ordinal' "
+                 f"layered='true' name='[{esc(month_col)}]' pivot='key' role='dimension' type='ordinal' "
+                 f"user-datatype='datetime' visual-totals='Default' />")
+    month_inst = (f"            <column-instance column='[{esc(month_col)}]' derivation='Month-Trunc' "
+                  f"name='[tmn:{esc(month_col)}:qk]' pivot='key' type='quantitative' />")
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='{table}' name='{ds}' />
+          </datasources>
+          <datasource-dependencies datasource='{ds}'>
+{month_dep}
+{trend_calc.dep_col()}
+{month_inst}
+{trend_calc.inst()}
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='axis'>
+            <format attr='display' value='false' />
+            <format attr='tick-color' value='#00000000' />
+            <format attr='rule-color' value='#00000000' />
+          </style-rule>
+          <style-rule element='pane'>
+            <format attr='grid-line-show' value='false' />
+            <format attr='zero-line-show' value='false' />
+          </style-rule>
+          <style-rule element='gridline'>
+            <format attr='line-visibility' scope='cols' value='off' />
+            <format attr='line-visibility' scope='rows' value='off' />
+          </style-rule>
+          <style-rule element='zeroline'>
+            <format attr='line-visibility' value='off' />
+          </style-rule>
+          <style-rule element='worksheet'>
+            <format attr='display-field-labels' scope='cols' value='false' />
+            <format attr='display-field-labels' scope='rows' value='false' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Line' />
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-color' value='{color}' />
+                <format attr='size' value='1.4' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>{vref}</rows>
+        <cols>{mref}</cols>
+      </table>
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
+# ─── Generic chart ──────────────────────────────────────────────────────────
+def chart(sheet_name, title_vn, table: str, deps, insts, rows, cols, mark="Bar",
+          encodings=None, filters=None, color_palette=None, single_color=None,
+          data_label=None, computed_sort=None) -> str:
+    ds = ds_name(table)
+    enc_list = list(encodings) if encodings else []
+    if data_label:
+        enc_list.append(("text", data_label))
+    enc = ""
+    if enc_list:
+        enc = "            <encodings>\n" + "".join(
+            f"              <{k} column='{c}' />\n" for k, c in enc_list) + "            </encodings>\n"
+    db = "\n".join(deps)
+    ib = "\n".join(insts)
+    filt_xml = ("\n" + "\n".join(filters)) if filters else ""
+    csort = (f"          <computed-sort column='{computed_sort[0]}' direction='{computed_sort[2]}' using='{computed_sort[1]}' />\n"
+             if computed_sort else "")
+
+    ws_style = (
+        "        <style>\n"
+        "          <style-rule element='pane'>\n"
+        "            <format attr='grid-line-show' value='false' />\n"
+        "            <format attr='zero-line-show' value='false' />\n"
+        "          </style-rule>\n"
+        "          <style-rule element='axis'>\n"
+        "            <format attr='rule-color' value='#C3CDD8' />\n"
+        "            <format attr='tick-color' value='#E3E9EF' />\n"
+        "          </style-rule>\n"
+        "        </style>"
+    )
+    pane_rules = []
+    if mark == "Bar":
+        pane_rules.append("                <format attr='mark-bar-size' value='0.72' />")
+    if single_color:
+        pane_rules.append(f"                <format attr='mark-color' value='{single_color}' />")
+    if data_label:
+        pane_rules.append("                <format attr='mark-labels-show' value='true' />")
+        pane_rules.append("                <format attr='mark-labels-cull' value='true' />")
+    pane_style = (("            <style>\n              <style-rule element='mark'>\n"
+                   + "\n".join(pane_rules) + "\n              </style-rule>\n            </style>\n")
+                  if pane_rules else "")
+
+    enc_block = enc
+    if color_palette and encodings:
+        for k, c in encodings:
+            if k == "color":
+                enc_block = enc_block.replace(
+                    f"              <color column='{c}' />\n",
+                    f"              <color column='{c}' palette='{color_palette}' type='palette' />\n")
+
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <layout-options>
+        <title><formatted-text><run fontname='Tableau Bold' fontsize='13' bold='true' fontcolor='{NAVY}'>{esc(title_vn)}</run></formatted-text></title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='{table}' name='{ds}' />
+          </datasources>
+          <datasource-dependencies datasource='{ds}'>
+{db}
+{ib}
+          </datasource-dependencies>{filt_xml}
+{csort}          <aggregation value='true' />
+        </view>
+{ws_style}
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view><breakdown value='auto' /></view>
+            <mark class='{mark}' />
+{enc_block}{pane_style}          </pane>
+        </panes>
+        <rows>{rows}</rows>
+        <cols>{cols}</cols>
+      </table>
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
+def categorical_filter(table: str, col: str, keep_members: list[str]) -> str:
+    ds = ds_name(table)
+    members = "\n".join(
+        f"              <groupfilter function='member' level='[none:{esc(col)}:nk]' "
+        f"member='&quot;{esc(m)}&quot;' />" for m in keep_members)
+    return (f"          <filter class='categorical' column='[{ds}].[none:{esc(col)}:nk]'>\n"
+            f"            <groupfilter function='union' user:ui-enumeration='inclusive' "
+            f"user:ui-marker='enumerate'>\n{members}\n"
+            f"            </groupfilter>\n          </filter>")
+
+
+# ─── §11 Emphasis monthly chart: max column darkest + value labels ──────────
+def emphasis_month_chart(sheet_name, title_vn, table: str, month_col: str,
+                         value_calc: Calc, label_calc: Calc = None,
+                         color_palette="SHB Sequential",
+                         hide_axis=True) -> str:
+    """Monthly bar where the MAX month is the DARKEST (color = the measure via a
+    sequential palette — the Superstore emphasis move; the max value maps to the
+    darkest palette stop). §11. `value_calc` drives bar length + color; the value
+    is shown as a mark label (via `label_calc` if given, else `value_calc`
+    itself). The raw-measure axis is hidden so only the labelled bars show.
+
+    NOTE: the gold per-cell <reference-line> target tick (Mey sqlproxy path) does
+    NOT render on this federated-extract Cloud path — dropped in favour of value
+    labels + the target stated in the title. Emphasis coloring is the wow move.
+    """
+    ds = ds_name(table)
+    vref = value_calc.ref()
+    lref = (label_calc.ref() if label_calc is not None else vref)
+    mref = f"[{ds}].[mn:{esc(month_col)}:ok]"
+    month_dep = (f"            <column aggregation='Year' datatype='datetime' default-type='ordinal' "
+                 f"layered='true' name='[{esc(month_col)}]' pivot='key' role='dimension' type='ordinal' "
+                 f"user-datatype='datetime' visual-totals='Default' />")
+    month_inst = f"            <column-instance column='[{esc(month_col)}]' derivation='Month' name='[mn:{esc(month_col)}:ok]' pivot='key' type='ordinal' />"
+    deps = [month_dep, value_calc.dep_col()]
+    insts = [month_inst, value_calc.inst()]
+    if label_calc is not None:
+        deps.append(label_calc.dep_col()); insts.append(label_calc.inst())
+    deps_x = "\n".join(deps)
+    insts_x = "\n".join(insts)
+    axis_hide = (f"            <format attr='display' class='0' field='{vref}' scope='rows' value='false' />\n"
+                 if hide_axis else "")
+    return f"""    <worksheet name='{esc(sheet_name)}'>
+      <layout-options>
+        <title><formatted-text><run fontname='Tableau Bold' fontsize='13' bold='true' fontcolor='{NAVY}'>{esc(title_vn)}</run></formatted-text></title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='{table}' name='{ds}' />
+          </datasources>
+          <datasource-dependencies datasource='{ds}'>
+{deps_x}
+{insts_x}
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='pane'>
+            <format attr='grid-line-show' value='false' />
+            <format attr='zero-line-show' value='false' />
+          </style-rule>
+          <style-rule element='axis'>
+{axis_hide}            <format attr='rule-color' value='#C3CDD8' />
+            <format attr='tick-color' value='#E3E9EF' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view><breakdown value='auto' /></view>
+            <mark class='Bar' />
+            <encodings>
+              <color column='{vref}' palette='{color_palette}' type='palette' />
+              <text column='{lref}' />
+            </encodings>
+            <customized-label><formatted-text>
+              <run bold='true' fontalignment='1' fontcolor='{NAVY}' fontsize='10'>&lt;{lref}&gt;</run>
+            </formatted-text></customized-label>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-bar-size' value='0.66' />
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>{vref}</rows>
+        <cols>{mref}</cols>
+      </table>
+      <simple-id uuid='{U()}' />
+    </worksheet>"""
+
+
+# ─── Dashboard layout-flow ──────────────────────────────────────────────────
+ROUNDED = "<_.fcp.DashboardRoundedCorners.true...format attr='corner-radius' value='14' />"
+
+def leaf(name, minw=80, w=100000, kpi=False):
+    # KPI: type-h='cell' so the BAN number sizes to its natural cell (never
+    # scaled-away), but type-w='scalable' so 5 KPIs in one horizontal flow each
+    # get their flex width (type-w='cell' collapses all-but-first when several
+    # compete for width in a fixed-width flow → blank cards). Charts fully
+    # scalable to fill their card.
+    cache = (f"                <layout-cache cell-count-h='1' non-cell-size-h='32' type-h='cell' type-w='cell' />\n"
+             if kpi else
+             f"                <layout-cache minwidth='{minw}' type-h='scalable' type-w='scalable' />\n")
+    return (f"              <zone h='100000' id='{_zid()}' name='{esc(name)}' w='{w}' x='0' y='0'>\n"
+            + cache
+            + f"                <zone-style>"
+            f"<format attr='border-color' value='{BORDER}' />"
+            f"<format attr='border-style' value='solid' />"
+            f"<format attr='border-width' value='1' />"
+            f"{ROUNDED}"
+            f"<format attr='margin' value='9' />"
+            f"<format attr='padding' value='10' />"
+            f"<format attr='background-color' value='{BG_CARD}' />"
+            f"</zone-style>\n"
+            f"              </zone>")
+
+def header_band(title_vn: str, subtitle_vn: str, h: int = 4600) -> str:
+    """SHB indigo header band + orange bottom-border accent. Keep `h` small so
+    the KPI row below gets its full height."""
+    tid = _zid()
+    return (f"          <zone h='{h}' id='{tid}' type-v2='text' w='100000' x='0' y='0'>\n"
+            f"            <formatted-text>\n"
+            f"              <run fontname='Tableau Bold' fontsize='18' bold='true' fontcolor='#F58220'>SHB</run>\n"
+            f"              <run fontname='Tableau Book' fontsize='13' fontcolor='#C7C9F0'>   |   {esc(title_vn)}</run>\n"
+            f"              <run fontname='Tableau Book' fontsize='11' fontcolor='#AEB1E6'>    ·   {esc(subtitle_vn)}</run>\n"
+            # Synthetic-data marker (project data policy: demo tenants must flag
+            # the data as a simulation model).
+            f"              <run fontname='Tableau Book' fontsize='10' fontcolor='#F58220'>    ·   Dữ liệu mô phỏng (demo)</run>\n"
+            f"            </formatted-text>\n"
+            f"            <zone-style>"
+            f"<format attr='border-color' value='{BRAND}' /><format attr='border-style' value='solid' />"
+            f"<format attr='border-width' value='0' />"
+            f"<format attr='border-bottom-width' value='4' />"
+            f"<format attr='margin' value='0' /><format attr='padding' value='14' />"
+            f"<format attr='background-color' value='{NAVY}' /></zone-style>\n"
+            f"          </zone>")
+
+def title_block(title_vn: str, subtitle_vn: str, h: int = 3400) -> str:
+    """Clean title on the page background — NO colored band (user asked not to
+    reuse the VACS header band on SHB). Indigo title + muted subtitle, a thin
+    orange rule under it via a bottom border. Sits flush on the page bg."""
+    tid = _zid()
+    return (f"          <zone h='{h}' id='{tid}' type-v2='text' w='100000' x='0' y='0'>\n"
+            f"            <formatted-text>\n"
+            f"              <run fontname='Tableau Bold' fontsize='17' bold='true' fontcolor='{NAVY}'>{esc(title_vn)}</run>\n"
+            f"              <run fontname='Tableau Book' fontsize='11' fontcolor='#8A93A8'>    {esc(subtitle_vn)}</run>\n"
+            f"            </formatted-text>\n"
+            f"            <zone-style>"
+            f"<format attr='border-color' value='{BRAND}' /><format attr='border-style' value='none' />"
+            f"<format attr='border-width' value='0' /><format attr='border-bottom-width' value='3' />"
+            f"<format attr='border-bottom-color' value='{BRAND}' />"
+            f"<format attr='margin' value='4' /><format attr='padding' value='10' />"
+            f"<format attr='background-color' value='{BG_PAGE}' /></zone-style>\n"
+            f"          </zone>")
+
+
+def hrow(names, h, minw=80, kpi=False):
+    body = "\n".join(leaf(n, minw, kpi=kpi) for n in names)
+    return (f"          <zone h='{h}' id='{_zid()}' param='horz' type-v2='layout-flow' w='100000' x='0' y='0'>\n{body}\n          </zone>")
+
+
+def _bare_leaf(name, show_title=True):
+    """A leaf zone with NO card chrome (border/bg) — used inside a composite
+    spark-KPI card so the outer vert zone owns the single rounded frame."""
+    st = "" if show_title else "show-title='false' "
+    return (f"                <zone h='100000' id='{_zid()}' {st}name='{esc(name)}' w='100000' x='0' y='0'>\n"
+            f"                  <layout-cache minwidth='40' type-h='scalable' type-w='scalable' />\n"
+            f"                  <zone-style><format attr='border-style' value='none' /><format attr='border-width' value='0' />"
+            f"<format attr='margin' value='0' /><format attr='padding' value='2' /></zone-style>\n"
+            f"                </zone>")
+
+
+def _spark_kpi_card(number_sheet: str, spark_sheet: str, w=100000):
+    """One composite card = OUTER rounded vert zone containing [number leaf
+    (fixed cell height) over spark leaf (scalable fill)]. The number leaf uses
+    type-h='cell' (BAN renders on the extract path); the spark fills the rest.
+    show-title='false' on the spark hides the worksheet-name overlay."""
+    number_leaf = (
+        f"                <zone h='42000' id='{_zid()}' name='{esc(number_sheet)}' w='100000' x='0' y='0'>\n"
+        f"                  <layout-cache cell-count-h='1' non-cell-size-h='30' type-h='cell' type-w='cell' />\n"
+        f"                  <zone-style><format attr='border-style' value='none' /><format attr='border-width' value='0' />"
+        f"<format attr='margin' value='0' /><format attr='padding' value='2' /></zone-style>\n"
+        f"                </zone>")
+    spark_leaf = (
+        f"                <zone h='58000' id='{_zid()}' name='{esc(spark_sheet)}' show-title='false' w='100000' x='0' y='0'>\n"
+        f"                  <layout-cache minheight='40' minwidth='40' type-h='scalable' type-w='scalable' />\n"
+        f"                  <zone-style><format attr='border-style' value='none' /><format attr='border-width' value='0' />"
+        f"<format attr='margin' value='0' /><format attr='padding' value='2' /></zone-style>\n"
+        f"                </zone>")
+    return (
+        f"              <zone h='100000' id='{_zid()}' param='vert' type-v2='layout-flow' w='{w}' x='0' y='0'>\n"
+        f"{number_leaf}\n{spark_leaf}\n"
+        f"                <zone-style>"
+        f"<format attr='border-color' value='{BORDER}' /><format attr='border-style' value='solid' />"
+        f"<format attr='border-width' value='1' />{ROUNDED}"
+        f"<format attr='margin' value='9' /><format attr='padding' value='8' />"
+        f"<format attr='background-color' value='{BG_CARD}' /></zone-style>\n"
+        f"              </zone>")
+
+
+def spark_hrow(pairs, h):
+    """Row of composite spark-KPI cards. `pairs` = [(number_sheet, spark_sheet), ...]."""
+    body = "\n".join(_spark_kpi_card(n, s) for n, s in pairs)
+    return (f"          <zone h='{h}' id='{_zid()}' param='horz' type-v2='layout-flow' w='100000' x='0' y='0'>\n{body}\n          </zone>")
+
+def dashboard(name, rows_xml, width=1560, height=1180):
+    reset_zids()
+    body = "\n".join(rows_xml)
+    outer = _zid()
+    return f"""    <dashboard enable-sort-zone-taborder='true' name='{esc(name)}'>
+      <style />
+      <size maxheight='{height}' maxwidth='{width}' minheight='{height}' minwidth='{width}' />
+      <zones>
+        <zone h='100000' id='{outer}' type-v2='layout-basic' w='100000' x='0' y='0'>
+          <zone h='100000' id='{_zid()}' param='vert' type-v2='layout-flow' w='100000' x='0' y='0'>
+{body}
+          </zone>
+          <zone-style><format attr='border-color' value='#000000' /><format attr='border-style' value='none' /><format attr='border-width' value='0' /><format attr='margin' value='8' /><format attr='background-color' value='{BG_PAGE}' /></zone-style>
+        </zone>
+      </zones>
+      <simple-id uuid='{U()}' />
+    </dashboard>"""
+
+
+# ─── Palettes (SHB orange sequential + indigo/orange categorical + risk) ────
+_PALETTES = """  <preferences>
+    <color-palette name='SHB Sequential' type='ordered-sequential'>
+      <color>#FBE3CC</color>
+      <color>#F9C48A</color>
+      <color>#F7A24C</color>
+      <color>#F58220</color>
+      <color>#B85C13</color>
+      <color>#2E3192</color>
+    </color-palette>
+    <color-palette name='SHB Categorical' type='regular'>
+      <color>#F58220</color>
+      <color>#2E3192</color>
+      <color>#5C60C9</color>
+      <color>#1E9E6A</color>
+      <color>#E8A317</color>
+      <color>#D64545</color>
+    </color-palette>
+    <color-palette name='SHB Risk' type='regular'>
+      <color>#1E9E6A</color>
+      <color>#E8A317</color>
+      <color>#D64545</color>
+    </color-palette>
+  </preferences>"""
+
+
+def workbook(tables_used: list[str], calcs: list[Calc], sheets_xml, sheet_names,
+             dashboard_xml, dash_name):
+    """Assemble a workbook with one datasource per used table. `calcs` are
+    grouped by their .table and injected into that table's datasource block."""
+    calcs_by_table: dict[str, list[Calc]] = {}
+    for c in calcs:
+        calcs_by_table.setdefault(c.table, []).append(c)
+    ds_blocks = "\n".join(datasource_block(t, calcs_by_table.get(t, [])) for t in tables_used)
+
+    ws = "  <worksheets>\n" + "\n".join(sheets_xml) + "\n  </worksheets>\n"
+    dash = "  <dashboards>\n" + dashboard_xml + "\n  </dashboards>\n"
+    hidden = "".join(f"    <window class='worksheet' hidden='true' name='{esc(n)}'></window>\n" for n in sheet_names)
+    vps = "\n".join(f"        <viewpoint name='{esc(n)}'><zoom type='entire-view' /></viewpoint>" for n in sheet_names)
+    dash_win = f"    <window class='dashboard' maximized='true' name='{esc(dash_name)}'>\n      <viewpoints>\n{vps}\n      </viewpoints>\n    </window>\n"
+    windows = "  <windows>\n" + hidden + dash_win + "  </windows>\n"
+    return f"""<?xml version='1.0' encoding='utf-8' ?>
+<workbook original-version='18.1' source-build='2026.1.1 (20261.26.0410.0924)' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+{_PALETTES}
+  <datasources>
+{ds_blocks}
+  </datasources>
+{ws}{dash}{windows}</workbook>
+"""
+
+
+def validate(xml: str) -> str:
+    import xml.etree.ElementTree as ET
+    try:
+        ET.fromstring(xml)
+        return "OK"
+    except ET.ParseError as e:
+        return f"PARSE ERR: {e}"
+
+
+def package_twbx(twb_xml: str, wb_name: str) -> Path:
+    out = Path(f"/tmp/shb/{wb_name}.twbx")
+    Path(f"/tmp/shb/{wb_name}.twb").write_text(twb_xml, encoding="utf-8")
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr(f"{wb_name}.twb", twb_xml)
+        z.write(HYPER, arcname="Data/Datasources/shb.hyper")
+    return out
+
+
+SHB_PROJECT_ID = "f380ec68-94bc-4650-9306-8a8e5aca9a43"  # Demo/SHB
+
+def _env() -> dict:
+    env = {}
+    for line in (Path(__file__).resolve().parents[2] / ".env").read_text().splitlines():
+        if "=" in line and not line.startswith("#"):
+            k, v = line.split("=", 1)
+            env[k.strip()] = v.strip()
+    return env
+
+def publish(twbx_path: Path, wb_name: str) -> str:
+    import tableauserverclient as tsc
+    env = _env()
+    auth = tsc.PersonalAccessTokenAuth(env["TABLEAU_PAT_NAME"], env["TABLEAU_PAT_SECRET"],
+                                       site_id=env["TABLEAU_SITE_NAME"])
+    server = tsc.Server(env["TABLEAU_SITE_URL"], use_server_version=True)
+    with server.auth.sign_in(auth):
+        item = tsc.WorkbookItem(project_id=SHB_PROJECT_ID, name=wb_name, show_tabs=False)
+        pub = server.workbooks.publish(item, str(twbx_path), mode=tsc.Server.PublishMode.Overwrite,
+                                       skip_connection_check=True)
+        print(f"PUBLISHED: {pub.name}  id={pub.id}")
+        return pub.id
+
+def render(wb_id: str, wb_name: str) -> None:
+    import tableauserverclient as tsc
+    env = _env()
+    auth = tsc.PersonalAccessTokenAuth(env["TABLEAU_PAT_NAME"], env["TABLEAU_PAT_SECRET"],
+                                       site_id=env["TABLEAU_SITE_NAME"])
+    server = tsc.Server(env["TABLEAU_SITE_URL"], use_server_version=True)
+    with server.auth.sign_in(auth):
+        wb = server.workbooks.get_by_id(wb_id)
+        server.workbooks.populate_views(wb)
+        for v in wb.views:
+            server.views.populate_image(v, tsc.ImageRequestOptions(maxage=1))
+            out = Path(f"/tmp/shb/render_{wb_name}_{v.name}.png")
+            out.write_bytes(v.image)
+            print(f"  rendered {v.name} -> {out} ({len(v.image):,} bytes)")

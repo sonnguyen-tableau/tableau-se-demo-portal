@@ -67,5 +67,17 @@
     "tone": "professional",
     "logoUrl": "/tenants/vacs-logo.png",
     "logoLayout": "wordmark"
+  },
+  {
+    "tenantId": "shb",
+    "companyName": "Ngân hàng SHB",
+    "primaryColor": "#f58220",
+    "secondaryColor": "#2e3192",
+    "neutralColor": "#2e3192",
+    "sidebarTextColor": "#ffffff",
+    "fontFamily": "Inter",
+    "tone": "professional",
+    "logoUrl": "/tenants/shb-logo.png",
+    "logoLayout": "wordmark"
   }
 ]

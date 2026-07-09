@@ -55,6 +55,13 @@ const BY_INDUSTRY: Record<string, AgentSuggestion[]> = {
     { title: "Hiệu suất các cửa hàng theo khu vực", subtitle: "Xếp hạng theo doanh thu", emoji: "🏬" },
     { title: "Tồn kho và vòng quay hàng hóa", subtitle: "Sản phẩm bán chậm cần chú ý", emoji: "📦" },
   ],
+  // SME corporate banking (SHB) — portfolio + per-industry campaign advisory
+  "sme-corporate-banking": [
+    { title: "Tổng quan danh mục SME theo ngành", subtitle: "Dư nợ, NPL, CASA, cross-sell theo ngành", emoji: "📊" },
+    { title: "Ngành nào rủi ro cao cần kiểm soát?", subtitle: "Ma trận NPL × dư nợ, cảnh báo tín dụng", emoji: "⚠️" },
+    { title: "Đề xuất chiến dịch cho ngành Thủy sản", subtitle: "Campaign tài trợ vốn lưu động mùa vụ", emoji: "🎯" },
+    { title: "Ngành nào còn dư địa bán chéo (cross-sell)?", subtitle: "White-space theo SP/KH và hạn mức", emoji: "🚀" },
+  ],
   // In-flight catering quality / complaint management (VACS)
   "airline-catering": [
     { title: "Tổng quan chất lượng & khiếu nại tháng này", subtitle: "Chỉ số khiếu nại (PPM), tồn đọng, phản hồi đúng hạn", emoji: "📊" },
@@ -79,6 +86,12 @@ const BY_SLUG: Record<string, AgentSuggestion[]> = {
     { title: "Đâu là loại khiếu nại nhức nhối nhất?", subtitle: "Pareto 80/20 nhóm & tiểu mục khiếu nại", emoji: "🎯" },
     { title: "Cảnh báo dị vật: kim loại & thủy tinh", subtitle: "Sự cố nguy cơ cao cần ưu tiên xử lý", emoji: "🔬" },
     { title: "Hãng nào có chất lượng & SLA tốt/kém nhất?", subtitle: "Bảng điểm khiếu nại, phản hồi, phạt hợp đồng", emoji: "✈️" },
+  ],
+  shb: [
+    { title: "Tổng quan danh mục SME theo ngành", subtitle: "Dư nợ, NPL, CASA, cross-sell theo ngành", emoji: "📊" },
+    { title: "Đề xuất chiến dịch cho ngành Thủy sản xuất khẩu", subtitle: "Tài trợ vốn lưu động mùa vụ + tài trợ thương mại", emoji: "🎯" },
+    { title: "Đề xuất chiến dịch cross-sell ngành CNTT & F&B", subtitle: "Dư địa bán chéo, ngân hàng số, thấu chi", emoji: "🚀" },
+    { title: "Ngành nào rủi ro cao cần siết tín dụng?", subtitle: "NPL & sử dụng hạn mức theo ngành", emoji: "⚠️" },
   ],
   "nam-a-bank": [
     { title: "Tóm tắt kết quả kinh doanh 2025", subtitle: "Huy động, cho vay và lợi nhuận", emoji: "📊" },

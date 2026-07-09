@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sme-corporate-banking.schema.json",
+  "title": "SME Corporate Banking (SHB) data contract",
+  "description": "Field-name contract for the SHB SME corporate-banking demo (1 dashboard + AI campaign advisory). IndustrySummary = per-industry pre-aggregate the dashboard renders; SmeClients = client-grade detail the agent drills for sub-segment targeting.",
+  "type": "object",
+  "required": ["IndustrySummary", "SmeClients"],
+  "properties": {
+    "IndustrySummary": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "IndustryId", "Industry", "IndustryGroup", "RiskTier",
+              "TradeIntensity", "ClientCount", "OutstandingVnd", "DepositsVnd",
+              "CasaVnd", "NplVnd", "NplPct", "CasaPct", "GrowthYoYPct",
+              "ProductsPerClient", "LimitGrantedVnd", "LimitUtilPct",
+              "TradeFinanceVnd", "NiiVnd", "FeeIncomeVnd", "RevenuePerClientVnd",
+              "NewToBank", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "SmeClients": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ClientId", "ClientName", "Industry", "IndustryGroup", "Region",
+              "Segment", "OutstandingVnd", "LimitGrantedVnd", "LimitUtilPct",
+              "DepositsVnd", "CasaPct", "ProductCount", "Products",
+              "TradeFinanceVnd", "DebtGroup", "RiskTier", "NewToBank",
+              "RelationshipYears", "TenantId"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
