@@ -200,12 +200,15 @@ export async function POST(req: Request): Promise<Response> {
           ...(allowedWorkbookNames.length > 0 ? { allowedWorkbookNames } : {}),
           // Campaign / next-best-action advisory: gated per tenant.
           // meygroup = Salesforce next-best-action; shb = SHB banking products
-          // as the headline play (Salesforce is only the optional exec channel).
+          // as the headline; mediamart = retail plays as the headline. In the
+          // last two, Salesforce is only the optional execution channel.
           ...(ctx.tenantId === "meygroup"
             ? { advisory: "salesforce" as const }
             : ctx.tenantId === "shb"
               ? { advisory: "shb-products" as const }
-              : {}),
+              : ctx.tenantId === "mediamart"
+                ? { advisory: "retail-actions" as const }
+                : {}),
         });
 
         const activeMcp = guardedMcp ?? mcp;

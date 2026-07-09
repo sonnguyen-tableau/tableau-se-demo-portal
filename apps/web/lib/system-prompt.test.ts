@@ -54,6 +54,7 @@ describe("buildSystemPrompt", () => {
     const s = buildSystemPrompt({ tenant: ctx, toolNames: ["query-datasource"] });
     expect(s).not.toContain("Salesforce action advisory");
     expect(s).not.toContain("SHB campaign & product advisory");
+    expect(s).not.toContain("Retail action advisory");
   });
 
   it("includes the Salesforce advisory block for advisory: salesforce", () => {
@@ -86,5 +87,23 @@ describe("buildSystemPrompt", () => {
     expect(s).toContain("OPTIONAL and secondary");
     // It must not switch on the meygroup Salesforce-first block.
     expect(s).not.toContain("Salesforce action advisory");
+  });
+
+  it("recommends retail plays (not Salesforce) for advisory: retail-actions", () => {
+    const s = buildSystemPrompt({
+      tenant: ctx,
+      toolNames: ["query-datasource"],
+      advisory: "retail-actions",
+    });
+    expect(s).toContain("Retail action advisory");
+    // Retail plays must be the headline.
+    expect(s).toContain("win-back");
+    expect(s).toContain("NextBestOffer");
+    expect(s).toContain("OOS");
+    // Salesforce is only the optional execution channel here, not the headline.
+    expect(s).toContain("OPTIONAL and secondary");
+    // It must not switch on the other tenants' blocks.
+    expect(s).not.toContain("Salesforce action advisory");
+    expect(s).not.toContain("SHB campaign & product advisory");
   });
 });

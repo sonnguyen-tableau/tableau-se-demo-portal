@@ -79,7 +79,12 @@ const BY_SLUG: Record<string, AgentSuggestion[]> = {
     { title: "Đề xuất hành động tăng chuyển đổi kênh Digital", subtitle: "Next-best-action trên Salesforce từ dữ liệu phễu", emoji: "🚀" },
     { title: "Deep-dive dự án Meypearl Ciel", subtitle: "Pipeline trước mở bán và cơ hội tăng tốc", emoji: "🔍" },
   ],
-  mediamart: BY_INDUSTRY["retail-mediamart"]!,
+  mediamart: [
+    { title: "Tổng quan doanh thu & biên lợi nhuận tháng này", subtitle: "KPI bán lẻ, ngành hàng và kênh nổi bật", emoji: "📊" },
+    { title: "Nhóm khách hàng nào có nguy cơ rời bỏ cao?", subtitle: "Churn theo hạng thẻ, giá trị doanh thu ảnh hưởng", emoji: "⚠️" },
+    { title: "Đề xuất chiến dịch giữ chân & bán chéo", subtitle: "Win-back nhóm churn cao, đẩy NextBestOffer theo hạng", emoji: "🎯" },
+    { title: "Cửa hàng/ngành hàng nào đang thiếu hàng (OOS)?", subtitle: "Tồn kho dưới mục tiêu campaign, cần điều chuyển", emoji: "📦" },
+  ],
   vincomretail: BY_INDUSTRY["retail-mall"]!,
   vacs: [
     { title: "Tổng quan chất lượng & khiếu nại 2026", subtitle: "Chỉ số khiếu nại (PPM), YoY, phản hồi đúng hạn", emoji: "📊" },

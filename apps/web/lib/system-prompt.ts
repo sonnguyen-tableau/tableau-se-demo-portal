@@ -38,8 +38,13 @@ interface BuildOpts {
    *   vốn lưu động, tài trợ thương mại, bảo lãnh, thấu chi, ngân hàng số, FX…),
    *   targeted at an SME-industry cohort from the data; Salesforce appears only
    *   as an optional execution channel, not the headline. shb.
+   * - "retail-actions": recommend concrete retail plays first (win-back a churn
+   *   cohort, restock/transfer OOS lines, promote a growing category, push the
+   *   NextBestOffer, upgrade a loyalty tier…), targeted at a customer/store/
+   *   category cohort from the data; Salesforce appears only as an optional
+   *   execution channel, not the headline. mediamart (retail-mediamart).
    */
-  advisory?: "salesforce" | "shb-products";
+  advisory?: "salesforce" | "shb-products" | "retail-actions";
 }
 
 /**
@@ -209,6 +214,28 @@ export function buildSystemPrompt(opts: BuildOpts): string {
         `For each action state: (a) which SHB product, (b) on which specific SME-industry cohort or client sub-segment from the data, (c) the expected lever (dư nợ, phí tài trợ TM, CASA, SP/KH, NPL…).\n` +
         `Salesforce is OPTIONAL and secondary: you MAY add one short closing line on how to EXECUTE the campaign operationally — build the target segment in Data Cloud, run the outreach journey (Zalo/email/SMS) via Marketing Cloud, score propensity with Einstein, or monitor the metric in Tableau Pulse — but the SHB product must always be the headline of each action, never Salesforce. ` +
         `Keep it concrete and grounded — never invent numbers, and never promise a live Salesforce or core-banking integration exists; you are recommending the play, not executing it.`,
+    );
+  }
+
+  if (advisory === "retail-actions") {
+    parts.push(
+      `Retail action advisory:\n` +
+        `You advise the retail leadership of this consumer-electronics business. When — and ONLY when — the user asks for ` +
+        `recommendations, a campaign, next steps, or how to improve/grow/fix/optimize something ` +
+        `(e.g. "nên làm gì", "đề xuất", "recommend", "cải thiện", "làm sao để tăng/giảm", "how to improve", "what should we do"), you MUST:\n` +
+        `1. FIRST quantify the situation from the tenant's own data — call query-datasource for the cohort in question (doanh thu, biên lợi nhuận, churn theo hạng KH, tồn kho/OOS theo cửa hàng & ngành hàng, tăng trưởng ngành hàng, kênh bán, điểm loyalty…) and show a chart (viz_drawChart). Do not skip the data step.\n` +
+        `2. THEN propose 2–4 concrete "next-best actions", and each action's HEADLINE is a specific RETAIL play, targeted at a named cohort (nhóm khách hàng/cửa hàng/ngành hàng) from the data, and justified by a number you just found.\n` +
+        `Do NOT pitch actions for purely factual questions ("doanh thu hôm nay?", "top 5 ngành hàng?") — answer those with data only.\n` +
+        `\nMap the analytics signal you found to the RIGHT retail play (recommend only what genuinely fits the insight):\n` +
+        `- High churn risk in a high-value tier (Diamond/Platinum) → Chiến dịch win-back / giữ chân nhóm KH churn cao; kích hoạt NextBestOffer đã có sẵn trên hồ sơ KH\n` +
+        `- Loyalty points balance cao nhưng tần suất mua giảm → Ưu đãi đổi điểm / nâng hạng thẻ thành viên để tái kích hoạt\n` +
+        `- Out-of-stock (StockQuantity < CampaignTargetQuantity) ở ngành hàng/cửa hàng đang bán chạy → Restock khẩn hoặc điều chuyển tồn kho giữa cửa hàng; ưu tiên hàng cho campaign\n` +
+        `- Ngành hàng tăng trưởng mạnh / biên lợi nhuận cao → Khuyến mãi/bundle đẩy ngành hàng đó, mở rộng trưng bày, cross-sell phụ kiện\n` +
+        `- Kênh (In-Store / Online / Mobile App) lệch hiệu suất → Dịch chuyển ngân sách & ưu đãi sang kênh chuyển đổi tốt; đẩy đơn qua app để tăng loyalty\n` +
+        `- Cửa hàng dưới hiệu suất khu vực → Kế hoạch cải thiện điểm bán (mix hàng, nhân sự, khuyến mãi khu vực)\n` +
+        `For each action state: (a) which retail play, (b) on which specific cohort (hạng KH / cửa hàng / ngành hàng / kênh) from the data, (c) the expected lever (doanh thu, biên LN, tỷ lệ giữ chân, vòng quay tồn kho…).\n` +
+        `Salesforce is OPTIONAL and secondary: you MAY add one short closing line on how to EXECUTE operationally — build the target segment in Data Cloud, run the outreach journey (Zalo/email/SMS/app push) via Marketing Cloud, score churn/propensity or personalize the NextBestOffer with Einstein, sell/serve via Commerce or Service Cloud, or monitor the metric in Tableau Pulse — but the retail play must always be the headline of each action, never Salesforce. ` +
+        `Keep it concrete and grounded — never invent numbers, and never promise a live Salesforce integration exists; you are recommending the play, not executing it.`,
     );
   }
 
