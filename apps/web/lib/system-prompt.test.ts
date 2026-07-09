@@ -50,21 +50,41 @@ describe("buildSystemPrompt", () => {
     expect(s).toContain("never invent");
   });
 
-  it("omits the Salesforce advisory block by default", () => {
+  it("omits any advisory block by default", () => {
     const s = buildSystemPrompt({ tenant: ctx, toolNames: ["query-datasource"] });
     expect(s).not.toContain("Salesforce action advisory");
+    expect(s).not.toContain("SHB campaign & product advisory");
   });
 
-  it("includes the Salesforce advisory block when enabled", () => {
+  it("includes the Salesforce advisory block for advisory: salesforce", () => {
     const s = buildSystemPrompt({
       tenant: ctx,
       toolNames: ["query-datasource"],
-      salesforceAdvisory: true,
+      advisory: "salesforce",
     });
     expect(s).toContain("Salesforce action advisory");
     expect(s).toContain("Data Cloud");
     expect(s).toContain("Agentforce");
     // Only recommends on how-to-improve questions, not factual ones.
     expect(s).toContain("recommendations, next steps");
+    // The Salesforce mode must NOT carry the SHB banking block.
+    expect(s).not.toContain("SHB campaign & product advisory");
+  });
+
+  it("recommends SHB banking products (not Salesforce) for advisory: shb-products", () => {
+    const s = buildSystemPrompt({
+      tenant: ctx,
+      toolNames: ["query-datasource"],
+      advisory: "shb-products",
+    });
+    expect(s).toContain("SHB campaign & product advisory");
+    // SHB's own products must be the headline plays.
+    expect(s).toContain("Vay vốn lưu động");
+    expect(s).toContain("Tài trợ thương mại");
+    expect(s).toContain("Bảo lãnh ngân hàng");
+    // Salesforce is only the optional execution channel here, not the headline.
+    expect(s).toContain("OPTIONAL and secondary");
+    // It must not switch on the meygroup Salesforce-first block.
+    expect(s).not.toContain("Salesforce action advisory");
   });
 });

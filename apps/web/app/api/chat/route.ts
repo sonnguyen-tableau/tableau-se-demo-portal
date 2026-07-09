@@ -198,9 +198,14 @@ export async function POST(req: Request): Promise<Response> {
               : allowedToolNames(),
           designMd,
           ...(allowedWorkbookNames.length > 0 ? { allowedWorkbookNames } : {}),
-          // Salesforce next-best-action / campaign advisory: gated per tenant.
-          // meygroup = real-estate next-best-action; shb = SME per-industry campaign.
-          salesforceAdvisory: ctx.tenantId === "meygroup" || ctx.tenantId === "shb",
+          // Campaign / next-best-action advisory: gated per tenant.
+          // meygroup = Salesforce next-best-action; shb = SHB banking products
+          // as the headline play (Salesforce is only the optional exec channel).
+          ...(ctx.tenantId === "meygroup"
+            ? { advisory: "salesforce" as const }
+            : ctx.tenantId === "shb"
+              ? { advisory: "shb-products" as const }
+              : {}),
         });
 
         const activeMcp = guardedMcp ?? mcp;

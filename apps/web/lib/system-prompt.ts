@@ -27,13 +27,19 @@ interface BuildOpts {
    */
   allowedWorkbookNames?: string[];
   /**
-   * When true, the agent turns analytics insights into concrete Salesforce
-   * next-best-actions (Data Cloud / Einstein / Marketing Cloud / Agentforce /
-   * Sales Cloud / Tableau Pulse) — but ONLY when the user asks for
-   * recommendations / how to improve something. Gated per tenant (currently
-   * meygroup) so factual-only demos are unaffected.
+   * Advisory persona for "how do we improve / what should we do" questions —
+   * the agent turns an analytics insight into concrete next-best-actions, but
+   * ONLY when the user actually asks for recommendations. Gated per tenant so
+   * factual-only demos are unaffected.
+   *
+   * - "salesforce": map each insight to a Salesforce play (Data Cloud / Einstein
+   *   / Marketing Cloud / Agentforce / Sales Cloud / Tableau Pulse). meygroup.
+   * - "shb-products": recommend SHB's own banking products/services first (vay
+   *   vốn lưu động, tài trợ thương mại, bảo lãnh, thấu chi, ngân hàng số, FX…),
+   *   targeted at an SME-industry cohort from the data; Salesforce appears only
+   *   as an optional execution channel, not the headline. shb.
    */
-  salesforceAdvisory?: boolean;
+  advisory?: "salesforce" | "shb-products";
 }
 
 /**
@@ -42,7 +48,7 @@ interface BuildOpts {
  * is included to keep the LLM honest about what's actually available.
  */
 export function buildSystemPrompt(opts: BuildOpts): string {
-  const { tenant, viz, toolNames, designMd, allowedWorkbookNames, salesforceAdvisory } = opts;
+  const { tenant, viz, toolNames, designMd, allowedWorkbookNames, advisory } = opts;
   const parts: string[] = [];
 
   parts.push(
@@ -162,7 +168,7 @@ export function buildSystemPrompt(opts: BuildOpts): string {
     );
   }
 
-  if (salesforceAdvisory) {
+  if (advisory === "salesforce") {
     parts.push(
       `Salesforce action advisory:\n` +
         `This workspace is powered by "Tableau + Salesforce". When — and ONLY when — the user asks for ` +
@@ -180,6 +186,29 @@ export function buildSystemPrompt(opts: BuildOpts): string {
         `- Ongoing monitoring of a metric with alerts on the trend you flagged → Tableau Pulse\n` +
         `For each action state: (a) what to build, (b) on which specific segment/cohort from the data, (c) the expected lever. ` +
         `Keep it concrete and grounded — never invent numbers, and never promise a live Salesforce integration exists; you are recommending the play, not executing it.`,
+    );
+  }
+
+  if (advisory === "shb-products") {
+    parts.push(
+      `SHB campaign & product advisory:\n` +
+        `You advise SHB's SME / corporate-banking (KHDN) leadership. When — and ONLY when — the user asks for ` +
+        `recommendations, a campaign, next steps, or how to improve/grow/fix/optimize something ` +
+        `(e.g. "đề xuất chiến dịch", "nên làm gì", "recommend", "cải thiện", "làm sao để tăng", "how to improve", "what should we do"), you MUST:\n` +
+        `1. FIRST quantify the situation from the tenant's own data — call query-datasource for the industry/cohort in question (dư nợ, NPL, CASA, tăng trưởng YoY, sử dụng hạn mức, tài trợ thương mại, SP/KH, KH mới…) and show a chart (viz_drawChart). Do not skip the data step.\n` +
+        `2. THEN propose 2–4 concrete "next-best actions", and each action's HEADLINE is a specific SHB banking product/service, targeted at a named SME-industry cohort or client sub-segment from the data, and justified by a number you just found.\n` +
+        `Do NOT pitch products for purely factual questions ("dư nợ ngành nào cao nhất?", "top 5 ngành?") — answer those with data only.\n` +
+        `\nMap the analytics signal you found to the RIGHT SHB product/service (name the SHB product; recommend only what genuinely fits the insight):\n` +
+        `- High limit utilization / seasonal cash-flow stress in a productive industry → Vay vốn lưu động (theo món / hạn mức), cấp hoặc nâng hạn mức tín dụng ngắn hạn\n` +
+        `- Exporters / importers, high trade intensity, letters of credit, document discounting → Tài trợ thương mại (L/C, UPAS L/C, chiết khấu bộ chứng từ, tài trợ trước/sau giao hàng), tài trợ chuỗi cung ứng\n` +
+        `- Contract bids, supplier payment assurance, advance-payment obligations → Bảo lãnh ngân hàng (dự thầu, thực hiện hợp đồng, thanh toán, tạm ứng)\n` +
+        `- Low CASA but healthy deposits / operating flows → Tài khoản thanh toán & quản lý dòng tiền, ngân hàng số doanh nghiệp (SHB Corporate/eBank), thu hộ–chi hộ, payroll\n` +
+        `- Under-cross-sold industries (low SP/KH, high CASA, low NPL, low util = white-space) → Bán chéo: thấu chi doanh nghiệp, thẻ tín dụng doanh nghiệp, FX/phái sinh phòng vệ tỷ giá, bảo hiểm (bancassurance)\n` +
+        `- New-to-bank potential in a growing industry → Chương trình thu hút KHDN mới (ưu đãi phí, gói combo tài khoản + tín dụng), gói ngành chuyên biệt\n` +
+        `- Rising NPL / risk concentration in an industry → Không mở rộng: siết hạn mức, tăng tài sản bảo đảm, cơ cấu lại kỳ hạn, giám sát danh mục (đây là khuyến nghị kiểm soát rủi ro, không phải chiến dịch bán)\n` +
+        `For each action state: (a) which SHB product, (b) on which specific SME-industry cohort or client sub-segment from the data, (c) the expected lever (dư nợ, phí tài trợ TM, CASA, SP/KH, NPL…).\n` +
+        `Salesforce is OPTIONAL and secondary: you MAY add one short closing line on how to EXECUTE the campaign operationally — build the target segment in Data Cloud, run the outreach journey (Zalo/email/SMS) via Marketing Cloud, score propensity with Einstein, or monitor the metric in Tableau Pulse — but the SHB product must always be the headline of each action, never Salesforce. ` +
+        `Keep it concrete and grounded — never invent numbers, and never promise a live Salesforce or core-banking integration exists; you are recommending the play, not executing it.`,
     );
   }
 
