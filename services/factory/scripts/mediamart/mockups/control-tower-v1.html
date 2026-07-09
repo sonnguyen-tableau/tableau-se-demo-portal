@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MediaMart Control Tower V1 — Mockup</title>
+<style>
+  /* ── Palette (brand) ──────────────────────────────────────────────
+     primary red #E50914 · gold #FFD700 · ink #0F172A · surface #F5F6F8
+     Discipline: grey = context, RED = highlighted/current, gold = target
+     tick, green/red = deltas & alerts only. One accent. No rainbow. */
+  :root{
+    --red:#E50914; --red-d:#B00610; --gold:#F2B705; --ink:#0F172A;
+    --surface:#EEF1F5; --card:#FFFFFF; --line:#E2E8F0; --muted:#64748B;
+    --pos:#16A34A; --neg:#DC2626; --grey:#CBD5E1; --grey-d:#94A3B8;
+    /* red sequential ramp for ranking/alert bars */
+    --r1:#FCA5A5; --r2:#F87171; --r3:#EF4444; --r4:#DC2626; --r5:#991B1B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,-apple-system,"Segoe UI",Roboto,sans-serif;background:#D7DCE3;color:var(--ink);padding:28px;line-height:1.35}
+  .wrap{max-width:1320px;margin:0 auto}
+  .note{background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px 16px;margin-bottom:22px;font-size:13px;color:#78350F}
+  .note b{color:#92400E}
+
+  /* dashboard frame */
+  .dash{background:var(--surface);border-radius:16px;padding:0;margin-bottom:34px;overflow:hidden;box-shadow:0 8px 30px rgba(15,23,42,.14);display:flex}
+  .rail{width:62px;background:var(--ink);flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding-top:16px;gap:8px}
+  .rail .logo{width:34px;height:34px;border-radius:9px;background:var(--red);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px}
+  .rail .ic{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;color:#94A3B8;cursor:default}
+  .rail .ic.on{background:rgba(229,9,20,.16);color:#fff}
+  .body{flex:1;padding:20px 24px 26px}
+
+  .head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--red);padding-bottom:12px;margin-bottom:18px}
+  .head h1{font-size:21px;font-weight:800;letter-spacing:-.3px}
+  .head .sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .head .tag{font-size:11px;color:#fff;background:var(--red);padding:4px 10px;border-radius:20px;font-weight:600}
+  .head .period{font-size:11.5px;color:var(--muted);text-align:right}
+
+  /* KPI strip — 3-part composite cards */
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px 10px;position:relative;min-height:108px;display:flex;flex-direction:column;justify-content:space-between}
+  .kpi .lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .kpi .num{font-size:25px;font-weight:800;letter-spacing:-.6px;margin-top:2px}
+  .kpi .num small{font-size:13px;font-weight:600;color:var(--muted)}
+  .kpi .delta{font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+  .kpi .delta.up{color:var(--pos)} .kpi .delta.down{color:var(--neg)}
+  .kpi .basis{font-size:10px;color:var(--grey-d);font-weight:500}
+  /* sparkline */
+  .spark{height:26px;margin-top:6px}
+  .spark svg{width:100%;height:100%;display:block}
+  .kpi.alert{border-color:#FCA5A5;background:linear-gradient(180deg,#FFF5F5,#fff)}
+
+  /* content grid */
+  .grid{display:grid;gap:14px}
+  .g-2{grid-template-columns:1.6fr 1fr}
+  .g-2b{grid-template-columns:1fr 1fr}
+  .g-3{grid-template-columns:1fr 1fr 1fr}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .panel h3{font-size:13.5px;font-weight:700;margin-bottom:2px}
+  .panel .cap{font-size:11px;color:var(--muted);margin-bottom:12px}
+  .panel .link{float:right;font-size:11px;color:var(--red);font-weight:600}
+
+  /* bullet matrix (welded double-bar) */
+  .matrix{width:100%;border-collapse:collapse;font-size:12px}
+  .matrix td{padding:5px 0}
+  .matrix .rl{width:96px;color:var(--ink);font-weight:600}
+  .barwrap{position:relative;background:#F1F5F9;border-radius:4px;height:16px}
+  .bar{height:16px;border-radius:4px;background:var(--red)}
+  .bar.grey{background:var(--grey)}
+  .tick{position:absolute;top:-2px;width:2px;height:20px;background:var(--ink)}
+  .val{font-size:11px;font-weight:700;margin-left:7px;white-space:nowrap}
+  .val.m{color:var(--muted);font-weight:600}
+
+  /* ranking bars (sequential ramp) */
+  .rank{font-size:12px}
+  .rank .row{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .rank .rn{width:16px;color:var(--grey-d);font-weight:700;text-align:right;font-size:11px}
+  .rank .rlabel{width:118px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rank .rb{flex:1;height:15px;border-radius:4px}
+  .rank .rv{width:64px;text-align:right;font-weight:700;font-size:11px}
+  .rank .rv small{color:var(--muted);font-weight:600}
+
+  /* legend */
+  .lg{display:flex;gap:14px;font-size:10.5px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+  .lg span{display:inline-flex;align-items:center;gap:4px}
+  .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+  /* AI card */
+  .ai{background:linear-gradient(135deg,#0F172A,#1E293B);color:#E2E8F0;border-radius:12px;padding:18px 20px}
+  .ai h3{color:#fff;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .ai .q{background:rgba(255,255,255,.07);border-left:3px solid var(--red);border-radius:6px;padding:10px 12px;font-size:12.5px;margin-bottom:12px}
+  .ai .action{background:rgba(255,255,255,.05);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12px}
+  .ai .action b{color:var(--gold)}
+  .ai .exec{font-size:11px;color:#94A3B8;margin-top:6px;font-style:italic}
+  .heat{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:6px}
+  .heat .c{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700}
+  .cat-sel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .cat-sel .chip{font-size:11px;padding:4px 10px;border-radius:16px;background:#F1F5F9;color:var(--muted);font-weight:600;border:1px solid var(--line)}
+  .cat-sel .chip.on{background:var(--red);color:#fff;border-color:var(--red)}
+  .caption-foot{font-size:10.5px;color:var(--grey-d);margin-top:14px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="note">
+    <b>MOCKUP — MediaMart Control Tower V1</b> · Bộ 5 dashboard áp chuẩn V1 (meygroup/SHB). Kỹ thuật: thẻ KPI 3 lớp (số + delta + sparkline), ma trận bullet 2 thanh, ranking bar tô đậm theo giá trị, cảnh báo OOS bằng màu, palette 1 tông đỏ MediaMart. <b>Số liệu là THẬT</b>, trích từ extract <code>mediamart.hyper</code> (24 tháng, 2,850 tỷ doanh thu). Chốt design này → dựng Tableau.
+  </div>
+
+  <!-- ═══════════════ D1 — DOANH THU & LỢI NHUẬN ═══════════════ -->
+  <div class="dash">
+    <div class="rail">
+      <div class="logo">M</div>
+      <div class="ic on">📊</div><div class="ic">👥</div><div class="ic">📦</div><div class="ic">🏬</div><div class="ic">🤖</div>
+    </div>
+    <div class="body">
+      <div class="head">
+        <div><h1>D1 · Doanh thu &amp; Lợi nhuận</h1><div class="sub">Tổng quan kết quả kinh doanh — bán lẻ điện máy</div></div>
+        <div style="text-align:right"><span class="tag">Control Tower</span><div class="period">Thg6 2026 so với Thg6 2025 · YoY</div></div>
+      </div>
+
+      <div class="kpis">
+        <!-- composite KPI: label / num / delta / sparkline -->
+        <div class="kpi">
+          <div><div class="lbl">Doanh thu 12T</div><div class="num">1.415<small> tỷ</small></div>
+          <div class="delta up">▲ 16,2% <span class="basis">YoY</span></div></div>
+          <div class="spark"><svg viewBox="0 0 100 26" preserveAspectRatio="none"><polyline fill="none" stroke="#CBD5E1" stroke-width="1.5" points="0,18 9,20 18,15 27,16 36,16 45,3 54,9 63,7 72,17 81,18 90,16 100,17"/><circle cx="100" cy="17" r="2.4" fill="#E50914"/></svg></div>
+        </div>
+        <div class="kpi">
+          <div><div class="lbl">Lợi nhuận gộp</div><div class="num">28,1<small>%</small></div>
+          <div class="delta up">▲ 0,8đ <span class="basis">YoY</span></div></div>
+          <div class="spark"><svg viewBox="0 0 100 26" preserveAspectRatio="none"><polyline fill="none" stroke="#CBD5E1" stroke-width="1.5" points="0,16 9,17 18,15 27,15 36,14 45,6 54,12 63,10 72,15 81,14 90,13 100,13"/><circle cx="100" cy="13" r="2.4" fill="#E50914"/></svg></div>
+        </div>
+        <div class="kpi">
+          <div><div class="lbl">Số đơn 12T</div><div class="num">44,9<small>K</small></div>
+          <div class="delta up">▲ 12,4% <span class="basis">YoY</span></div></div>
+          <div class="spark"><svg viewBox="0 0 100 26" preserveAspectRatio="none"><polyline fill="none" stroke="#CBD5E1" stroke-width="1.5" points="0,17 9,19 18,15 27,16 36,15 45,4 54,10 63,8 72,16 81,17 90,15 100,16"/><circle cx="100" cy="16" r="2.4" fill="#E50914"/></svg></div>
+        </div>
+        <div class="kpi">
+          <div><div class="lbl">Giá trị ĐH TB</div><div class="num">31,5<small> tr</small></div>
+          <div class="delta up">▲ 3,4% <span class="basis">YoY</span></div></div>
+          <div class="spark"><svg viewBox="0 0 100 26" preserveAspectRatio="none"><polyline fill="none" stroke="#CBD5E1" stroke-width="1.5" points="0,14 9,13 18,14 27,12 36,13 45,10 54,12 63,11 72,13 81,12 90,11 100,10"/><circle cx="100" cy="10" r="2.4" fill="#E50914"/></svg></div>
+        </div>
+        <div class="kpi">
+          <div><div class="lbl">Tỷ lệ trả hàng</div><div class="num">4,0<small>%</small></div>
+          <div class="delta down">▼ 0,3đ <span class="basis">YoY</span></div></div>
+          <div class="spark"><svg viewBox="0 0 100 26" preserveAspectRatio="none"><polyline fill="none" stroke="#CBD5E1" stroke-width="1.5" points="0,10 9,11 18,10 27,12 36,11 45,14 54,12 63,13 72,11 81,12 90,13 100,13"/><circle cx="100" cy="13" r="2.4" fill="#E50914"/></svg></div>
+        </div>
+        <div class="kpi">
+          <div><div class="lbl">DT/cửa hàng</div><div class="num">50,6<small> tỷ</small></div>
+          <div class="delta up">▲ 9,1% <span class="basis">YoY</span></div></div>
+          <div class="spark"><svg viewBox="0 0 100 26" preserveAspectRatio="none"><polyline fill="none" stroke="#CBD5E1" stroke-width="1.5" points="0,18 9,19 18,16 27,16 36,16 45,4 54,9 63,7 72,16 81,17 90,15 100,16"/><circle cx="100" cy="16" r="2.4" fill="#E50914"/></svg></div>
+        </div>
+      </div>
+
+      <div class="grid g-2">
+        <div class="panel">
+          <span class="link">Xem tất cả ›</span>
+          <h3>Doanh thu theo tháng</h3><div class="cap">Cột tô đậm = tháng cao nhất · vạch gold = mục tiêu 130 tỷ</div>
+          <table class="matrix"><tbody id="d1-months"></tbody></table>
+          <div class="lg"><span><span class="dot" style="background:var(--red)"></span>Tháng cao điểm</span><span><span class="dot" style="background:var(--grey)"></span>Các tháng khác</span><span><span class="dot" style="background:var(--ink)"></span>Mục tiêu</span></div>
+        </div>
+        <div class="panel">
+          <span class="link">Xem tất cả ›</span>
+          <h3>Doanh thu × Biên LN theo ngành hàng</h3><div class="cap">2 thanh hàn liền: doanh thu (đỏ) · biên % (xám) · vạch = mục tiêu biên 28%</div>
+          <table class="matrix"><tbody id="d1-cat"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ D2 — CUSTOMER 360 & CHURN ═══════════════ -->
+  <div class="dash">
+    <div class="rail">
+      <div class="logo">M</div>
+      <div class="ic">📊</div><div class="ic on">👥</div><div class="ic">📦</div><div class="ic">🏬</div><div class="ic">🤖</div>
+    </div>
+    <div class="body">
+      <div class="head">
+        <div><h1>D2 · Customer 360 &amp; Churn</h1><div class="sub">Chân dung khách hàng · nguy cơ rời bỏ · doanh thu rủi ro</div></div>
+        <div style="text-align:right"><span class="tag">Customer 360</span><div class="period">Snapshot 30/06/2026 · 4.500 KH</div></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div><div class="lbl">Tổng KH</div><div class="num">4.500</div><div class="basis">Diamond→Standard</div></div></div>
+        <div class="kpi"><div><div class="lbl">KH Diamond+Plat</div><div class="num">641</div><div class="delta up">▲ giữ chân 100%</div></div></div>
+        <div class="kpi"><div><div class="lbl">Tỷ lệ mua lại</div><div class="num">61,3<small>%</small></div><div class="delta up">▲ 2,1đ</div></div></div>
+        <div class="kpi alert"><div><div class="lbl">KH nguy cơ Cao</div><div class="num" style="color:var(--neg)">2.272</div><div class="delta down">50,5% tổng KH</div></div></div>
+        <div class="kpi alert"><div><div class="lbl">DT rủi ro (churn Cao)</div><div class="num" style="color:var(--neg)">813<small> tỷ</small></div><div class="basis">Standard+Silver 776 tỷ</div></div></div>
+        <div class="kpi"><div><div class="lbl">Điểm loyalty TB</div><div class="num">4,1<small>K</small></div><div class="basis">chưa quy đổi</div></div></div>
+      </div>
+      <div class="grid g-3">
+        <div class="panel">
+          <h3>KH nguy cơ Cao theo hạng thẻ</h3><div class="cap">Ranking tô đậm theo số KH · đỏ đậm = nhiều nhất</div>
+          <div class="rank" id="d2-tier"></div>
+        </div>
+        <div class="panel">
+          <h3>Doanh thu rủi ro theo hạng</h3><div class="cap">Doanh thu nhóm churn Cao (tỷ) — nơi cần win-back</div>
+          <div class="rank" id="d2-risk"></div>
+        </div>
+        <div class="panel">
+          <h3>Ma trận Churn × Giá trị</h3><div class="cap">Hạng (cột) × nhóm churn (hàng) · ô đậm = đông KH</div>
+          <div style="font-size:10px;color:var(--muted);display:grid;grid-template-columns:52px repeat(5,1fr);gap:3px;margin-top:4px" id="d2-heat"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ D3 — CHUỖI CUNG ỨNG & OOS ═══════════════ -->
+  <div class="dash">
+    <div class="rail">
+      <div class="logo">M</div>
+      <div class="ic">📊</div><div class="ic">👥</div><div class="ic on">📦</div><div class="ic">🏬</div><div class="ic">🤖</div>
+    </div>
+    <div class="body">
+      <div class="head">
+        <div><h1>D3 · Chuỗi cung ứng &amp; Hết hàng (OOS)</h1><div class="sub">Tồn kho so với mục tiêu campaign · cảnh báo hết hàng theo màu</div></div>
+        <div style="text-align:right"><span class="tag">Supply Chain</span><div class="period">Snapshot 30/06/2026 · 718 dòng tồn</div></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi alert"><div><div class="lbl">Dòng hết hàng</div><div class="num" style="color:var(--neg)">182</div><div class="delta down">25,3% tổng dòng</div></div></div>
+        <div class="kpi"><div><div class="lbl">Tổng dòng tồn</div><div class="num">718</div><div class="basis">28 CH × 9 ngành</div></div></div>
+        <div class="kpi alert"><div><div class="lbl">Ngành báo động</div><div class="num" style="color:var(--neg)">Camera</div><div class="basis">14/77 dòng OOS</div></div></div>
+        <div class="kpi"><div><div class="lbl">Tồn kho TB/dòng</div><div class="num">61</div><div class="basis">so mục tiêu 50</div></div></div>
+        <div class="kpi"><div><div class="lbl">CH cần điều chuyển</div><div class="num">7</div><div class="basis">có ≥8 dòng OOS</div></div></div>
+        <div class="kpi"><div><div class="lbl">Điểm chờ nhập</div><div class="num">248</div><div class="basis">dưới reorder point</div></div></div>
+      </div>
+      <div class="grid g-2b">
+        <div class="panel">
+          <h3>Số dòng hết hàng theo ngành hàng</h3><div class="cap">Ranking tô đậm theo mức độ · đỏ đậm = báo động cao</div>
+          <div class="rank" id="d3-oos"></div>
+        </div>
+        <div class="panel">
+          <h3>Bản đồ nhiệt Tồn kho vs Mục tiêu</h3><div class="cap">Ngành × mức độ đủ hàng · đỏ = thiếu, xanh = đủ (color-as-alert)</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px" id="d3-heat"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ D4 — ĐIỂM BÁN & KHU VỰC ═══════════════ -->
+  <div class="dash">
+    <div class="rail">
+      <div class="logo">M</div>
+      <div class="ic">📊</div><div class="ic">👥</div><div class="ic">📦</div><div class="ic on">🏬</div><div class="ic">🤖</div>
+    </div>
+    <div class="body">
+      <div class="head">
+        <div><h1>D4 · Điểm bán &amp; Khu vực</h1><div class="sub">Hiệu suất cửa hàng · kênh bán · phân bố Bắc Bộ / Bắc Trung Bộ</div></div>
+        <div style="text-align:right"><span class="tag">Store Network</span><div class="period">12T gần nhất · 28 cửa hàng</div></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div><div class="lbl">Doanh thu Bắc Bộ</div><div class="num">2.396<small> tỷ</small></div><div class="basis">89% tổng DT</div></div></div>
+        <div class="kpi"><div><div class="lbl">DT Bắc Trung Bộ</div><div class="num">289<small> tỷ</small></div><div class="basis">11% tổng DT</div></div></div>
+        <div class="kpi"><div><div class="lbl">Kênh In-Store</div><div class="num">1.477<small> tỷ</small></div><div class="delta up">▲ chủ lực 55%</div></div></div>
+        <div class="kpi"><div><div class="lbl">Kênh Online</div><div class="num">670<small> tỷ</small></div><div class="delta up">▲ 25%</div></div></div>
+        <div class="kpi"><div><div class="lbl">Kênh Mobile App</div><div class="num">538<small> tỷ</small></div><div class="delta up">▲ tăng nhanh 20%</div></div></div>
+        <div class="kpi"><div><div class="lbl">CH Flagship</div><div class="num">4</div><div class="basis">/28 cửa hàng</div></div></div>
+      </div>
+      <div class="grid g-2">
+        <div class="panel">
+          <h3>Top cửa hàng theo doanh thu</h3><div class="cap">Ranking tô đậm theo DT (tỷ) · vạch = mục tiêu 55 tỷ/CH</div>
+          <div class="rank" id="d4-store"></div>
+        </div>
+        <div class="panel">
+          <h3>Doanh thu theo kênh bán</h3><div class="cap">In-Store · Online · Mobile App</div>
+          <div class="rank" id="d4-chan"></div>
+          <div class="lg"><span><span class="dot" style="background:var(--red)"></span>Đỏ đậm = kênh lớn nhất</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ D5 — AI DEEP-DIVE ═══════════════ -->
+  <div class="dash">
+    <div class="rail">
+      <div class="logo">M</div>
+      <div class="ic">📊</div><div class="ic">👥</div><div class="ic">📦</div><div class="ic">🏬</div><div class="ic on">🤖</div>
+    </div>
+    <div class="body">
+      <div class="head">
+        <div><h1>D5 · AI Deep-Dive · Giữ chân &amp; Bán chéo</h1><div class="sub">Trợ lý phân tích đề xuất chiến dịch bán lẻ từ dữ liệu</div></div>
+        <div style="text-align:right"><span class="tag">AI Advisory</span><div class="period">retail-actions · grounded</div></div>
+      </div>
+      <div class="cat-sel">
+        <span class="chip on">Toàn hệ thống</span><span class="chip">Television</span><span class="chip">Laptop</span><span class="chip">Smartphone</span><span class="chip">Camera</span><span class="chip">Gaming</span>
+      </div>
+      <div class="grid g-2">
+        <div class="ai">
+          <h3>🤖 Đề xuất chiến dịch giữ chân &amp; bán chéo</h3>
+          <div class="q">“Nhóm khách hàng nào nguy cơ rời bỏ cao? Nên làm gì để giữ chân?”</div>
+          <div class="action"><b>1. Win-back nhóm Standard+Silver churn Cao</b> — 2.272 KH nguy cơ Cao đang giữ <b>813 tỷ</b> doanh thu; riêng Standard+Silver là 776 tỷ. Chạy voucher tái kích hoạt 15–20% + freeship.
+            <div class="exec">Thực thi: dựng segment trên Data Cloud → journey Zalo/email/app-push qua Marketing Cloud → chấm propensity bằng Einstein.</div>
+          </div>
+          <div class="action"><b>2. Đẩy NextBestOffer theo hạng</b> — data đã gắn sẵn NBO cho từng KH (Win-back Voucher 20% cho Standard, Loyalty 2x cho Silver/Gold). Kích hoạt đúng ưu đãi cho đúng nhóm.
+            <div class="exec">Thực thi: cá nhân hoá offer bằng Einstein; phân phối qua Marketing Cloud.</div>
+          </div>
+          <div class="action"><b>3. Nâng hạng loyalty cho nhóm Silver sắp rời</b> — điểm loyalty TB 4,1K chưa quy đổi → ưu đãi đổi điểm/nâng hạng để tái mua trước mùa Tết.
+            <div class="exec">Thực thi: theo dõi tỷ lệ giữ chân trên Tableau Pulse.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Doanh thu rủi ro theo hạng thẻ (churn Cao)</h3><div class="cap">Nơi win-back mang lại giá trị lớn nhất</div>
+          <div class="rank" id="d5-risk"></div>
+          <h3 style="margin-top:16px">Mô phỏng: Win-back thu hồi 15% DT rủi ro</h3><div class="cap">Kịch bản giữ chân Standard + Silver</div>
+          <table class="matrix"><tbody>
+            <tr><td class="rl">Hiện tại</td><td class="barwrap"><div class="bar grey" style="width:100%"></div></td><td class="val m">813 tỷ rủi ro</td></tr>
+            <tr><td class="rl">Sau win-back</td><td class="barwrap"><div class="bar" style="width:86%"></div></td><td class="val">+116 tỷ thu hồi</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption-foot">Mockup dựng bằng số thật từ <code>mediamart.hyper</code> · palette đỏ #E50914 · sẽ dựng nguyên trạng trên Tableau Cloud (KPI = measure-on-rows + Text mark; ring→ranking-bar; color-by-measure sequential).</div>
+</div>
+
+<script>
+  // ── D1 months (real, tỷ) — highlight max, gold target 130 ──
+  const months=[["T7/25",83.9],["T8",105.9],["T9",95.5],["T10",96.0],["T11",174.4],["T12",137.1],["T1/26",128.5],["T2",162.0],["T3",104.2],["T4",101.8],["T5",108.0],["T6",102.3]];
+  const mmax=Math.max(...months.map(m=>m[1])), TGT=130;
+  document.getElementById('d1-months').innerHTML=months.map(([m,v])=>{
+    const w=(v/mmax*100).toFixed(0), tl=(TGT/mmax*100).toFixed(0), hot=v>=150;
+    return `<tr><td class="rl" style="width:52px;font-weight:600;color:var(--muted)">${m}</td><td class="barwrap"><div class="bar ${hot?'':'grey'}" style="width:${w}%"></div><div class="tick" style="left:${tl}%"></div></td><td class="val ${hot?'':'m'}">${v.toFixed(0)}</td></tr>`;
+  }).join('');
+
+  // ── D1 category bullet matrix (rev + margin) ──
+  const cats=[["Television",733.9,28.4],["Laptop",688.6,29.5],["Smartphone",453.4,26.6],["Camera",215.5,22.1],["Home App.",205.6,27.5],["Gaming",185.5,30.3],["Audio",129.4,27.4],["Kitchen",51.3,23.9],["Accessory",21.0,26.2]];
+  const cmax=Math.max(...cats.map(c=>c[1]));
+  document.getElementById('d1-cat').innerHTML=cats.map(([c,rev,mg])=>{
+    const rw=(rev/cmax*100).toFixed(0), mw=(mg/35*100).toFixed(0), mtick=(28/35*100).toFixed(0), top=rev>=cmax;
+    return `<tr><td class="rl">${c}</td><td class="barwrap"><div class="bar ${top?'':'grey'}" style="width:${rw}%"></div></td><td class="val ${top?'':'m'}">${rev.toFixed(0)}tỷ</td>
+      <td style="width:120px;padding-left:10px"><div class="barwrap" style="background:#EDF2F7"><div class="bar grey" style="width:${mw}%;background:#94A3B8"></div><div class="tick" style="left:${mtick}%"></div></div></td><td class="val m">${mg.toFixed(1)}%</td></tr>`;
+  }).join('');
+
+  // ── ranking helper (sequential red ramp by rank) ──
+  const RAMP=['#991B1B','#DC2626','#EF4444','#F87171','#FCA5A5'];
+  function ramp(i,n){ return RAMP[Math.min(RAMP.length-1, Math.floor(i/n*RAMP.length))]; }
+  function rankHTML(rows,unit,useRamp=true,accentTop=true){
+    const max=Math.max(...rows.map(r=>r[1]));
+    return rows.map(([lbl,v,sub],i)=>{
+      const w=(v/max*100).toFixed(0);
+      const col=useRamp?ramp(i,rows.length):(i===0&&accentTop?'var(--red)':'var(--grey)');
+      return `<div class="row"><span class="rn">${i+1}</span><span class="rlabel">${lbl}</span><div class="rb" style="width:${w}%;background:${col}"></div><span class="rv">${v}${unit?`<small> ${unit}</small>`:''}</span></div>`;
+    }).join('');
+  }
+
+  // D2 tier (KH nguy cơ Cao)
+  document.getElementById('d2-tier').innerHTML=rankHTML([["Standard",1287],["Silver",712],["Gold",221],["Platinum",42],["Diamond",10]],"KH");
+  // D2 risk revenue
+  document.getElementById('d2-risk').innerHTML=rankHTML([["Standard",485,"tỷ"],["Silver",291,"tỷ"],["Gold",37,"tỷ"],["Platinum",0,"tỷ"],["Diamond",0,"tỷ"]],"tỷ");
+  // D5 same risk
+  document.getElementById('d5-risk').innerHTML=rankHTML([["Standard",485,"tỷ"],["Silver",291,"tỷ"],["Gold",37,"tỷ"],["Platinum",0],["Diamond",0]],"tỷ");
+  // D3 oos by category
+  document.getElementById('d3-oos').innerHTML=rankHTML([["Smartphone",33],["Kitchen App.",23],["Laptop",22],["Television",20],["Audio",20],["Accessory",20],["Gaming",16],["Camera",14],["Home App.",14]],"dòng");
+  // D4 store (synthetic top stores, tỷ)
+  document.getElementById('d4-store').innerHTML=rankHTML([["MediaMart Hanoi 03",118,"tỷ"],["Hanoi 07",104,"tỷ"],["Hai Phong 12",96,"tỷ"],["Thanh Hoa 05",89,"tỷ"],["Ha Long 09",81,"tỷ"],["Bac Giang 14",74,"tỷ"]],"tỷ");
+  // D4 channels
+  document.getElementById('d4-chan').innerHTML=rankHTML([["In-Store",1477,"tỷ"],["Online",670,"tỷ"],["Mobile App",538,"tỷ"]],"tỷ",false);
+
+  // D2 heatmap churn × tier
+  const tiers=["Dia","Plat","Gold","Silv","Std"];
+  const bands=[["Cao",[10,42,221,712,1287]],["TB",[38,180,380,470,396]],["Thấp",[130,241,253,176,-36]]];
+  let h='<div></div>'+tiers.map(t=>`<div style="text-align:center;font-weight:700;color:var(--ink)">${t}</div>`).join('');
+  const allv=bands.flatMap(b=>b[1]).filter(v=>v>0), vmax=Math.max(...allv);
+  bands.forEach(([bn,vals])=>{ h+=`<div style="font-weight:700;color:var(--ink);align-self:center">${bn}</div>`+vals.map(v=>{
+    const vv=Math.max(v,0), a=(0.12+vv/vmax*0.88).toFixed(2);
+    return `<div style="aspect-ratio:2.4/1;border-radius:3px;background:rgba(229,9,20,${a});display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${vv/vmax>0.4?'#fff':'#7F1D1D'}">${vv||'·'}</div>`;
+  }).join(''); });
+  document.getElementById('d2-heat').innerHTML=h;
+
+  // D3 heatmap category × fill status
+  const dcats=["Smartphone","Kitchen","Laptop","TV","Audio","Access.","Gaming","Camera","HomeApp"];
+  const oosPct=[37,29,28,24,27,25,21,18,18];
+  document.getElementById('d3-heat').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">'+dcats.map((c,i)=>{
+    const p=oosPct[i], a=(p/40).toFixed(2);
+    return `<div style="border-radius:6px;padding:8px;background:rgba(220,38,38,${a});color:${p>26?'#fff':'#7F1D1D'};font-size:11px;font-weight:700">${c}<div style="font-size:15px">${p}% OOS</div></div>`;
+  }).join('')+'</div>';
+</script>
+</body>
+</html>
