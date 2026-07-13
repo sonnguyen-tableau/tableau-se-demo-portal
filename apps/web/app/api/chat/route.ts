@@ -202,13 +202,16 @@ export async function POST(req: Request): Promise<Response> {
           // meygroup = Salesforce next-best-action; shb = SHB banking products
           // as the headline; mediamart = retail plays as the headline. In the
           // last two, Salesforce is only the optional execution channel.
+          // acb = market-intelligence analyst (explain / talking-points / report).
           ...(ctx.tenantId === "meygroup"
             ? { advisory: "salesforce" as const }
             : ctx.tenantId === "shb"
               ? { advisory: "shb-products" as const }
               : ctx.tenantId === "mediamart"
                 ? { advisory: "retail-actions" as const }
-                : {}),
+                : ctx.tenantId === "acb"
+                  ? { advisory: "market-intelligence" as const }
+                  : {}),
         });
 
         const activeMcp = guardedMcp ?? mcp;

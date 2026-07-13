@@ -1,5 +1,29 @@
 [
   {
+    "tenantId": "acb",
+    "companyName": "Ngân hàng Á Châu (ACB)",
+    "primaryColor": "#0038A8",
+    "secondaryColor": "#00AFFF",
+    "neutralColor": "#0A1F44",
+    "sidebarTextColor": "#ffffff",
+    "fontFamily": "Inter",
+    "tone": "professional",
+    "logoUrl": "/tenants/acb-logo.png",
+    "logoLayout": "wordmark"
+  },
+  {
+    "tenantId": "vnpt",
+    "companyName": "VNPT",
+    "primaryColor": "#1265b6",
+    "secondaryColor": "#1e82c8",
+    "neutralColor": "#0b2f5e",
+    "sidebarTextColor": "#ffffff",
+    "fontFamily": "Inter",
+    "tone": "professional",
+    "logoUrl": "/tenants/vnpt-logo.png",
+    "logoLayout": "wordmark"
+  },
+  {
     "tenantId": "vincomretail",
     "companyName": "Vincom Retail",
     "primaryColor": "#e30613",

@@ -62,6 +62,20 @@ const BY_INDUSTRY: Record<string, AgentSuggestion[]> = {
     { title: "Đề xuất chiến dịch cho ngành Thủy sản", subtitle: "Campaign tài trợ vốn lưu động mùa vụ", emoji: "🎯" },
     { title: "Ngành nào còn dư địa bán chéo (cross-sell)?", subtitle: "White-space theo SP/KH và hạn mức", emoji: "🚀" },
   ],
+  // Telecom operator executive control tower (VNPT)
+  telecom: [
+    { title: "Tổng quan điều hành tháng này", subtitle: "Doanh thu, ARPU, thuê bao, churn, phủ 5G", emoji: "📊" },
+    { title: "Biến động thuê bao phát triển ròng", subtitle: "Thuê bao tăng mới trừ rời mạng theo tháng", emoji: "📶" },
+    { title: "Nguyên nhân rời mạng (churn) hàng đầu", subtitle: "Pareto lý do rời mạng và tỷ lệ ảnh hưởng", emoji: "⚠️" },
+    { title: "Doanh thu theo dịch vụ & tỉnh/thành", subtitle: "Di động, băng rộng, dịch vụ số; top tỉnh", emoji: "🗺️" },
+  ],
+  // Market intelligence for bank advisors / RMs (ACB)
+  "market-intelligence": [
+    { title: "Tổng quan thị trường tháng này", subtitle: "VN-Index, dòng vốn ngoại, vĩ mô nổi bật", emoji: "📊" },
+    { title: "Giải thích chỉ số CPI và P/E thị trường", subtitle: "Định nghĩa, giá trị mới nhất và ý nghĩa", emoji: "📖" },
+    { title: "Tạo talking points tư vấn khách hàng Ưu tiên", subtitle: "Luận điểm đầu tư theo chủ đề và phân khúc", emoji: "🎯" },
+    { title: "Soạn báo cáo thị trường tháng", subtitle: "Vĩ mô · thị trường vốn · chủ đề · khuyến nghị", emoji: "📝" },
+  ],
   // In-flight catering quality / complaint management (VACS)
   "airline-catering": [
     { title: "Tổng quan chất lượng & khiếu nại tháng này", subtitle: "Chỉ số khiếu nại (PPM), tồn đọng, phản hồi đúng hạn", emoji: "📊" },
@@ -73,6 +87,12 @@ const BY_INDUSTRY: Record<string, AgentSuggestion[]> = {
 
 // ── Exact per-tenant sets (override the industry fallback) ────────────────────
 const BY_SLUG: Record<string, AgentSuggestion[]> = {
+  acb: [
+    { title: "Tổng quan thị trường & VN-Index tháng này", subtitle: "Hiệu suất, thanh khoản, dòng vốn ngoại, định giá", emoji: "📊" },
+    { title: "Đâu là chủ đề đầu tư đáng chú ý nhất?", subtitle: "Bảng điểm chủ đề: momentum, định giá, dòng vốn", emoji: "🧭" },
+    { title: "Tạo talking points tư vấn khách hàng Ưu tiên", subtitle: "Cơ hội, rủi ro, chất xúc tác theo phân khúc KH", emoji: "🎯" },
+    { title: "Soạn báo cáo thị trường tháng cho chuyên viên", subtitle: "Vĩ mô · thị trường vốn · chủ đề · khuyến nghị", emoji: "📝" },
+  ],
   meygroup: [
     { title: "Tổng quan tình hình kinh doanh H1 2026", subtitle: "Doanh thu, số căn bán và mục tiêu", emoji: "📊" },
     { title: "Phễu chuyển đổi khách hàng Lead → Deal", subtitle: "Tỷ lệ rơi rụng qua từng giai đoạn", emoji: "🎯" },
@@ -86,6 +106,12 @@ const BY_SLUG: Record<string, AgentSuggestion[]> = {
     { title: "Cửa hàng/ngành hàng nào đang thiếu hàng (OOS)?", subtitle: "Tồn kho dưới mục tiêu campaign, cần điều chuyển", emoji: "📦" },
   ],
   vincomretail: BY_INDUSTRY["retail-mall"]!,
+  vnpt: [
+    { title: "Tổng quan quản trị điều hành 2025", subtitle: "Doanh thu, ARPU, thuê bao, churn, phủ 5G", emoji: "📊" },
+    { title: "Thuê bao phát triển ròng đang tăng hay giảm?", subtitle: "Gross adds − churn theo tháng, xu hướng", emoji: "📶" },
+    { title: "Vùng/miền nào có tỷ lệ rời mạng cao nhất?", subtitle: "Churn theo tỉnh/thành và nguyên nhân chính", emoji: "⚠️" },
+    { title: "Doanh thu theo dịch vụ: di động, băng rộng, số", subtitle: "Cơ cấu doanh thu và top tỉnh dẫn đầu", emoji: "🗺️" },
+  ],
   vacs: [
     { title: "Tổng quan chất lượng & khiếu nại 2026", subtitle: "Chỉ số khiếu nại (PPM), YoY, phản hồi đúng hạn", emoji: "📊" },
     { title: "Đâu là loại khiếu nại nhức nhối nhất?", subtitle: "Pareto 80/20 nhóm & tiểu mục khiếu nại", emoji: "🎯" },

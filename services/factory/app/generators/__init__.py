@@ -1,5 +1,6 @@
 """Per-industry synthetic data generators."""
 
+from .acb import generate_acb
 from .banking import generate_banking
 from .healthcare import generate_healthcare
 from .logistics import generate_logistics
@@ -11,8 +12,10 @@ from .retail import generate_retail
 from .shb import generate_shb
 from .vacs import generate_vacs
 from .vincommerce import generate_vincommerce
+from .vnpt import generate_vnpt
 
 __all__ = [
+    "generate_acb",
     "generate_banking",
     "generate_healthcare",
     "generate_logistics",
@@ -24,4 +27,5 @@ __all__ = [
     "generate_shb",
     "generate_vacs",
     "generate_vincommerce",
+    "generate_vnpt",
 ]

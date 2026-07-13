@@ -1,5 +1,31 @@
 [
   {
+    "id": "acb",
+    "slug": "acb",
+    "name": "ACB",
+    "industry": "market-intelligence",
+    "sourceUrl": "https://acb.com.vn/",
+    "createdAt": "2026-07-13T00:00:00.000Z",
+    "status": "active",
+    "allowedProjects": [
+      "Demo/ACB"
+    ],
+    "isDefault": false
+  },
+  {
+    "id": "vnpt",
+    "slug": "vnpt",
+    "name": "VNPT",
+    "industry": "telecom",
+    "sourceUrl": "https://vnpt.vn/",
+    "createdAt": "2026-07-10T00:00:00.000Z",
+    "status": "active",
+    "allowedProjects": [
+      "Demo/VNPT"
+    ],
+    "isDefault": false
+  },
+  {
     "id": "mediamart",
     "slug": "mediamart",
     "name": "MediaMart",

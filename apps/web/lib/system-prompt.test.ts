@@ -55,6 +55,7 @@ describe("buildSystemPrompt", () => {
     expect(s).not.toContain("Salesforce action advisory");
     expect(s).not.toContain("SHB campaign & product advisory");
     expect(s).not.toContain("Retail action advisory");
+    expect(s).not.toContain("Market Intelligence advisory");
   });
 
   it("includes the Salesforce advisory block for advisory: salesforce", () => {
@@ -105,5 +106,26 @@ describe("buildSystemPrompt", () => {
     // It must not switch on the other tenants' blocks.
     expect(s).not.toContain("Salesforce action advisory");
     expect(s).not.toContain("SHB campaign & product advisory");
+  });
+
+  it("acts as a market-intelligence analyst for advisory: market-intelligence", () => {
+    const s = buildSystemPrompt({
+      tenant: ctx,
+      toolNames: ["query-datasource"],
+      advisory: "market-intelligence",
+    });
+    expect(s).toContain("Market Intelligence advisory");
+    // The four requested capabilities must be present.
+    expect(s).toContain("EXPLAIN THE DASHBOARD");
+    expect(s).toContain("EXPLAIN A METRIC");
+    expect(s).toContain("GENERATE ADVISOR TALKING POINTS");
+    expect(s).toContain("DRAFT A MONTHLY MARKET REPORT");
+    // Grounded in the tenant's own tables; honest about mock vs live data.
+    expect(s).toContain("metric_dictionary");
+    expect(s).toContain("MockData");
+    // It must not switch on the other tenants' blocks.
+    expect(s).not.toContain("Salesforce action advisory");
+    expect(s).not.toContain("SHB campaign & product advisory");
+    expect(s).not.toContain("Retail action advisory");
   });
 });

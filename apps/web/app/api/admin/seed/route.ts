@@ -15,6 +15,24 @@ export const dynamic = "force-dynamic";
 
 const TENANTS = [
   {
+    slug: "acb",
+    name: "ACB",
+    industry: "market-intelligence",
+    sourceUrl: "https://acb.com.vn/",
+    status: "active" as const,
+    allowedProjects: ["Demo/ACB"],
+    isDefault: false,
+  },
+  {
+    slug: "vnpt",
+    name: "VNPT",
+    industry: "telecom",
+    sourceUrl: "https://vnpt.vn/",
+    status: "active" as const,
+    allowedProjects: ["Demo/VNPT"],
+    isDefault: false,
+  },
+  {
     slug: "vincomretail",
     name: "Vincom Retail",
     industry: "retail-mall",
@@ -79,6 +97,30 @@ const TENANTS = [
 ];
 
 const THEMES = [
+  {
+    tenantId: "acb",
+    companyName: "Ngân hàng Á Châu (ACB)",
+    primaryColor: "#0038A8",
+    secondaryColor: "#00AFFF",
+    neutralColor: "#0A1F44",
+    sidebarTextColor: "#ffffff",
+    fontFamily: "Inter",
+    tone: "professional" as const,
+    logoUrl: "/tenants/acb-logo.png",
+    logoLayout: "wordmark" as const,
+  },
+  {
+    tenantId: "vnpt",
+    companyName: "VNPT",
+    primaryColor: "#1265B6",
+    secondaryColor: "#1E82C8",
+    neutralColor: "#0B2F5E",
+    sidebarTextColor: "#ffffff",
+    fontFamily: "Inter",
+    tone: "professional" as const,
+    logoUrl: "/tenants/vnpt-logo.png",
+    logoLayout: "wordmark" as const,
+  },
   {
     tenantId: "vincomretail",
     companyName: "Vincom Retail",

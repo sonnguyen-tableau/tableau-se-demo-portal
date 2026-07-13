@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "market-intelligence.schema.json",
+  "title": "Market Intelligence (ACB) data contract",
+  "description": "Field-name contract for the ACB (Asia Commercial Bank) 'Market Intelligence' demo — a Vietnam macro + capital-market monitor for Priority-Banking advisors that flows Data -> Dashboard -> Insight -> Advisor Brief -> Report. Six tables: market_metrics_monthly (tidy long macro + monthly-aggregated market metrics), market_daily (granular VN-Index/turnover/foreign-flow/PE/PB), theme_summary (investment-theme heatmap scores), advisor_brief (curated opportunity/risk/catalyst briefs), metric_dictionary (definitions/units/sources), market_events (dated annotations). All rows are synthetic (MockData=1) but calibrated to real published 2024-2025 VN figures; every metric carries Source, SourceUrl, DataDate. The generator (services/factory/app/generators/acb.py) emits matching columns; workbook templates reference only fields listed here.",
+  "type": "object",
+  "required": [
+    "market_metrics_monthly",
+    "market_daily",
+    "theme_summary",
+    "advisor_brief",
+    "metric_dictionary",
+    "market_events"
+  ],
+  "properties": {
+    "market_metrics_monthly": {
+      "type": "object",
+      "description": "Tidy long — one row per (month, metric). 19 metrics x 30 months (2024-01..2026-06). ValueType in {rate_pct, level, index, ratio}. FavorableDirection in {up, down, neutral}.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "MonthId", "Month", "Year", "MonthNum", "MetricKey", "MetricName",
+              "MetricNameVi", "Category", "Value", "Unit", "ValueType",
+              "PriorMonthValue", "MoMChangePct", "PriorYearValue", "YoYChangePct",
+              "FavorableDirection", "Source", "SourceUrl", "DataDate", "MockData",
+              "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "market_daily": {
+      "type": "object",
+      "description": "Granular daily capital-market series (trading days 2024-01-02..2026-07-10). VnIndex level, day/MTD/YTD return, turnover, foreign net/buy/sell flow, market P/E and P/B.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "DailyId", "Date", "Year", "MonthNum", "VnIndex", "ChangePct",
+              "ReturnMtdPct", "ReturnYtdPct", "TurnoverVnd", "ForeignNetVnd",
+              "ForeignBuyVnd", "ForeignSellVnd", "MarketPe", "MarketPb",
+              "Source", "SourceUrl", "DataDate", "MockData", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "theme_summary": {
+      "type": "object",
+      "description": "6 investment themes scored on a market-favorability axis (-100..+100): Momentum, Valuation, Earnings, Flow sub-scores + Overall (their mean). Signal in {Favorable, Neutral, Unfavorable}. Powers the Advisor Cockpit heatmap.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ThemeId", "ThemeKey", "ThemeName", "ThemeNameVi", "MomentumScore",
+              "ValuationScore", "EarningsScore", "FlowScore", "OverallScore",
+              "TrendPct", "Signal", "SignalVi", "RationaleVi", "RationaleEn",
+              "AsOfDate", "Source", "SourceUrl", "MockData", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "advisor_brief": {
+      "type": "object",
+      "description": "Curated advisor briefs. Category in {Opportunity, Risk, Catalyst}. Conviction 1-5 (with ConvictionLabel). Each links to a theme (ThemeKey), targets an ACB customer segment, and carries a thesis + ready-to-say talking point (VI + EN).",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "BriefId", "BriefDate", "ThemeKey", "Category", "TitleVi", "TitleEn",
+              "Signal", "Conviction", "ConvictionLabel", "TargetSegment",
+              "ThesisVi", "ThesisEn", "TalkingPointVi", "TalkingPointEn",
+              "Source", "SourceUrl", "MockData", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "metric_dictionary": {
+      "type": "object",
+      "description": "One row per metric key: bilingual definition, unit, category, cadence, favorable direction, and authoritative public source. Powers the agent's 'explain metric' capability.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "DictId", "MetricKey", "MetricName", "MetricNameVi", "Category",
+              "Unit", "DefinitionVi", "DefinitionEn", "Cadence",
+              "FavorableDirection", "Source", "SourceUrl", "MockData", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "market_events": {
+      "type": "object",
+      "description": "Dated market/macro/policy/corporate events for annotating the index chart and grounding AI narrative. EventType in {Macro, Market, Policy, Rates, Corporate}. Impact in {Positive, Negative, Neutral} with a signed ImpactScore; RelatedMetric points at a MetricKey.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "EventId", "EventDate", "EventType", "Impact", "ImpactScore",
+              "RelatedMetric", "TitleVi", "TitleEn", "Source", "SourceUrl",
+              "MockData", "TenantId"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
