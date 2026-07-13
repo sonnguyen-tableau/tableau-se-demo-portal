@@ -1,5 +1,18 @@
 [
   {
+    "id": "singapore-airlines",
+    "slug": "singapore-airlines",
+    "name": "Singapore Airlines",
+    "industry": "airline-passenger",
+    "sourceUrl": "https://www.singaporeair.com/",
+    "createdAt": "2026-07-13T00:00:00.000Z",
+    "status": "active",
+    "allowedProjects": [
+      "Demo/Singapore Airlines"
+    ],
+    "isDefault": false
+  },
+  {
     "id": "acb",
     "slug": "acb",
     "name": "ACB",

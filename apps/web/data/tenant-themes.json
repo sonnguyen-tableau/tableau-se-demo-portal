@@ -1,5 +1,17 @@
 [
   {
+    "tenantId": "singapore-airlines",
+    "companyName": "Singapore Airlines",
+    "primaryColor": "#1D4886",
+    "secondaryColor": "#FCB130",
+    "neutralColor": "#12203F",
+    "sidebarTextColor": "#ffffff",
+    "fontFamily": "Inter",
+    "tone": "professional",
+    "logoUrl": "/tenants/singapore-airlines-logo.png",
+    "logoLayout": "wordmark"
+  },
+  {
     "tenantId": "acb",
     "companyName": "Ngân hàng Á Châu (ACB)",
     "primaryColor": "#0038A8",

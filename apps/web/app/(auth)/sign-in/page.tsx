@@ -183,6 +183,7 @@ export default async function SignInPage({ searchParams }: PageProps) {
               </p>
               <div className="space-y-1.5">
                 {[
+                  { email: "sia@demo.com", role: "Singapore Airlines" },
                   { email: "acb@demo.com", role: "ACB" },
                   { email: "bank@demo.com", role: "Salesforce Bank" },
                   { email: "vincom@demo.com", role: "Vincom Retail" },

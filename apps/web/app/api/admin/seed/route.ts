@@ -15,6 +15,15 @@ export const dynamic = "force-dynamic";
 
 const TENANTS = [
   {
+    slug: "singapore-airlines",
+    name: "Singapore Airlines",
+    industry: "airline-passenger",
+    sourceUrl: "https://www.singaporeair.com/",
+    status: "active" as const,
+    allowedProjects: ["Demo/Singapore Airlines"],
+    isDefault: false,
+  },
+  {
     slug: "acb",
     name: "ACB",
     industry: "market-intelligence",
@@ -97,6 +106,18 @@ const TENANTS = [
 ];
 
 const THEMES = [
+  {
+    tenantId: "singapore-airlines",
+    companyName: "Singapore Airlines",
+    primaryColor: "#1D4886",
+    secondaryColor: "#FCB130",
+    neutralColor: "#12203F",
+    sidebarTextColor: "#ffffff",
+    fontFamily: "Inter",
+    tone: "professional" as const,
+    logoUrl: "/tenants/singapore-airlines-logo.png",
+    logoLayout: "wordmark" as const,
+  },
   {
     tenantId: "acb",
     companyName: "Ngân hàng Á Châu (ACB)",

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "airline-passenger.schema.json",
+  "title": "Passenger Airline Network & Commercial Control Tower (Singapore Airlines) data contract",
+  "description": "Field-name contract for the Singapore Airlines (SIA) executive 'Network & Commercial Control Tower' demo. Pre-aggregated fact tables so every dashboard sheet is single-table (extract-workbook technique). 100% synthetic (MockData=1), calibrated to SIA published FY2024/25 GROUP figures; money in SGD; English labels. Generator (services/factory/app/generators/singaporeair.py) emits matching columns; workbook templates reference only fields listed here.",
+  "type": "object",
+  "required": [
+    "monthly_performance",
+    "region_performance",
+    "destinations",
+    "cabin_class",
+    "loyalty_krisflyer",
+    "metric_dictionary"
+  ],
+  "properties": {
+    "monthly_performance": {
+      "type": "object",
+      "description": "Month grain (Jan-2024..Dec-2025). Headline commercial KPIs with same-month prior-year values for clean YoY.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "PerfId", "Month", "Year", "MonthNum", "RevenueSgd",
+              "OperatingProfitSgd", "PassengersCarried", "LoadFactorPct",
+              "YieldCentsPerRpk", "AskMillion", "RpkMillion",
+              "CargoLoadFactorPct", "CargoRevenueSgd", "OnTimePerformancePct",
+              "PriorYearRevenueSgd", "PriorYearPassengers",
+              "PriorYearLoadFactorPct", "PriorYearYield", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "region_performance": {
+      "type": "object",
+      "description": "6 network regions × snapshot — revenue, pax, PLF, yield index, capacity share, YoY growth.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "RegionId", "Region", "RevenueSgd", "PassengersCarried",
+              "LoadFactorPct", "YieldIndex", "CapacitySharePct",
+              "GrowthYoYPct", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "destinations": {
+      "type": "object",
+      "description": "~28 SIA destinations with real Lat/Lon (for the custom-lat/lon bubble map) — pax, revenue, PLF by city.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "DestId", "City", "Iata", "Region", "Lat", "Lon",
+              "PassengersCarried", "RevenueSgd", "LoadFactorPct", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "cabin_class": {
+      "type": "object",
+      "description": "5 cabin classes (Suites/First/Business/Premium Economy/Economy) — revenue mix, seat share, yield index, load factor.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "CabinId", "CabinClass", "RevenueSgd", "PassengersCarried",
+              "RevenueSharePct", "SeatSharePct", "YieldIndex",
+              "LoadFactorPct", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "loyalty_krisflyer": {
+      "type": "object",
+      "description": "Month grain — KrisFlyer total members, net adds, tier mix (base/silver/gold/PPS), redemptions, ancillary revenue.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "LoyaltyId", "Month", "Year", "MonthNum", "TotalMembers",
+              "NetNewMembers", "BaseMembers", "SilverMembers", "GoldMembers",
+              "PpsMembers", "Redemptions", "AncillaryRevenueSgd", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "metric_dictionary": {
+      "type": "object",
+      "description": "One row per metric: definition, unit, cadence, favorable direction, source. Powers the agent's 'explain metric' capability.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "DictId", "MetricKey", "MetricName", "Unit", "Cadence",
+              "Definition", "FavorableDirection", "Source", "SourceUrl",
+              "MockData", "TenantId"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

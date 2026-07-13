@@ -69,6 +69,13 @@ const BY_INDUSTRY: Record<string, AgentSuggestion[]> = {
     { title: "Nguyên nhân rời mạng (churn) hàng đầu", subtitle: "Pareto lý do rời mạng và tỷ lệ ảnh hưởng", emoji: "⚠️" },
     { title: "Doanh thu theo dịch vụ & tỉnh/thành", subtitle: "Di động, băng rộng, dịch vụ số; top tỉnh", emoji: "🗺️" },
   ],
+  // Full-service passenger airline network & commercial control tower (Singapore Airlines)
+  "airline-passenger": [
+    { title: "How is the network performing this year?", subtitle: "Revenue, load factor, yield, capacity vs last year", emoji: "📊" },
+    { title: "Which regions and routes are strongest?", subtitle: "Revenue, load factor and growth by region", emoji: "🗺️" },
+    { title: "Explain passenger load factor and yield", subtitle: "What the metrics mean and where they're heading", emoji: "📖" },
+    { title: "Where should we adjust capacity or push premium?", subtitle: "Commercial next-best-actions grounded in the data", emoji: "🎯" },
+  ],
   // Market intelligence for bank advisors / RMs (ACB)
   "market-intelligence": [
     { title: "Tổng quan thị trường tháng này", subtitle: "VN-Index, dòng vốn ngoại, vĩ mô nổi bật", emoji: "📊" },
@@ -87,6 +94,12 @@ const BY_INDUSTRY: Record<string, AgentSuggestion[]> = {
 
 // ── Exact per-tenant sets (override the industry fallback) ────────────────────
 const BY_SLUG: Record<string, AgentSuggestion[]> = {
+  "singapore-airlines": [
+    { title: "How is Singapore Airlines performing this year?", subtitle: "Revenue, load factor, yield, capacity vs FY2024", emoji: "📊" },
+    { title: "Which regions and destinations lead the network?", subtitle: "Revenue, load factor and YoY growth by region", emoji: "🗺️" },
+    { title: "Explain passenger load factor, yield and ASK", subtitle: "What the airline metrics mean, with the latest read", emoji: "📖" },
+    { title: "Where should we add capacity or push premium cabins?", subtitle: "Commercial next-best-actions grounded in the data", emoji: "🎯" },
+  ],
   acb: [
     { title: "Tổng quan thị trường & VN-Index tháng này", subtitle: "Hiệu suất, thanh khoản, dòng vốn ngoại, định giá", emoji: "📊" },
     { title: "Đâu là chủ đề đầu tư đáng chú ý nhất?", subtitle: "Bảng điểm chủ đề: momentum, định giá, dòng vốn", emoji: "🧭" },

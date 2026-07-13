@@ -46,6 +46,7 @@ const INDUSTRY_ICON: Record<string, string> = {
   "manufacturing": "🏭",
   "telco": "📡",
   "market-intelligence": "📈",
+  "airline-passenger": "✈️",
 };
 
 function industryIcon(industry: string | undefined) {

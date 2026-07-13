@@ -10,6 +10,7 @@ from .meygroup import generate_meygroup
 from .nam_a_bank import generate_nam_a_bank
 from .retail import generate_retail
 from .shb import generate_shb
+from .singaporeair import generate_singaporeair
 from .vacs import generate_vacs
 from .vincommerce import generate_vincommerce
 from .vnpt import generate_vnpt
@@ -25,6 +26,7 @@ __all__ = [
     "generate_nam_a_bank",
     "generate_retail",
     "generate_shb",
+    "generate_singaporeair",
     "generate_vacs",
     "generate_vincommerce",
     "generate_vnpt",

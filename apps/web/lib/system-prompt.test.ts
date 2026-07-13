@@ -56,6 +56,7 @@ describe("buildSystemPrompt", () => {
     expect(s).not.toContain("SHB campaign & product advisory");
     expect(s).not.toContain("Retail action advisory");
     expect(s).not.toContain("Market Intelligence advisory");
+    expect(s).not.toContain("Airline network & commercial advisory");
   });
 
   it("includes the Salesforce advisory block for advisory: salesforce", () => {
@@ -127,5 +128,25 @@ describe("buildSystemPrompt", () => {
     expect(s).not.toContain("Salesforce action advisory");
     expect(s).not.toContain("SHB campaign & product advisory");
     expect(s).not.toContain("Retail action advisory");
+  });
+
+  it("acts as an airline commercial analyst for advisory: airline-commercial", () => {
+    const s = buildSystemPrompt({
+      tenant: ctx,
+      toolNames: ["query-datasource"],
+      advisory: "airline-commercial",
+    });
+    expect(s).toContain("Airline network & commercial advisory");
+    // Capabilities present.
+    expect(s).toContain("EXPLAIN THE DASHBOARD");
+    expect(s).toContain("EXPLAIN A METRIC");
+    expect(s).toContain("RECOMMEND COMMERCIAL / NETWORK ACTIONS");
+    // Airline-specific grounding + the yield-pressure narrative.
+    expect(s).toContain("load factor");
+    expect(s).toContain("region_performance");
+    expect(s).toContain("MockData");
+    // It must not switch on the other tenants' blocks.
+    expect(s).not.toContain("Salesforce action advisory");
+    expect(s).not.toContain("Market Intelligence advisory");
   });
 });
