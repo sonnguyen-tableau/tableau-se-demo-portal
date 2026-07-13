@@ -7,6 +7,9 @@ import { getTenant } from "@/lib/tenants";
 import { getRecentViews, getPopularViews } from "@/lib/view-history";
 import { getPulseConfig } from "@/lib/pulse";
 import { PulseSection } from "@/components/embed/PulseSection";
+import { getT, type Locale, type MessageKey } from "@/lib/i18n";
+
+type T = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -17,6 +20,7 @@ export default async function TenantHome({ params }: PageProps) {
   const ctx = tenantFromSession(session);
   const { tenantSlug } = await params;
   const email = session?.user?.email ?? "";
+  const { locale, t } = await getT();
 
   const tenantRecord = await getTenant(tenantSlug);
   const [impressions, catalog, recentViews, popularRaw] = await Promise.all([
@@ -69,11 +73,11 @@ export default async function TenantHome({ params }: PageProps) {
               {ctx?.tenantName ?? tenantSlug}
             </p>
             <h1 className="mt-2 text-h1 font-bold leading-tight text-white">
-              Chào mừng trở lại
+              {t("th.welcome")}
               <span className="ml-2 inline-block animate-[fade-in_400ms_ease-out]">👋</span>
             </h1>
             <p className="mt-2 text-body-lg text-white/75 leading-relaxed">
-              Khám phá dashboards hoặc hỏi AI Agent để nhận phân tích tức thì.
+              {t("th.subtitle")}
             </p>
 
             <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -84,7 +88,7 @@ export default async function TenantHome({ params }: PageProps) {
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                Xem Dashboards
+                {t("th.viewDashboards")}
               </Link>
               <Link
                 href={`/t/${tenantSlug}/agent`}
@@ -93,7 +97,7 @@ export default async function TenantHome({ params }: PageProps) {
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.091 3.091z" />
                 </svg>
-                Hỏi AI Agent
+                {t("th.askAgent")}
               </Link>
             </div>
           </div>
@@ -101,12 +105,12 @@ export default async function TenantHome({ params }: PageProps) {
           {impressions && (
             <div className="rounded-xl border border-white/[0.12] bg-white/[0.06] px-4 py-3 backdrop-blur-md min-w-[220px]">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-meta font-semibold uppercase tracking-[0.14em] text-sf-blue-40">Lượt xem hôm nay</span>
+                <span className="text-meta font-semibold uppercase tracking-[0.14em] text-sf-blue-40">{t("th.viewsToday")}</span>
                 <span className="flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" aria-hidden="true" />
               </div>
               <div className="mt-2 flex items-baseline gap-1.5 text-white">
-                <span className="text-h2 font-bold">{impressions.used.toLocaleString("vi-VN")}</span>
-                <span className="text-body-sm text-white/60">/ {impressions.cap.toLocaleString("vi-VN")}</span>
+                <span className="text-h2 font-bold">{impressions.used.toLocaleString(locale)}</span>
+                <span className="text-body-sm text-white/60">/ {impressions.cap.toLocaleString(locale)}</span>
               </div>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                 <div
@@ -122,20 +126,24 @@ export default async function TenantHome({ params }: PageProps) {
       {/* ── KPI tiles ──────────────────────────────────────────────────── */}
       <section className="grid gap-4 sm:grid-cols-3">
         <KpiTile
-          label="Tổng workbooks"
+          label={t("th.totalWorkbooks")}
           value={workbookCount}
-          sub={`${catalog.dashboards.length} views`}
+          sub={`${catalog.dashboards.length} ${t("th.viewsWord")}`}
           tone="brand"
+          locale={locale}
+          viewLabel={t("th.view")}
           href={`/t/${tenantSlug}/dashboards`}
           icon={
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7zm10-2h4a2 2 0 012 2v10a2 2 0 01-2 2h-4a2 2 0 01-2-2V7a2 2 0 012-2z" />
           }
         />
         <KpiTile
-          label="Lượt xem đã dùng"
+          label={t("th.viewsUsed")}
           value={impressions?.used ?? 0}
-          sub="hôm nay"
+          sub={t("th.today")}
           tone="emerald"
+          locale={locale}
+          viewLabel={t("th.view")}
           icon={
             <>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -144,10 +152,12 @@ export default async function TenantHome({ params }: PageProps) {
           }
         />
         <KpiTile
-          label="Hạn mức ngày"
+          label={t("th.dailyQuota")}
           value={impressions?.cap ?? 2000}
-          sub="reset lúc 00:00 UTC"
+          sub={t("th.quotaReset")}
           tone="neutral"
+          locale={locale}
+          viewLabel={t("th.view")}
           icon={
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           }
@@ -157,7 +167,7 @@ export default async function TenantHome({ params }: PageProps) {
       {/* ── Tableau Pulse metrics ──────────────────────────────────────── */}
       {pulseConfig && pulseConfig.metrics.length > 0 && (
         <section>
-          <SectionHeader title="Chỉ số Pulse" />
+          <SectionHeader title={t("th.pulseMetrics")} t={t} />
           <PulseSection metrics={pulseConfig.metrics} />
         </section>
       )}
@@ -165,7 +175,8 @@ export default async function TenantHome({ params }: PageProps) {
       {/* ── Recent views ───────────────────────────────────────────────── */}
       <section>
         <SectionHeader
-          title="Vừa xem gần đây"
+          title={t("th.recentlyViewed")}
+          t={t}
           {...(recentViews.length > 0 ? { actionHref: `/t/${tenantSlug}/dashboards` } : {})}
         />
         {recentViews.length === 0 ? (
@@ -175,7 +186,7 @@ export default async function TenantHome({ params }: PageProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
               </svg>
             </span>
-            Bạn chưa xem report nào — hãy mở một dashboard để bắt đầu.
+            {t("th.noRecentViews")}
           </div>
         ) : (
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x">
@@ -198,7 +209,7 @@ export default async function TenantHome({ params }: PageProps) {
                 <p className="line-clamp-2 text-body-sm font-semibold leading-snug text-sf-neutral-9">{v.viewName}</p>
                 <p className="mt-1 truncate text-caption text-sf-neutral-6">{v.workbookName}</p>
                 <p className="mt-auto pt-3 text-meta text-sf-neutral-5">
-                  {new Date(v.viewedAt).toLocaleDateString("vi-VN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  {new Date(v.viewedAt).toLocaleDateString(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                 </p>
               </Link>
             ))}
@@ -209,7 +220,8 @@ export default async function TenantHome({ params }: PageProps) {
       {/* ── Popular / Featured ─────────────────────────────────────────── */}
       <section>
         <SectionHeader
-          title={popular.length > 0 ? "Dashboard xem nhiều nhất" : "Dashboard nổi bật"}
+          title={popular.length > 0 ? t("th.mostViewed") : t("th.featured")}
+          t={t}
           actionHref={`/t/${tenantSlug}/dashboards`}
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -248,7 +260,7 @@ export default async function TenantHome({ params }: PageProps) {
 
 // ── Local presentational helpers ─────────────────────────────────────────────
 
-function SectionHeader({ title, actionHref }: { title: string; actionHref?: string }) {
+function SectionHeader({ title, actionHref, t }: { title: string; actionHref?: string; t: T }) {
   return (
     <div className="mb-3 flex items-center justify-between">
       <h2 className="text-h3 font-semibold text-sf-neutral-9">{title}</h2>
@@ -257,7 +269,7 @@ function SectionHeader({ title, actionHref }: { title: string; actionHref?: stri
           href={actionHref}
           className="inline-flex items-center gap-1 text-body-sm font-medium text-brand transition-colors hover:text-sf-blue-80"
         >
-          Xem tất cả
+          {t("th.viewAll")}
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
@@ -278,6 +290,8 @@ function KpiTile({
   value,
   sub,
   tone,
+  locale,
+  viewLabel,
   href,
   icon,
 }: {
@@ -285,6 +299,8 @@ function KpiTile({
   value: number;
   sub: string;
   tone: keyof typeof TONE_STYLES;
+  locale: Locale;
+  viewLabel: string;
   href?: string;
   icon: React.ReactNode;
 }) {
@@ -298,14 +314,14 @@ function KpiTile({
         </div>
         {href && (
           <span className="inline-flex items-center gap-0.5 text-meta font-medium text-sf-neutral-5 transition-colors group-hover:text-brand">
-            Xem
+            {viewLabel}
             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </span>
         )}
       </div>
-      <p className="mt-3 text-h2 font-bold leading-none text-sf-neutral-9 tabular-nums">{value.toLocaleString("vi-VN")}</p>
+      <p className="mt-3 text-h2 font-bold leading-none text-sf-neutral-9 tabular-nums">{value.toLocaleString(locale)}</p>
       <p className="mt-1.5 text-body-sm font-medium text-sf-neutral-7">{label}</p>
       <p className="text-meta text-sf-neutral-5">{sub}</p>
     </div>
