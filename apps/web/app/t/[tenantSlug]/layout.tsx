@@ -14,6 +14,8 @@ import { NavLabel, NavLink } from "@/components/layout/SidebarNav";
 import { SearchTrigger } from "@/components/layout/SearchTrigger";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { UserMenu } from "@/components/layout/UserMenu";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { getT } from "@/lib/i18n";
 
 interface LayoutProps {
   children: ReactNode;
@@ -26,12 +28,13 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
 
   const { tenantSlug } = await params;
   const ctx = tenantFromSession(session);
+  const { locale, t } = await getT();
   if (!canAccessTenant(ctx, tenantSlug)) {
     return (
       <main className="mx-auto max-w-xl px-6 py-16">
-        <h1 className="text-h2 font-semibold">Không có quyền truy cập</h1>
+        <h1 className="text-h2 font-semibold">{t("nav.noAccessTitle")}</h1>
         <p className="mt-2 text-body-sm text-sf-neutral-6">
-          Bạn không có quyền truy cập vào <code className="font-mono">{tenantSlug}</code>.
+          {t("nav.noAccessBody", { slug: tenantSlug })}
         </p>
       </main>
     );
@@ -83,7 +86,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
               />
             </div>
             <span className="px-1 text-meta font-medium uppercase tracking-[0.16em]" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 50%, transparent)" }}>
-              Analytics Portal
+              {t("common.analyticsPortal")}
             </span>
           </div>
         ) : (
@@ -103,7 +106,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
             <div className="flex flex-col leading-tight min-w-0">
               <span className="text-body-sm font-bold truncate" style={{ color: "var(--sidebar-text, #fff)" }}>{theme.companyName}</span>
               <span className="text-meta font-medium uppercase tracking-[0.16em]" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 50%, transparent)" }}>
-                {tenantSlug === "vincomretail" ? "Retail Intelligence" : "Analytics Portal"}
+                {tenantSlug === "vincomretail" ? "Retail Intelligence" : t("common.analyticsPortal")}
               </span>
             </div>
           </div>
@@ -111,27 +114,27 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
 
         {/* Tenant badge */}
         <div className="mx-4 mt-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5 backdrop-blur-sm">
-          <p className="text-meta font-semibold uppercase tracking-[0.14em]" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 50%, transparent)" }}>Workspace</p>
+          <p className="text-meta font-semibold uppercase tracking-[0.14em]" style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 50%, transparent)" }}>{t("nav.workspace")}</p>
           <p className="mt-0.5 text-body-sm font-semibold truncate" style={{ color: "var(--sidebar-text, #fff)" }}>{tenantName}</p>
         </div>
 
         {/* Nav */}
         <nav className="mt-5 flex flex-col flex-1 min-h-0 px-3">
           <div className="space-y-1">
-            <NavLabel>Phân tích</NavLabel>
+            <NavLabel>{t("nav.sectionAnalytics")}</NavLabel>
             <NavLink href={`/t/${tenantSlug}`} exact icon={
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            }>Trang chủ</NavLink>
+            }>{t("nav.home")}</NavLink>
             <NavLink href={`/t/${tenantSlug}/dashboards`} icon={
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            }>Tất cả Dashboards</NavLink>
+            }>{t("nav.allDashboards")}</NavLink>
           </div>
 
           {/* Project tree — scrollable */}
           {catalog.projects.length > 0 && (
             <>
               <div className="my-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-              <NavLabel>Dự án</NavLabel>
+              <NavLabel>{t("nav.sectionProjects")}</NavLabel>
               <div className="flex-1 overflow-y-auto min-h-0 -mx-1 px-1">
                 <ProjectTree
                   projects={catalog.projects}
@@ -144,28 +147,28 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
 
           {/* AI section */}
           <div className="mt-3 pt-3 space-y-1 border-t border-white/[0.06]">
-            <NavLabel>AI</NavLabel>
+            <NavLabel>{t("nav.sectionAi")}</NavLabel>
             <NavLink href={`/t/${tenantSlug}/agent`} badge="Beta" icon={
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.091 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-            }>AI Agent</NavLink>
+            }>{t("nav.aiAgent")}</NavLink>
           </div>
 
           {/* Admin — internal only */}
           {ctx?.isInternal && (
             <div className="mt-3 pt-3 space-y-1 border-t border-white/[0.06]">
-              <NavLabel>Admin</NavLabel>
+              <NavLabel>{t("nav.sectionAdmin")}</NavLabel>
               <NavLink href={`/t/${tenantSlug}/admin/users`} icon={
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-              }>Quản lý người dùng</NavLink>
+              }>{t("nav.manageUsers")}</NavLink>
               <NavLink href={`/t/${tenantSlug}/admin`} exact icon={
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              }>Cấu hình catalog</NavLink>
+              }>{t("nav.catalogConfig")}</NavLink>
               <NavLink href={`/t/${tenantSlug}/admin/theme`} icon={
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              }>Tuỳ chỉnh giao diện</NavLink>
+              }>{t("nav.themeConfig")}</NavLink>
               <NavLink href="/admin/tenants" icon={
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" />
-              }>Tenants &amp; Sites</NavLink>
+              }>{t("nav.tenantsSites")}</NavLink>
             </div>
           )}
         </nav>
@@ -189,7 +192,13 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
             <div className="hidden md:block w-80">
               <SearchTrigger />
             </div>
-            <UserMenu email={userEmail} signOut={handleSignOut} />
+            <LanguageToggle locale={locale} variant="dark" />
+            <UserMenu
+              email={userEmail}
+              signOut={handleSignOut}
+              signedInAsLabel={t("common.signedInAs")}
+              signOutLabel={t("common.signOut")}
+            />
           </div>
         </header>
 
@@ -199,7 +208,15 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
             {tenantSlug === "vincomretail" ? <VincomRetailIcon size={26} /> : <SalesforceBankIcon size={26} />}
             <span className="text-body-sm font-semibold text-sf-neutral-9">{tenantName}</span>
           </div>
-          <UserMenu email={userEmail} signOut={handleSignOut} />
+          <div className="flex items-center gap-2">
+            <LanguageToggle locale={locale} variant="dark" />
+            <UserMenu
+              email={userEmail}
+              signOut={handleSignOut}
+              signedInAsLabel={t("common.signedInAs")}
+              signOutLabel={t("common.signOut")}
+            />
+          </div>
         </header>
 
         <main className="flex-1 overflow-auto min-h-0 flex flex-col bg-sf-neutral-2">

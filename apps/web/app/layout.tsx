@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { getLocale } from "@/lib/i18n";
 import "./globals.css";
 
 const sans = Inter({
@@ -23,9 +24,10 @@ export const metadata: Metadata = {
     "Multi-tenant embedded Tableau analytics with a Claude-powered Self-Service Analytics agent.",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${sans.variable} ${mono.variable}`}>
       <body className="min-h-dvh bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-sans antialiased">
         {children}
       </body>
