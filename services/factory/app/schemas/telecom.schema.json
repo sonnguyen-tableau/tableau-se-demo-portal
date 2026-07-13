@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "telecom.schema.json",
+  "title": "Telecom Operator Executive Control-Tower (VNPT) data contract",
+  "description": "Field-name contract for the VNPT (Vietnam Posts & Telecommunications) telecom executive 'quản trị điều hành' demo. Pre-aggregated fact tables so every dashboard sheet is single-table (extract-workbook technique). Generator emits matching columns; workbook templates reference only fields listed here.",
+  "type": "object",
+  "required": [
+    "Services",
+    "Provinces",
+    "MonthlyTotals",
+    "MonthlyService",
+    "ProvinceSummary",
+    "ChurnReasons"
+  ],
+  "properties": {
+    "Services": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ServiceId", "ServiceName", "IsSubscriberLine", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "Provinces": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ProvinceId", "Province", "Region", "Lat", "Lon", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "MonthlyTotals": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "TotalsId", "Month", "Year", "MonthNum", "RevenueVnd",
+              "EbitdaVnd", "PretaxProfitVnd", "TotalSubscribers", "GrossAdds",
+              "Churned", "NetAdds", "ChurnRatePct", "Arpu", "FiveGSubs",
+              "DataTrafficPb", "PriorYearRevenueVnd", "PriorYearSubscribers",
+              "PriorYearNetAdds", "PriorYearArpu", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "MonthlyService": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ServiceMonthId", "Month", "Year", "MonthNum", "ServiceName",
+              "RevenueVnd", "Subscribers", "GrowthYoYPct", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "ProvinceSummary": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ProvinceSummaryId", "Province", "Region", "Lat", "Lon",
+              "RevenueVnd", "Subscribers", "ChurnRatePct", "FiveGCoveragePct",
+              "MarketSharePct", "GrowthYoYPct", "TenantId"
+            ]
+          }
+        }
+      }
+    },
+    "ChurnReasons": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ChurnReasonId", "Reason", "ChurnedCount", "SharePct", "TenantId"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

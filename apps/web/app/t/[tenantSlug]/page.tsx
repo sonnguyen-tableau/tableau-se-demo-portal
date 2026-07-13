@@ -5,6 +5,8 @@ import { getImpressionStatus } from "@/lib/billing";
 import { getLiveCatalog } from "@/lib/tableau-rest";
 import { getTenant } from "@/lib/tenants";
 import { getRecentViews, getPopularViews } from "@/lib/view-history";
+import { getPulseConfig } from "@/lib/pulse";
+import { PulseSection } from "@/components/embed/PulseSection";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string }>;
@@ -42,6 +44,8 @@ export default async function TenantHome({ params }: PageProps) {
 
   const workbookCount = new Set(catalog.dashboards.map((d) => d.workbookId)).size;
   const usedPct = impressions ? Math.min(100, Math.round((impressions.used / Math.max(1, impressions.cap)) * 100)) : 0;
+
+  const pulseConfig = ctx ? getPulseConfig(ctx.tenantId) : null;
 
   return (
     <div className="space-y-7 animate-fade-in">
@@ -149,6 +153,14 @@ export default async function TenantHome({ params }: PageProps) {
           }
         />
       </section>
+
+      {/* ── Tableau Pulse metrics ──────────────────────────────────────── */}
+      {pulseConfig && pulseConfig.metrics.length > 0 && (
+        <section>
+          <SectionHeader title="Chỉ số Pulse" />
+          <PulseSection metrics={pulseConfig.metrics} />
+        </section>
+      )}
 
       {/* ── Recent views ───────────────────────────────────────────────── */}
       <section>

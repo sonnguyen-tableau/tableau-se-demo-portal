@@ -18,9 +18,23 @@ export interface TenantPulseConfig {
   metrics: PulseMetric[];
 }
 
-// Pulse metrics are provisioned by the Factory (Phase 9+).
-// Empty catalog disables the Pulse section until real metric IDs are available.
-const CATALOG: Record<string, TenantPulseConfig> = {};
+// Pulse metrics are provisioned by the Factory / per-tenant scripts. Metric IDs
+// are the Pulse "metric" LUIDs (the default metric of each definition), not the
+// definition IDs. MediaMart metrics live on the dedicated single-table
+// `mediamart-pulse` datasource (SalesFact + metadata-records — the plain
+// `mediamart` extract has 0 Catalog-indexed fields so Pulse can't resolve it).
+// See services/factory/scripts/mediamart/pulse_provision.py.
+const CATALOG: Record<string, TenantPulseConfig> = {
+  mediamart: {
+    tenantId: "mediamart",
+    metrics: [
+      { id: "doanh-thu", name: "Doanh thu", metricId: "cac58f42-5025-4d19-a453-d515fd0f7440" },
+      { id: "loi-nhuan-gop", name: "Lợi nhuận gộp", metricId: "932c5f14-1c2d-46b2-8d29-723c2ea9864e" },
+      { id: "so-don-hang", name: "Số đơn hàng", metricId: "d16ad304-6e5b-40e4-a8a4-f2cf4755bfce" },
+      { id: "san-luong-ban", name: "Sản lượng bán", metricId: "6a5ed178-4adb-4fc9-b839-0a14f43bb6d7" },
+    ],
+  },
+};
 
 export function getPulseConfig(tenantId: string): TenantPulseConfig | null {
   return CATALOG[tenantId] ?? null;
