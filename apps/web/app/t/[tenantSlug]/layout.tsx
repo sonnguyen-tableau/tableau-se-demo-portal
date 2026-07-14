@@ -190,7 +190,7 @@ export default async function TenantLayout({ children, params }: LayoutProps) {
           <Breadcrumb tenantSlug={tenantSlug} tenantName={tenantName} />
           <div className="ml-auto flex items-center gap-3">
             <div className="hidden md:block w-80">
-              <SearchTrigger />
+              <SearchTrigger locale={locale} />
             </div>
             <LanguageToggle locale={locale} variant="dark" />
             <UserMenu

@@ -16,6 +16,7 @@ import { ChatPanel } from "@/components/chat/ChatPanel";
 import { VizContextProvider } from "@/components/bridge/VizContextProvider";
 import { recordView } from "@/lib/view-history";
 import { ChatPanelWrapper, ChatPanelToggle } from "@/components/layout/ChatPanelToggle";
+import { getLocale } from "@/lib/i18n";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string; workbookSlug: string; viewSlug: string }>;
@@ -28,6 +29,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   if (!ctx) notFound();
 
   const { tenantSlug, workbookSlug, viewSlug } = await params;
+  const locale = await getLocale();
 
   const tenantRecord = await getTenant(tenantSlug);
   const catalog = await getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects);
@@ -153,6 +155,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
               src={src}
               initialToken={token}
               height="100%"
+              locale={locale}
               viewMeta={{
                 workbookSlug,
                 viewSlug,
@@ -165,6 +168,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
           {/* Chat panel — collapsible */}
           <ChatPanelWrapper>
             <ChatPanel
+              locale={locale}
               suggestions={getAgentSuggestions({
                 slug: tenantSlug,
                 industry: tenantRecord?.industry,

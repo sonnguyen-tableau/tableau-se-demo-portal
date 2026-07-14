@@ -2,11 +2,13 @@
 
 import { type ReactElement, useCallback, useEffect, useRef, useState } from "react";
 import { useVizContext, type VizAction, type VizActionResult } from "@/components/bridge/VizContextProvider";
+import { translator, DEFAULT_LOCALE, type Locale } from "@/lib/i18n-shared";
 
 interface Props {
   src: string;
   initialToken: string;
   height?: string;
+  locale?: Locale;
   viewMeta?: {
     workbookSlug: string;
     viewSlug: string;
@@ -62,7 +64,8 @@ function readMarkRows(marksRoot: AnyRecord | null, cap: number): Array<Record<st
   return out;
 }
 
-export function TableauVizShell({ src, initialToken, height = "700px", viewMeta }: Props): ReactElement {
+export function TableauVizShell({ src, initialToken, height = "700px", locale = DEFAULT_LOCALE, viewMeta }: Props): ReactElement {
+  const t = translator(locale);
   const containerRef = useRef<HTMLDivElement>(null);
   const vizRef = useRef<AnyRecord | null>(null);
   const { update, snapshot, registerVizExecutor } = useVizContext();
@@ -261,23 +264,23 @@ export function TableauVizShell({ src, initialToken, height = "700px", viewMeta 
       {loading && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-          <p className="text-sm text-slate-500">Đang tải dashboard…</p>
+          <p className="text-sm text-slate-500">{t("embed.loading")}</p>
         </div>
       )}
       {error && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white p-8">
           <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-center max-w-md w-full">
-            <p className="text-sm font-semibold text-red-800 mb-1">Lỗi tải dashboard</p>
+            <p className="text-sm font-semibold text-red-800 mb-1">{t("embed.errorTitle")}</p>
             <p className="text-xs text-red-600 font-mono break-all">{error}</p>
             <button
               onClick={() => { setError(null); setLoading(true); void refetchToken(); }}
               className="mt-3 rounded-lg bg-red-100 px-4 py-1.5 text-xs font-medium text-red-800 hover:bg-red-200 transition-colors"
             >
-              Thử lại
+              {t("embed.retry")}
             </button>
           </div>
           <p className="text-xs text-slate-400 max-w-sm text-center">
-            Nếu là lỗi xác thực, kiểm tra <code>localhost:3000</code> đã được thêm vào danh sách domain của Connected App trên Tableau Cloud chưa.
+            {t("embed.authHint")}
           </p>
         </div>
       )}

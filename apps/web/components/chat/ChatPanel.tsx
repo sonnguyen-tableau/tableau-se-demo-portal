@@ -8,6 +8,7 @@ import {
 } from "@/components/bridge/VizContextProvider";
 import { VegaChart } from "@/components/chart/VegaChart";
 import { TableauPulseCard } from "@/components/embed/TableauPulseCard";
+import { translator, DEFAULT_LOCALE, type Locale } from "@/lib/i18n-shared";
 
 type RawEvent =
   | { type: "open"; tools: string[] }
@@ -42,13 +43,15 @@ interface Message {
   richBlocks?: RichBlock[];
 }
 
-const DEFAULT_SUGGESTIONS = [
-  "Những hạng mục nổi bật nhất kỳ vừa rồi?",
-  "Có biến động nào bất thường không?",
-  "Tóm tắt view này trong 3 ý chính.",
-];
-
-export function ChatPanel({ suggestions }: { suggestions?: string[] }): ReactElement {
+export function ChatPanel({
+  suggestions,
+  locale = DEFAULT_LOCALE,
+}: {
+  suggestions?: string[];
+  locale?: Locale;
+}): ReactElement {
+  const t = translator(locale);
+  const DEFAULT_SUGGESTIONS = [t("chat.suggest1"), t("chat.suggest2"), t("chat.suggest3")];
   const { snapshot, applyVizAction } = useVizContext();
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
@@ -209,17 +212,17 @@ export function ChatPanel({ suggestions }: { suggestions?: string[] }): ReactEle
           <h3 className="text-body-sm font-semibold text-sf-neutral-9 leading-tight">AI Analytics</h3>
           <p className="text-meta text-sf-neutral-6 truncate">
             {tools === null
-              ? "Đang kết nối…"
+              ? t("chat.connecting")
               : tools.length === 0
-                ? "Chế độ chung — không có công cụ Tableau MCP"
-                : `${tools.length} công cụ Tableau sẵn sàng`}
+                ? t("chat.generalMode")
+                : t("chat.toolsReady", { count: tools.length })}
           </p>
         </div>
       </header>
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4 text-body-sm">
         {messages.length === 0 ? (
           <div className="space-y-3">
-            <p className="text-body-sm text-sf-neutral-6">Đặt câu hỏi về dashboard của bạn:</p>
+            <p className="text-body-sm text-sf-neutral-6">{t("chat.askAboutDashboard")}</p>
             <div className="space-y-1.5">
               {SUGGESTIONS.map((s) => (
                 <button
@@ -237,7 +240,7 @@ export function ChatPanel({ suggestions }: { suggestions?: string[] }): ReactEle
             </div>
           </div>
         ) : (
-          messages.map((m, i) => <MessageView key={i} message={m} pulseConfig={pulseConfig} />)
+          messages.map((m, i) => <MessageView key={i} message={m} pulseConfig={pulseConfig} locale={locale} />)
         )}
         <div ref={endRef} />
       </div>
@@ -246,7 +249,7 @@ export function ChatPanel({ suggestions }: { suggestions?: string[] }): ReactEle
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={busy ? "Đang xử lý…" : "Hỏi AI agent…"}
+            placeholder={busy ? t("chat.processing") : t("chat.inputPlaceholder")}
             disabled={busy}
             className="flex-1 bg-transparent px-1.5 py-1.5 text-body-sm text-sf-neutral-9 outline-none placeholder:text-sf-neutral-5 disabled:opacity-50"
           />
@@ -254,7 +257,7 @@ export function ChatPanel({ suggestions }: { suggestions?: string[] }): ReactEle
             type="submit"
             disabled={busy || draft.trim().length === 0}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sf-blue-60 to-sf-blue-70 text-white shadow-elev-1 transition-all duration-base ease-smooth hover:shadow-glow-brand active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
-            aria-label="Gửi"
+            aria-label={t("chat.send")}
           >
             {busy ? (
               <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -276,9 +279,11 @@ export function ChatPanel({ suggestions }: { suggestions?: string[] }): ReactEle
 function MessageView({
   message,
   pulseConfig,
+  locale = DEFAULT_LOCALE,
 }: {
   message: Message;
   pulseConfig: PulseEmbedConfig | null;
+  locale?: Locale;
 }): ReactElement {
   if (message.role === "user") {
     return (
@@ -319,7 +324,7 @@ function MessageView({
         </div>
       ))}
       {message.richBlocks?.map((block, i) => (
-        <RichBlockView key={i} block={block} pulseConfig={pulseConfig} />
+        <RichBlockView key={i} block={block} pulseConfig={pulseConfig} locale={locale} />
       ))}
       {message.content ? (
         <div className="whitespace-pre-wrap text-body-sm leading-relaxed text-sf-neutral-8">{message.content}</div>
@@ -333,15 +338,18 @@ const MAX_VISIBLE_ROWS = 50;
 function RichBlockView({
   block,
   pulseConfig,
+  locale = DEFAULT_LOCALE,
 }: {
   block: RichBlock;
   pulseConfig: PulseEmbedConfig | null;
+  locale?: Locale;
 }): ReactElement {
+  const t = translator(locale);
   if (block.kind === "pulse") {
     if (!pulseConfig) {
       return (
         <div className="rounded-lg border border-sf-neutral-3 bg-sf-neutral-2/40 px-3 py-2 text-meta text-sf-neutral-6">
-          Đang tải Pulse card cho <span className="font-medium">{block.name}</span>…
+          {t("chat.loadingPulse")} <span className="font-medium">{block.name}</span>…
         </div>
       );
     }
