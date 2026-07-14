@@ -48,7 +48,7 @@ class IndustryGraph:
     relationships: tuple[Rel, ...]
 
 
-_INDUSTRY_GRAPHS: dict[Industry, IndustryGraph] = {
+_INDUSTRY_GRAPHS: dict[str, IndustryGraph] = {
     Industry.banking: IndustryGraph(
         fact="Transactions",
         tables=("Transactions", "Accounts", "Customers", "Branches", "Products", "Loans"),
@@ -139,7 +139,7 @@ _INDUSTRY_GRAPHS: dict[Industry, IndustryGraph] = {
 # Industry → filename of the hand-authored .tds template (Object-Model 2020.2+).
 # Industries missing here fall back to the programmatic flat-relation emitter.
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
-_INDUSTRY_TO_TDS_TEMPLATE: dict[Industry, str] = {
+_INDUSTRY_TO_TDS_TEMPLATE: dict[str, str] = {
     Industry.banking: "retail-banking.tds",
     Industry.mediamart: "retail-mediamart.tds",
 }
@@ -148,11 +148,11 @@ _INDUSTRY_TO_TDS_TEMPLATE: dict[Industry, str] = {
 _DBNAME_PLACEHOLDER = "__FACTORY_DATASOURCE__"
 
 
-def graph_for(industry: Industry) -> IndustryGraph | None:
+def graph_for(industry: str) -> IndustryGraph | None:
     return _INDUSTRY_GRAPHS.get(industry)
 
 
-def _load_tds_template(industry: Industry, *, hyper_filename: str) -> bytes | None:
+def _load_tds_template(industry: str, *, hyper_filename: str) -> bytes | None:
     """Return the rendered .tds bytes for `industry`, or None if no template exists."""
     name = _INDUSTRY_TO_TDS_TEMPLATE.get(industry)
     if name is None:
@@ -219,7 +219,7 @@ def package_tdsx(
     *,
     hyper_path: Path,
     datasource_name: str,
-    industry: Industry,
+    industry: str,
     output_path: Path | None = None,
 ) -> Path:
     """Bundle a .hyper + per-industry .tds into a .tdsx zip ready for upload.
@@ -235,7 +235,7 @@ def package_tdsx(
     if tds_xml is None:
         graph = graph_for(industry)
         if graph is None:
-            raise ValueError(f"No .tds template or relationship graph for industry {industry.value!r}")
+            raise ValueError(f"No .tds template or relationship graph for industry {industry!r}")
         tds_xml = build_tds_xml(
             datasource_name=datasource_name,
             hyper_filename=hyper_path.name,

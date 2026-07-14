@@ -16,8 +16,11 @@ export function TableauPulseCard({ src, token, name, height = "260px" }: Props):
     const container = containerRef.current;
     if (!container) return;
 
-    let origin = "https://prod-apsoutheast-c.online.tableau.com";
-    try { origin = new URL(src).origin; } catch { /* keep default */ }
+    // Origin is derived from `src`; the env fallback only applies if `src` is
+    // unparseable. Set NEXT_PUBLIC_TABLEAU_HOST to your Tableau Cloud origin.
+    let origin =
+      process.env.NEXT_PUBLIC_TABLEAU_HOST || "https://online.tableau.com";
+    try { origin = new URL(src).origin; } catch { /* keep fallback */ }
 
     const existing = document.querySelector('script[data-tableau-embed]');
     const mount = () => {

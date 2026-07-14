@@ -17,6 +17,30 @@ the phases in order; each has a "gotcha" callout for the traps that cost hours
 the first time. Related skills: `industry-template-author`, `tableau-desktop-author`,
 `multitenant-rls`, `tableau-jwt-mint`, `portal-catalog`.
 
+> **SE onboarding**: if this is your first build, do the one-time setup in
+> `docs/onboarding/se-quickstart.md` first (your Tableau Cloud site, Connected
+> App, PAT, env). `docs/onboarding/new-demo-request.md` is the condensed
+> per-customer checklist that wraps this skill.
+>
+> **Start with the scaffolder** — don't copy an existing `scripts/<tenant>/`
+> folder by hand. Run:
+> ```
+> uv run python -m app.scaffold --company "Acme Air" --industry airline-catering \
+>     --slug acme --tables "Flights,Meals,Complaints"
+> ```
+> This stamps `services/factory/scripts/acme/` (provision + lib + talk-track) and
+> a registered generator stub at `app/generators/acme.py`. The industry may be
+> ANY kebab-case slug — the pipeline no longer restricts it to a fixed enum.
+>
+> **Language**: the portal UI defaults to English (`NEXT_PUBLIC_DEFAULT_LOCALE`).
+> Author your tenant's dashboard labels in your target language — the reference
+> tenants use Vietnamese because that was their market; yours need not.
+>
+> **Your site**: publish to YOUR Tableau Cloud site. Either set
+> `services/factory/.env` (default), or pass a per-run target on the factory
+> request (`tableau: {site_url, site_name, pat_name, pat_secret}`) — see
+> `app.config.resolve_tableau`. Nothing is pinned to a specific pod.
+
 ## Phase 0 — Research FIRST (do not skip)
 
 1. **Company research**: profile, products, brand colors + logo URL, digital
@@ -48,30 +72,46 @@ the first time. Related skills: `industry-template-author`, `tableau-desktop-aut
 
 ## Phase 2 — Data → Cloud datasource
 
-1. Generate tables → `.hyper` (`app.hyper.write_hyper`) → `.tdsx` (use
-   `app.packager.build_tds_xml` flat-relation emitter; do NOT hand-author
-   object-model joins).
-2. Create Cloud project `Demo/<Name>` via `tableauserverclient`.
-3. Publish the `.tdsx` datasource (mode Overwrite, `as_job=False`).
-   > **Gotcha (BIGGEST)**: Cloud rejects hand-authored multi-table relationships
-   > in `.tds`. The FIX is a human step: the user opens the `.tdsx` in Tableau
-   > **Desktop**, drags relationships on the canvas, and republishes the
-   > datasource. Only Desktop-authored relationships pass Cloud strict-mode.
-   > You cannot do this in code. Plan for it.
+The provision script the scaffolder emits already does this via
+`app.extract_publish` — generate tables → `.hyper` → self-contained `.tdsx` →
+publish to `Demo/<Name>`:
 
-## Phase 3 — The seed workbook (unlocks everything)
+```
+uv run python scripts/<slug>/provision_<slug>.py            # build .tdsx only
+uv run python scripts/<slug>/provision_<slug>.py --publish  # + publish to Cloud
+```
 
-You CANNOT author working `sqlproxy` workbooks from a bare connection block —
-sheets render blank. Cloud needs the workbook's inline `<datasource>` block to
-carry ~90+ `<metadata-records>` + a `<relation type='collection'>` list, which
-only Tableau Desktop generates.
+`app.extract_publish.publish_extract_tenant()` builds the flat-relation `.tds`,
+zips the `.tdsx`, ensures the nested `Demo/<Name>` project, and publishes
+(Overwrite). It skips cleanly if no Tableau creds are configured (you still get
+the `.tdsx` on disk).
 
-**Procedure**: have the user create a 1-sheet Desktop workbook against the
-published datasource, drag any field, add a couple calc fields, and publish it
-as `_seed_desktop`. Download it, extract the `<datasources>...</datasources>`
-block → this is your golden template for all real workbooks. It also contains
-the real `sqlproxy.<hash>` name Cloud assigned.
-> See `tableau-cloud-calc-fields-need-metadata` memory for the full rationale.
+## Phase 3 — Workbooks: prefer the self-contained extract (no Desktop, no hash)
+
+**DEFAULT (recommended): self-contained extract-workbook.** Author each workbook
+with ONE datasource per table (each a single-relation federated hyper connection
+to the packaged `.hyper`), and publish with `skip_connection_check=True`. This
+RENDERS on Cloud with **no sqlproxy seed block and no Desktop relationship
+step** — the breakthrough proven by VACS/ACB/MediaMart. Every worksheet is
+single-table so field names are bare (no `[Field (Table)]` qualification).
+Reference: `services/factory/scripts/vacs/vacs_lib.py`.
+> A single datasource listing many *unjoined* sibling `<relation>`s is INVALID
+> federated XML and renders BLANK — that's why it's one-datasource-per-table.
+
+**LEGACY (only if you specifically need a live federated `sqlproxy` datasource,
+e.g. a relationship model for the MCP agent):** you cannot author a working
+`sqlproxy` workbook from a bare connection block — sheets render blank. Cloud
+needs the inline `<datasource>` block to carry ~90+ `<metadata-records>` + a
+`<relation type='collection'>` list, which only Tableau Desktop generates.
+Procedure: create a 1-sheet Desktop workbook against the published datasource,
+publish it as `_seed_desktop`, then run the helper to extract the block + hash
+automatically (no more hand-copying):
+```
+uv run python -m app.seed_probe --workbook _seed_desktop --project "Demo/<Name>" \
+    --out /tmp/<slug>-seed-block.xml
+# prints: DS_NAME = "sqlproxy.<hash>"   and writes the <datasources> block
+```
+> See `tableau-cloud-calc-fields-need-metadata` memory for the rationale.
 
 ## Phase 4 — Author dashboards (in code)
 

@@ -57,6 +57,7 @@ async def start_factory(req: FactoryStartRequest) -> FactoryStartResponse:
         site_id=req.site_id,
         admin_email=req.admin_email,
         portal_url=req.portal_url,
+        tableau_target=req.tableau,
     )
     return FactoryStartResponse(job_id=job_id, sse_url=f"/factory/{job_id}/events")
 

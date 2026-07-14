@@ -153,7 +153,7 @@ export function SiteConfigForm({ mode, initial }: Props) {
             type="url"
             value={form.tableauSite}
             onChange={(e) => set("tableauSite", e.target.value)}
-            placeholder="https://prod-apsoutheast-c.online.tableau.com/#/site/retail"
+            placeholder="https://10ax.online.tableau.com/#/site/your-site"
             required
             className="input"
           />

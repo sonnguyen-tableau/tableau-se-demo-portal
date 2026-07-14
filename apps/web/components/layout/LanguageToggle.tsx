@@ -3,7 +3,10 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setLocale } from "@/lib/i18n-actions";
-import type { Locale } from "@/lib/i18n";
+// Import from the client-safe shared module (NOT @/lib/i18n, which is
+// server-only via next/headers — importing a runtime value from it into this
+// client component breaks the build).
+import { LOCALES, type Locale } from "@/lib/i18n-shared";
 
 interface Props {
   /** Current locale (resolved server-side and passed in). */
@@ -17,10 +20,13 @@ interface Props {
   className?: string;
 }
 
-const OPTIONS: ReadonlyArray<{ value: Locale; label: string }> = [
-  { value: "vi", label: "VI" },
-  { value: "en", label: "EN" },
-];
+// Derived from LOCALES so adding a language in `lib/i18n-shared.ts` surfaces it
+// here automatically. Add a friendly label below when introducing a new locale;
+// unlisted codes fall back to their uppercased code.
+const LOCALE_LABELS: Partial<Record<Locale, string>> = { en: "EN", vi: "VI" };
+const OPTIONS: ReadonlyArray<{ value: Locale; label: string }> = LOCALES.map(
+  (value) => ({ value, label: LOCALE_LABELS[value] ?? value.toUpperCase() }),
+);
 
 /**
  * Compact VI/EN segmented switch. Sets the NEXT_LOCALE cookie via a Server

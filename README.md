@@ -1,15 +1,17 @@
-<<<<<<< HEAD
-# Tableau AI Portal
+# Tableau AI Portal — SE Demo Factory
 
 A multi-tenant embedded analytics portal on **Tableau Cloud** with a **Claude-powered Self-Service Analytics AI agent** (via the official `@tableau/mcp-server`), plus a **Demo Factory** that auto-generates a fully-branded, industry-tailored Tableau analytics portal from a single customer URL.
+
+This repository is a **shared team resource for Tableau Sales Engineers**. Each SE points it at *their own* Tableau Cloud site, feeds in a customer/industry, and stands up a live, branded demo. It encodes a large body of hard-won know-how (Cloud strict-mode workbook authoring, multi-tenant RLS, the Demo Factory pipeline) as Claude Code skills so you don't have to rediscover it.
+
+> **New here?** Start with **[`docs/onboarding/se-quickstart.md`](./docs/onboarding/se-quickstart.md)** — it walks you from clone → your Tableau Cloud site → first demo. Then use **[`docs/onboarding/new-demo-request.md`](./docs/onboarding/new-demo-request.md)** for each new customer demo.
 
 ## What's in this repo
 
 - `apps/web/` — Next.js 15 portal (App Router, React 19, TypeScript strict).
 - `services/factory/` — Python FastAPI sidecar that owns synthetic-data generation, Hyper file publishing, workbook templating, and Pulse metric provisioning.
-- `services/agent/` — optional dedicated agent service (extracted from `/api/chat` if scale demands).
 - `packages/` — shared TypeScript packages (JWT minter, MCP tool wrappers, shared schemas).
-- `.claude/` — Claude Code project conventions (skills, subagents, hooks, settings).
+- `.claude/` — Claude Code project conventions: **skills, subagents, hooks, settings**. This is where the transferable know-how lives.
 - `.cursor/rules/` — path-scoped Cursor rules.
 - `infra/` — Docker Compose + deploy configs.
 
@@ -30,26 +32,31 @@ Browser
                                               └── Pulse REST API → metric definitions
 ```
 
-## Status
-
-All 12 phases (0–11) complete and verified — 38 TypeScript tests + 28 Python tests passing, typecheck clean under strict mode, production `next build` succeeds.
-
-See [AGENTS.md](./AGENTS.md) for the canonical project guide, and `.cursor/plans/` for the implementation plan.
+See [AGENTS.md](./AGENTS.md) for the canonical project guide for AI coding agents.
 
 ## Getting Started
 
-Documented commands and prerequisites live in [AGENTS.md](./AGENTS.md) and individual skill files. For humans:
+Full onboarding is in **[`docs/onboarding/se-quickstart.md`](./docs/onboarding/se-quickstart.md)**. The short version:
 
 ```bash
 pnpm install
 uv sync --directory services/factory
 cp .claude/settings.local.json.example .claude/settings.local.json
 cp apps/web/.env.example apps/web/.env.local
-# fill in TABLEAU_*, ANTHROPIC_API_KEY, AUTH_SECRET, DEV_USERS_JSON in apps/web/.env.local
+cp services/factory/.env.example services/factory/.env
+# Fill in YOUR OWN Tableau Cloud site, Connected App, PAT, and Anthropic key.
+# One-time Tableau Cloud setup: docs/runbooks/tableau-cloud-setup.md
 pnpm dev
 ```
 
+Then open Claude Code in the repo and run the **`new-tenant-portal`** skill to build your first demo.
+
 ## Documentation
+
+### Onboarding (start here)
+
+- [`docs/onboarding/se-quickstart.md`](./docs/onboarding/se-quickstart.md) — first-run setup against your own Tableau Cloud site
+- [`docs/onboarding/new-demo-request.md`](./docs/onboarding/new-demo-request.md) — the repeatable per-customer demo playbook
 
 ### Architecture & decisions
 
@@ -60,9 +67,9 @@ pnpm dev
 ### Runbooks (deployment & ops)
 
 - [`docs/runbooks/tableau-cloud-setup.md`](./docs/runbooks/tableau-cloud-setup.md) — one-time Tableau Cloud Connected App + PAT setup
-- [`docs/runbooks/local-development.md`](./docs/runbooks/local-development.md) — chạy 100% local (~$5–30/tháng)
-- [`docs/runbooks/rollout-production-lean.md`](./docs/runbooks/rollout-production-lean.md) — lean production cho team 2–4 người (~$110–545/tháng)
-- [`docs/runbooks/rollout-production-full.md`](./docs/runbooks/rollout-production-full.md) — full production cho team trung bình / lớn (~$1,200–1,700/tháng)
+- [`docs/runbooks/local-development.md`](./docs/runbooks/local-development.md) — run 100% local
+- [`docs/runbooks/rollout-production-lean.md`](./docs/runbooks/rollout-production-lean.md) — lean production for a 2–4 person team
+- [`docs/runbooks/rollout-production-full.md`](./docs/runbooks/rollout-production-full.md) — full production for a medium/large team
 
 ### Security
 
@@ -72,6 +79,3 @@ pnpm dev
 ## License
 
 Internal / proprietary (placeholder).
-=======
-# tableau-ai-portal
->>>>>>> 3c85a2b (first commit)

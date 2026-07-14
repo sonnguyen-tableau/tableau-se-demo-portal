@@ -31,7 +31,8 @@ const schema = z.object({
    * Fallback Tableau user email for embed JWTs when the session user does not
    * exist on the Tableau site. All demo/guest users share this identity for
    * embedding while keeping their own session for portal access.
-   * Example: TABLEAU_EMBED_USER=son.nguyen@salesforce.com
+   * Set this to a real user on YOUR Tableau site.
+   * Example: TABLEAU_EMBED_USER=you@yourcompany.com
    */
   TABLEAU_EMBED_USER: z.string().email().optional(),
 

@@ -14,11 +14,18 @@ for `FactoryJob.confirm()` to be called (typically from the
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from datetime import date, timedelta
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
+
+    # A generator builder returns the tenant's tables keyed by table name.
+    TableDict = dict[str, pd.DataFrame]
 
 from .brand import extract_brand, generate_tenant_design_md
-from .config import Settings, get_settings
+from .config import Settings, get_settings, resolve_tableau
 from .generators.banking import BankingParameters, generate_banking
 from .generators.healthcare import HealthcareParameters, generate_healthcare
 from .generators.logistics import LogisticsParameters, generate_logistics
@@ -38,13 +45,14 @@ from .models import (
     Stage,
     StageEvent,
     StageStatus,
+    TableauTarget,
 )
 
 
 # Per-industry default KPIs for direct mode (where Claude profile is skipped).
 # Picked to match each industry's Pulse field map so Pulse metrics are
 # automatically created without requiring the user to wire them up by hand.
-_DEFAULT_KPIS: dict[Industry, list[KpiSpec]] = {
+_DEFAULT_KPIS: dict[str, list[KpiSpec]] = {
     Industry.mediamart: [
         KpiSpec(name="Revenue", type="currency", favorable_direction="up", time_dim="OrderDate"),
         KpiSpec(name="Gross Margin", type="percent", favorable_direction="up", time_dim="OrderDate"),
@@ -103,6 +111,8 @@ class FactoryJob:
         site_id: str | None = None,
         admin_email: str | None = None,
         portal_url: str | None = None,
+        # Per-run publish target — overrides the global .env Tableau creds.
+        tableau_target: TableauTarget | None = None,
         # Direct mode — skip scrape/profile/confirm and use these directly.
         direct_profile: CompanyProfile | None = None,
         direct_brand: BrandTheme | None = None,
@@ -111,7 +121,9 @@ class FactoryJob:
         self.job_id = job_id
         self.url = url
         self.tenant_slug = tenant_slug
-        self.settings = settings or get_settings()
+        # Fold any per-run Tableau target onto the base settings once, up front,
+        # so every downstream stage (publish/workbook/pulse) sees the right site.
+        self.settings = resolve_tableau(settings or get_settings(), tableau_target)
         self.site_id = site_id
         self.admin_email = admin_email
         self.portal_url = portal_url
@@ -157,6 +169,7 @@ class FactoryJob:
             site_id=req.site_id,
             admin_email=req.admin_email,
             portal_url=req.portal_url,
+            tableau_target=req.tableau,
             direct_profile=profile,
             direct_brand=req.brand,
             direct_generator_params=req.generator_params,
@@ -225,7 +238,7 @@ class FactoryJob:
                 yield await emit(
                     Stage.profile,
                     StageStatus.ok,
-                    detail=f"industry={profile.industry.value} kpis={len(profile.kpis)}",
+                    detail=f"industry={profile.industry} kpis={len(profile.kpis)}",
                     payload=profile.model_dump(mode="json"),
                 )
             except Exception as e:
@@ -234,7 +247,7 @@ class FactoryJob:
 
             # 3. schema (static per industry; Claude-driven customization later.)
             yield await emit(Stage.schema, StageStatus.running)
-            yield await emit(Stage.schema, StageStatus.ok, detail=f"using static schema for {profile.industry.value}")
+            yield await emit(Stage.schema, StageStatus.ok, detail=f"using static schema for {profile.industry}")
 
         # 4. confirm — wait for the user to review/edit the profile, then
         # resume with the (possibly edited) profile.
@@ -260,7 +273,7 @@ class FactoryJob:
                 yield await emit(
                     Stage.confirm,
                     StageStatus.ok,
-                    detail=f"resumed with user override: industry={profile.industry.value} kpis={len(profile.kpis)}",
+                    detail=f"resumed with user override: industry={profile.industry} kpis={len(profile.kpis)}",
                     payload=profile.model_dump(mode="json"),
                 )
             else:
@@ -372,7 +385,7 @@ class FactoryJob:
             try:
                 wb_result = await asyncio.to_thread(
                     run_workbook_stage,
-                    industry=profile.industry.value,
+                    industry=profile.industry,
                     tenant_slug=self.tenant_slug,
                     datasource_name=published_name,
                     settings=s,
@@ -405,7 +418,7 @@ class FactoryJob:
         try:
             pulse_result = await create_definitions(
                 tenant_slug=self.tenant_slug,
-                industry=profile.industry.value,
+                industry=profile.industry,
                 datasource_id=published_id,
                 kpis=profile.kpis,
                 settings=s,
@@ -483,7 +496,7 @@ class FactoryJob:
             tenant_payload: dict[str, object] = {
                 "slug": slug,
                 "name": profile.company_name,
-                "industry": profile.industry.value,
+                "industry": profile.industry,
                 "sourceUrl": profile.company_url,
             }
             if self.site_id:
@@ -554,7 +567,7 @@ class FactoryJob:
                 design_content = generate_tenant_design_md(
                     company_name=profile.company_name,
                     source_url=profile.company_url,
-                    industry=profile.industry.value,
+                    industry=profile.industry,
                     theme=t2,
                 )
                 r = await session.post(
@@ -575,7 +588,7 @@ class FactoryJob:
             "tenant_slug": slug,
             "portal_url": portal_tenant_url,
             "company_name": profile.company_name,
-            "industry": profile.industry.value,
+            "industry": profile.industry,
         }
         if self.admin_email:
             result["admin_email"] = self.admin_email
@@ -586,7 +599,7 @@ class FactoryJob:
         import os
         return os.environ.get("FACTORY_PROVISION_SECRET", "")
 
-    def _generate_for(self, profile: CompanyProfile) -> tuple[dict[str, object], int]:
+    def _generate_for(self, profile: CompanyProfile) -> tuple[TableDict, int]:
         end = date.today()
         start = end - timedelta(days=730)
         p = self._direct_generator_params  # may be empty GeneratorParams()
@@ -596,23 +609,25 @@ class FactoryJob:
             v = getattr(p, field, None)
             return v if v is not None else default
 
-        if profile.industry is Industry.retail:
-            tables = generate_retail(
+        # Registry: industry slug → builder that returns the table dict. Keys
+        # use the Industry enum members, but lookup is by the profile's plain
+        # `str` industry — StrEnum members hash/compare equal to their values,
+        # so an arbitrary matching slug resolves here. Adding an industry means
+        # registering its generator (or scaffolding one); no if/elif to edit.
+        def _retail() -> TableDict:
+            return generate_retail(
                 RetailParameters(
-                    tenant_id=self.tenant_slug,
-                    start_date=start,
-                    end_date=end,
+                    tenant_id=self.tenant_slug, start_date=start, end_date=end,
                     base_daily_orders=int(_ov("base_daily_orders", 70)),
                     seed=int(_ov("seed", 42)),
                     yoy_growth_pct=float(_ov("yoy_growth_pct", 12.0)),
                 )
             ).all_tables()
-        elif profile.industry is Industry.mediamart:
-            tables = generate_mediamart(
+
+        def _mediamart() -> TableDict:
+            return generate_mediamart(
                 MediaMartParameters(
-                    tenant_id=self.tenant_slug,
-                    start_date=start,
-                    end_date=end,
+                    tenant_id=self.tenant_slug, start_date=start, end_date=end,
                     n_customers=int(_ov("n_customers_mediamart", 4_500)),
                     n_stores=int(_ov("n_stores_mediamart", 28)),
                     n_products=int(_ov("n_products_mediamart", 320)),
@@ -622,12 +637,11 @@ class FactoryJob:
                     seed=int(_ov("seed", 42)),
                 )
             ).all_tables()
-        elif profile.industry is Industry.mall:
-            tables = generate_vincommerce(
+
+        def _mall() -> TableDict:
+            return generate_vincommerce(
                 VinCommerceParameters(
-                    tenant_id=self.tenant_slug,
-                    start_date=start,
-                    end_date=end,
+                    tenant_id=self.tenant_slug, start_date=start, end_date=end,
                     n_winmart=int(_ov("n_winmart", 12)),
                     n_winmart_plus=int(_ov("n_winmart_plus", 85)),
                     n_malls=int(_ov("n_malls", 6)),
@@ -640,25 +654,22 @@ class FactoryJob:
                     seed=int(_ov("seed", 42)),
                 )
             ).all_tables()
-        elif profile.industry is Industry.banking:
+
+        def _banking() -> TableDict:
             geo_raw = _ov("geographies", None)
             geo: tuple[str, ...] = tuple(geo_raw) if geo_raw is not None else ("NA", "EMEA", "APAC")  # type: ignore[arg-type]
-            tables = generate_banking(
+            return generate_banking(
                 BankingParameters(
-                    tenant_id=self.tenant_slug,
-                    start_date=start,
-                    end_date=end,
+                    tenant_id=self.tenant_slug, start_date=start, end_date=end,
                     base_daily_transactions=int(_ov("base_daily_transactions", 320)),
-                    seed=int(_ov("seed", 42)),
-                    geographies=geo,
+                    seed=int(_ov("seed", 42)), geographies=geo,
                 )
             ).all_tables()
-        elif profile.industry is Industry.manufacturing:
-            tables = generate_manufacturing(
+
+        def _manufacturing() -> TableDict:
+            return generate_manufacturing(
                 ManufacturingParameters(
-                    tenant_id=self.tenant_slug,
-                    start_date=start,
-                    end_date=end,
+                    tenant_id=self.tenant_slug, start_date=start, end_date=end,
                     n_plants=int(_ov("n_plants", 8)),
                     lines_per_plant=int(_ov("lines_per_plant", 6)),
                     n_products=int(_ov("n_products", 60)),
@@ -666,24 +677,22 @@ class FactoryJob:
                     seed=int(_ov("seed", 42)),
                 )
             ).all_tables()
-        elif profile.industry is Industry.healthcare:
-            tables = generate_healthcare(
+
+        def _healthcare() -> TableDict:
+            return generate_healthcare(
                 HealthcareParameters(
-                    tenant_id=self.tenant_slug,
-                    start_date=start,
-                    end_date=end,
+                    tenant_id=self.tenant_slug, start_date=start, end_date=end,
                     n_patients=int(_ov("n_patients", 4_200)),
                     n_providers=int(_ov("n_providers", 180)),
                     n_beds=int(_ov("n_beds", 320)),
                     seed=int(_ov("seed", 42)),
                 )
             ).all_tables()
-        elif profile.industry is Industry.logistics:
-            tables = generate_logistics(
+
+        def _logistics() -> TableDict:
+            return generate_logistics(
                 LogisticsParameters(
-                    tenant_id=self.tenant_slug,
-                    start_date=start,
-                    end_date=end,
+                    tenant_id=self.tenant_slug, start_date=start, end_date=end,
                     n_carriers=int(_ov("n_carriers", 18)),
                     n_hubs=int(_ov("n_hubs", 14)),
                     n_lanes=int(_ov("n_lanes", 70)),
@@ -692,8 +701,26 @@ class FactoryJob:
                     seed=int(_ov("seed", 42)),
                 )
             ).all_tables()
-        else:
-            raise NotImplementedError(f"No generator for {profile.industry.value}")
+
+        generators: dict[str, Callable[[], TableDict]] = {
+            Industry.retail: _retail,
+            Industry.mediamart: _mediamart,
+            Industry.mall: _mall,
+            Industry.banking: _banking,
+            Industry.manufacturing: _manufacturing,
+            Industry.healthcare: _healthcare,
+            Industry.logistics: _logistics,
+        }
+
+        builder = generators.get(profile.industry)
+        if builder is None:
+            known = ", ".join(sorted(generators))
+            raise ValueError(
+                f"No generator registered for industry {profile.industry!r}. "
+                f"Built-in industries: {known}. Scaffold a new one with "
+                f"`uv run python -m app.scaffold --industry {profile.industry} ...`."
+            )
+        tables = builder()
 
         row_count = sum(len(t) for t in tables.values())
         return tables, row_count

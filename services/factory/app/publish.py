@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .config import Settings
-from .models import Industry
 from .packager import package_tdsx
 
 
@@ -38,7 +37,7 @@ def publish_hyper(
     hyper_path: Path,
     *,
     tenant_slug: str,
-    industry: Industry,
+    industry: str,
     settings: Settings,
     project_name: str | None = None,
 ) -> PublishResult:

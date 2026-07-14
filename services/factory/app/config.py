@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+if TYPE_CHECKING:
+    from .models import TableauTarget
 
 
 class Settings(BaseSettings):
@@ -30,3 +34,29 @@ class Settings(BaseSettings):
 
 def get_settings() -> Settings:
     return Settings()
+
+
+def resolve_tableau(settings: Settings, target: "TableauTarget | None") -> Settings:
+    """Return a Settings copy where a per-run TableauTarget overrides the
+    global .env Tableau credentials.
+
+    Target fields win when set; anything the target leaves unset falls back to
+    the global setting. When `target` is None the input settings are returned
+    unchanged — so behaviour is identical to before for callers that don't send
+    a per-run target. This lets each SE publish to their own site by passing a
+    target, while the shared .env remains the default.
+    """
+    if target is None:
+        return settings
+    return settings.model_copy(
+        update={
+            "tableau_site_url": target.site_url or settings.tableau_site_url,
+            "tableau_site_name": target.site_name or settings.tableau_site_name,
+            "tableau_pat_name": target.pat_name or settings.tableau_pat_name,
+            "tableau_pat_secret": (
+                SecretStr(target.pat_secret)
+                if target.pat_secret
+                else settings.tableau_pat_secret
+            ),
+        }
+    )

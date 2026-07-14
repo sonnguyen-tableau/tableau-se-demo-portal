@@ -48,10 +48,24 @@ const brandSchema = z.object({
   tone: z.enum(["professional", "playful", "technical"]).default("professional"),
 });
 
+// Optional per-run publish target. Lets an internal admin point a single
+// factory run at a specific Tableau site without editing the factory's .env —
+// useful for a team-shared factory. Omitted → the factory uses its own .env
+// credentials (the common single-SE-deployment case).
+const tableauTargetSchema = z.object({
+  site_url: z.string().url().max(512).optional(),
+  site_name: z.string().max(128).optional(),
+  pat_name: z.string().max(128).optional(),
+  pat_secret: z.string().max(2048).optional(),
+});
+
 const requestSchema = z.object({
   company_name: z.string().min(1).max(120),
   company_url: z.string().url().max(2048),
-  industry: z.enum(["retail-ecommerce", "retail-banking", "retail-mall", "retail-mediamart", "manufacturing", "healthcare", "logistics"]),
+  // Open string: any industry slug is accepted. The factory generates data
+  // when a generator is registered for the slug and skips dashboards when no
+  // template exists (see the factory's generator registry).
+  industry: z.string().regex(/^[a-z0-9-]{2,48}$/),
   tagline: z.string().max(280).optional(),
   logo_url: z.string().url().max(2048).optional(),
   generator_params: generatorParamsSchema.default({}),
@@ -59,6 +73,7 @@ const requestSchema = z.object({
   tenant_slug: z.string().regex(/^[a-z0-9-]{2,48}$/i).optional(),
   site_id: z.string().regex(/^[a-z0-9-]{2,48}$/).optional(),
   admin_email: z.string().email().max(320).optional(),
+  tableau: tableauTargetSchema.optional(),
 });
 
 export async function POST(req: Request): Promise<Response> {

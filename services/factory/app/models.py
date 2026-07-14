@@ -9,6 +9,14 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 class Industry(StrEnum):
+    """The industries with a built-in generator + relationship graph shipped in
+    the pipeline. NOT a closed set for the API — `industry` request/profile
+    fields are open `str`s (see `INDUSTRY_PATTERN`). This enum is the canonical
+    KNOWN set used for default KPIs, the profile prompt, and .tds graphs; any
+    other slug is accepted and routed through the generator registry, skipping
+    dashboards gracefully when no template exists.
+    """
+
     retail = "retail-ecommerce"
     banking = "retail-banking"
     mall = "retail-mall"
@@ -16,6 +24,12 @@ class Industry(StrEnum):
     manufacturing = "manufacturing"
     healthcare = "healthcare"
     logistics = "logistics"
+
+
+# Accepted shape for an industry slug at the API boundary — lowercase kebab.
+# Open on purpose: the 7 Industry enum values are the built-ins, but any tenant
+# vertical (airline-catering, telecom, market-intelligence, …) is valid.
+INDUSTRY_PATTERN = r"^[a-z0-9-]{2,48}$"
 
 
 class Stage(StrEnum):
@@ -40,6 +54,25 @@ class StageStatus(StrEnum):
     error = "error"
 
 
+class TableauTarget(BaseModel):
+    """Per-run Tableau Cloud publish target.
+
+    When supplied on a factory request these values OVERRIDE the factory's
+    global .env credentials for that job — letting each SE publish to their
+    OWN site without editing a shared .env. Any field left unset falls back to
+    the corresponding global setting (see `config.resolve_tableau`). All four
+    must ultimately resolve (from target or .env) for the publish/workbook/pulse
+    stages to run; otherwise those stages skip gracefully.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    site_url: str | None = Field(default=None, max_length=512)
+    site_name: str | None = Field(default=None, max_length=128)
+    pat_name: str | None = Field(default=None, max_length=128)
+    pat_secret: str | None = Field(default=None, max_length=2048)
+
+
 class FactoryStartRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     url: HttpUrl
@@ -50,6 +83,8 @@ class FactoryStartRequest(BaseModel):
     admin_email: str | None = Field(default=None, max_length=320)
     # Portal base URL for the provision callback (e.g. https://portal.example.com)
     portal_url: str | None = Field(default=None, max_length=512)
+    # Optional per-run publish target — overrides the factory's global .env site.
+    tableau: TableauTarget | None = None
 
 
 class FactoryStartResponse(BaseModel):
@@ -73,7 +108,9 @@ class CompanyProfile(BaseModel):
     company_url: str
     tagline: str | None = None
     logo_url: str | None = None
-    industry: Industry
+    # Open industry slug — the 7 Industry enum values are the built-ins, but any
+    # kebab-case vertical is accepted (routed via the generator registry).
+    industry: str = Field(pattern=INDUSTRY_PATTERN)
     sub_vertical: str | None = None
     products: list[str] = []
     segments: list[str] = []
@@ -178,7 +215,8 @@ class DirectStartRequest(BaseModel):
     # Identity
     company_name: str = Field(min_length=1, max_length=120)
     company_url: str = Field(max_length=2048)
-    industry: Industry
+    # Open industry slug — any kebab-case vertical, not just the 7 built-ins.
+    industry: str = Field(pattern=INDUSTRY_PATTERN)
     tagline: str | None = Field(default=None, max_length=280)
     logo_url: str | None = Field(default=None, max_length=2048)
 
@@ -193,3 +231,5 @@ class DirectStartRequest(BaseModel):
     site_id: str | None = Field(default=None, max_length=48)
     admin_email: str | None = Field(default=None, max_length=320)
     portal_url: str | None = Field(default=None, max_length=512)
+    # Optional per-run publish target — overrides the factory's global .env site.
+    tableau: TableauTarget | None = None

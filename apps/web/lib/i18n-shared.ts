@@ -13,13 +13,28 @@
  * replies (the agent answers in the language the user writes).
  */
 
-export const LOCALES = ["vi", "en"] as const;
+// Supported UI locales. To add a language: append its code here, add a matching
+// catalog to CATALOG below (all `MessageKey`s required — a missing key is a
+// compile error), and it becomes selectable in the LanguageToggle automatically.
+export const LOCALES = ["en", "vi"] as const;
 export type Locale = (typeof LOCALES)[number];
-export const DEFAULT_LOCALE: Locale = "vi";
+
+// Default UI language. English by default; override per deployment with
+// NEXT_PUBLIC_DEFAULT_LOCALE (e.g. "vi"). Falls back to "en" if unset/invalid.
+// NEXT_PUBLIC_* is inlined at build time so this resolves in both Server and
+// Client Components.
+export const DEFAULT_LOCALE: Locale = normalizeLocale(
+  process.env.NEXT_PUBLIC_DEFAULT_LOCALE,
+);
 export const LOCALE_COOKIE = "NEXT_LOCALE";
 
 export function isLocale(v: string | undefined | null): v is Locale {
-  return v === "vi" || v === "en";
+  return typeof v === "string" && (LOCALES as readonly string[]).includes(v);
+}
+
+/** Coerce an arbitrary value to a supported locale, falling back to English. */
+function normalizeLocale(v: string | undefined | null): Locale {
+  return isLocale(v) ? v : "en";
 }
 
 /**

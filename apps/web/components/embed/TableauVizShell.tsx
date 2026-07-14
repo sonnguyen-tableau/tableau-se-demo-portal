@@ -128,9 +128,12 @@ export function TableauVizShell({ src, initialToken, height = "700px", locale = 
     setLoading(true);
     setError(null);
 
-    // Derive origin from src URL for CDN loading
-    let origin = "https://prod-apsoutheast-c.online.tableau.com";
-    try { origin = new URL(src).origin; } catch { /* keep default */ }
+    // Derive origin from the src URL for CDN loading. The env fallback only
+    // matters if `src` is somehow unparseable; set NEXT_PUBLIC_TABLEAU_HOST to
+    // your Tableau Cloud origin (e.g. https://10ax.online.tableau.com).
+    let origin =
+      process.env.NEXT_PUBLIC_TABLEAU_HOST || "https://online.tableau.com";
+    try { origin = new URL(src).origin; } catch { /* keep fallback */ }
 
     loadTableauCdn(origin).then(() => {
       const viz = document.createElement("tableau-viz") as unknown as AnyRecord;

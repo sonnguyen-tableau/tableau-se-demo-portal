@@ -8,8 +8,9 @@
  *   cookie, NOT in the path. This preserves the `/t/[tenantSlug]/...` URL
  *   contract and needs NO routing middleware (composes with the auth gate in
  *   `middleware.ts` without fighting it).
- * - **Default is Vietnamese** so nothing regresses for existing users; English
- *   is opt-in via the toggle.
+ * - **Default is English**, overridable per deployment via
+ *   `NEXT_PUBLIC_DEFAULT_LOCALE` (see `DEFAULT_LOCALE` in `lib/i18n-shared.ts`).
+ *   The chosen locale is remembered in the `NEXT_LOCALE` cookie via the toggle.
  * - Server Components read the locale with `getLocale()` / `getT()`. Client
  *   Components receive the resolved `locale` as a prop and call `translator()`
  *   from `lib/i18n-shared.ts` directly.
@@ -35,7 +36,7 @@ export {
   type MessageKey,
 } from "@/lib/i18n-shared";
 
-/** Read the active locale from the `NEXT_LOCALE` cookie (defaults to VI). */
+/** Read the active locale from the `NEXT_LOCALE` cookie (defaults to DEFAULT_LOCALE). */
 export async function getLocale(): Promise<Locale> {
   const store = await cookies();
   const v = store.get(LOCALE_COOKIE)?.value;

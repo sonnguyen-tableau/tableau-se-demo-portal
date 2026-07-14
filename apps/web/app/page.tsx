@@ -19,9 +19,11 @@ export default async function Home() {
 
   const ctx = tenantFromSession(session);
 
-  // Regular tenant user → straight to their portal
+  // Regular tenant user → straight to their portal. If the session somehow
+  // carries no tenant, send them back to sign-in rather than guessing a slug
+  // that may not exist on this SE's site.
   if (!ctx?.isInternal) {
-    redirect(`/t/${ctx?.tenantId ?? "salesforce-bank"}`);
+    redirect(ctx?.tenantId ? `/t/${ctx.tenantId}` : "/sign-in");
   }
 
   // Internal admin → hub

@@ -21,17 +21,20 @@ It also ships a **Demo Factory**: paste a customer URL, Claude profiles the busi
 - **Package managers**: `pnpm` (workspaces) for JS, `uv` for Python
 - **Container**: Docker Compose for local (web + factory + tableau-mcp)
 
-## Repository Layout (target, post-Phase 11)
+## Repository Layout
 
 ```
 apps/web/                      # Next.js portal
 services/factory/              # Python FastAPI sidecar (Hyper API, TSC, Document API)
-services/agent/                # Optional Node agent service (if extracted from /api/chat)
+services/factory/scripts/      # Per-tenant build scripts (reference examples; scaffold new ones)
 packages/tableau-jwt/          # Shared JWT minter
 packages/mcp-tools/            # Typed wrappers around Tableau MCP tool calls
 packages/factory-schema/       # Shared TS/Python types (JSON Schema source)
 infra/                         # Docker Compose, deploy config
+docs/onboarding/               # SE quickstart + per-demo playbook (start here)
 ```
+
+The AI chat/agent currently lives in-process at `apps/web/app/api/chat/` (SSE Route Handler). There is no separate `services/agent/` — that was a possible future extraction, not a current directory.
 
 ## Key Commands
 
@@ -97,17 +100,32 @@ docker compose up              # local: web + factory + tableau-mcp sidecar
 - `.cursor/rules/` — path-scoped Cursor rules mirroring this guidance.
 - `docs/architecture/` — diagrams and ADRs (added in later phases).
 
-## Active Tenants (2026-06-30)
+## Reference Tenants
 
-| Slug | Portal URL | Tableau folder | Industry | Default |
-|---|---|---|---|---|
-| `salesforce-bank` | `/t/salesforce-bank` | `Demo/Salesforce Bank` | `retail-banking` | ✅ |
-| `vincomretail` | `/t/vincomretail` | `Demo/Vincom Retail` | `retail-mall` | ❌ |
-| `mediamart` | `/t/mediamart` | `Demo/MediaMart` | `retail-mediamart` | ❌ |
+These tenants ship as **reference examples** — study their `services/factory/scripts/<tenant>/` build scripts and their entries in `apps/web/data/tenants.json` when building your own. They were built against the original author's Tableau Cloud site; **you will rebuild your own against your site** (see `docs/onboarding/`). The live source of truth for the tenant list is `apps/web/data/tenants.json`.
 
-Tableau site: `vietnam` on `https://prod-apsoutheast-c.online.tableau.com`
+| Slug | Tableau folder | Industry |
+|---|---|---|
+| `salesforce-bank` | `Demo/Salesforce Bank` | `retail-banking` (default) |
+| `nam-a-bank` | `Demo/Nam A Bank` | `retail-banking` |
+| `shb` | `Demo/SHB` | `sme-corporate-banking` |
+| `acb` | `Demo/ACB` | `market-intelligence` |
+| `vincomretail` | `Demo/Vincom Retail` | `retail-mall` |
+| `mediamart` | `Demo/MediaMart` | `retail-mediamart` |
+| `meygroup` | `Demo/Mey Group` | `retail-realestate` |
+| `singapore-airlines` | `Demo/Singapore Airlines` | `airline-passenger` |
+| `vacs` | `Demo/VACS` | `airline-catering` |
+| `vnpt` | `Demo/VNPT` | `telecom` |
+
+> **Tableau site is per-SE.** Set your own site in `apps/web/.env.local` and `services/factory/.env`; the factory also accepts a per-run site override (see the `new-demo-request` onboarding doc). Nothing is hardcoded to a specific pod.
 
 Homepage (`/`) redirects non-internal users to their portal. Internal users see admin hub with portal cards.
+
+## Localization / default language
+
+- The portal ships a dependency-free VI⇄EN i18n layer (`apps/web/lib/i18n.ts` + `LanguageToggle`), cookie-based.
+- **Default language is English** (`DEFAULT_LOCALE`), configurable per deployment via `NEXT_PUBLIC_DEFAULT_LOCALE`. SEs can add more locales by extending the dictionary in `lib/i18n.ts`.
+- The reference tenants' dashboards and much of their curated content are authored in Vietnamese (that's the original demos' market). When you build your own tenant, author labels in your target language — the i18n layer covers the portal shell (sign-in, home, sidebar), not embedded workbook content.
 
 ## Debugging JWT 401 code:16
 

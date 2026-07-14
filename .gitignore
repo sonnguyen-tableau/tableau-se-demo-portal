@@ -46,6 +46,7 @@ Thumbs.db
 
 *.log
 logs/
+vercel-debug.txt
 
 tmp/
 temp/
