@@ -1,5 +1,8 @@
 # SE Quickstart — your own demo environment
 
+> Want the full, numbered walkthrough with every step explained? See the
+> **[SE Setup Guide](./se-setup-guide.md)**. This page is the condensed reference.
+
 This is the front door for a Tableau Sales Engineer setting up this repo against
 **your own Tableau Cloud site**. Once done, you build customer demos with the
 Claude Code skills (the `new-tenant-portal` skill is the main one).

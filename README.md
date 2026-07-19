@@ -4,7 +4,7 @@ A multi-tenant embedded analytics portal on **Tableau Cloud** with a **Claude-po
 
 This repository is a **shared team resource for Tableau Sales Engineers**. Each SE points it at *their own* Tableau Cloud site, feeds in a customer/industry, and stands up a live, branded demo. It encodes a large body of hard-won know-how (Cloud strict-mode workbook authoring, multi-tenant RLS, the Demo Factory pipeline) as Claude Code skills so you don't have to rediscover it.
 
-> **New here?** Start with **[`docs/onboarding/se-quickstart.md`](./docs/onboarding/se-quickstart.md)** — it walks you from clone → your Tableau Cloud site → first demo. Then use **[`docs/onboarding/new-demo-request.md`](./docs/onboarding/new-demo-request.md)** for each new customer demo.
+> **New here?** Follow the **[SE Setup Guide](./docs/onboarding/se-setup-guide.md)** — a complete step-by-step walkthrough from clone → your Tableau Cloud site → first live demo. ([`se-quickstart.md`](./docs/onboarding/se-quickstart.md) is the condensed reference; [`new-demo-request.md`](./docs/onboarding/new-demo-request.md) is the per-customer playbook.)
 
 ## What's in this repo
 
@@ -55,8 +55,10 @@ Then open Claude Code in the repo and run the **`new-tenant-portal`** skill to b
 
 ### Onboarding (start here)
 
-- [`docs/onboarding/se-quickstart.md`](./docs/onboarding/se-quickstart.md) — first-run setup against your own Tableau Cloud site
+- [`docs/onboarding/se-setup-guide.md`](./docs/onboarding/se-setup-guide.md) — **complete step-by-step setup guide** (clone → your Tableau Cloud site → first live demo)
+- [`docs/onboarding/se-quickstart.md`](./docs/onboarding/se-quickstart.md) — condensed first-run reference
 - [`docs/onboarding/new-demo-request.md`](./docs/onboarding/new-demo-request.md) — the repeatable per-customer demo playbook
+- [`docs/onboarding/DISTRIBUTION.md`](./docs/onboarding/DISTRIBUTION.md) — for the maintainer: publishing this repo to the team
 
 ### Architecture & decisions
 
