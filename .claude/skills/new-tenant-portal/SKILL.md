@@ -134,8 +134,22 @@ fields + worksheets + one layout-flow dashboard.
   in a single-cell KPI it returns NULL). Pattern:
   `SUM(IF [date] >= DATEADD("month",-12,TODAY()) THEN [x] END)` vs the -24..-12
   window. Ratio KPIs (NPL%, CASA%) stay snapshot (no window).
-- **Currency format**: `n#,##0,,,.1"T ₫"` — use the `n` prefix, NOT `c!vi_VN!`
-  (the locale-currency renderer underlines the ₫ glyph). `,,,`=÷10⁹ (T/nghìn tỷ).
+- **KPI two-line card (number over delta) — ALWAYS APPLY**: never emit a
+  standalone newline run `<run>&#10;</run>` to break the line — Tableau TRIMS a
+  whitespace-only run, collapsing "312" and "▲ 23,8% vs cùng kỳ" onto one line.
+  Instead attach the break to the START of the (non-empty) delta run:
+  `<run …><![CDATA[\n{delta_text}]]></run>` (CDATA so the literal `\n` survives).
+  Verified on VACS.
+- **Header/title band — ALWAYS APPLY**: a `<zone type-v2='text'>` header with
+  wordmark+title+subtitle runs must be pinned to a FIXED pixel height with
+  `is-fixed='true' fixed-size='55'` — a relative `h='4600'` renders ~34px at
+  narrow embed widths and clips the title. Verified on VACS + Vietnam Airlines.
+- **Number-format decimals use `0`, NOT a digit**: in a format string `.1`/`.2`
+  render as LITERAL text (".1"), NOT one/two decimals — every value shows a
+  bogus ".1". Use `.0`=1dp, `.00`=2dp. Scaling commas go BEFORE the decimal:
+  `,,,,`=÷10¹² (nghìn tỷ), `,,,`=÷10⁹ (tỷ), `,,`=÷10⁶ (triệu). E.g. VND→tỷ 1dp:
+  `n#,##0,,,.0" tỷ ₫"`. Use the `n` prefix, NOT `c!vi_VN!` (locale-currency
+  renderer underlines the ₫ glyph). Verified on Vietnam Airlines.
 - **Maps**: use Country + City as geo DIMENSIONS with `semantic-role`
   (`[Country].[ISO3166_2]`, `[City].[Name]`) + rows `[Latitude (generated)]`,
   cols `[Longitude (generated)]` + `<mapsources><mapsource name='Tableau'/>`.

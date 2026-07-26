@@ -338,10 +338,12 @@ def kpi_card_delta(sheet_name: str, calc: Calc, title_vn: str,
                    value_color=NAVY) -> str:
     field = calc.ref()
     label = esc(title_vn.upper())
+    # NOTE: a standalone <run>&#10;</run> gets trimmed by Tableau, collapsing the
+    # number and delta onto one line. Attach the line break to the START of the
+    # (non-empty) delta run instead — a run with text content is never trimmed.
     value_run = (
         f"                <run bold='true' fontalignment='1' fontcolor='{value_color}' fontsize='{size}'><![CDATA[<{field}>]]></run>\n"
-        f"                <run fontalignment='1'>&#10;</run>\n"
-        f"                <run fontalignment='1' fontsize='10' bold='true' fontcolor='{delta_color}'>{esc(delta_text)}</run>\n"
+        f"                <run fontalignment='1' fontsize='10' bold='true' fontcolor='{delta_color}'><![CDATA[\n{delta_text}]]></run>\n"
         f"                <run fontalignment='1' fontsize='10' fontcolor='#8A97A6'>  {esc(sub_text)}</run>")
     return f"""    <worksheet name='{esc(sheet_name)}'>
       <layout-options>
@@ -625,7 +627,9 @@ def header_band(title_vn: str, subtitle_vn: str, h: int = 4600) -> str:
     earlier separate empty gold stripe expanded to fill flex space → giant gold
     block). Keep `h` small so the KPI row below gets its full height."""
     tid = _zid()
-    return (f"          <zone h='{h}' id='{tid}' type-v2='text' w='100000' x='0' y='0'>\n"
+    # is-fixed + fixed-size pins the band to 55px tall so the multi-run title
+    # never gets clipped at narrow embed widths (relative h renders ~34px).
+    return (f"          <zone fixed-size='55' h='{h}' id='{tid}' is-fixed='true' type-v2='text' w='100000' x='0' y='0'>\n"
             f"            <formatted-text>\n"
             f"              <run fontname='Tableau Bold' fontsize='18' bold='true' fontcolor='#FFFFFF'>VACS</run>\n"
             f"              <run fontname='Tableau Book' fontsize='13' fontcolor='#8FD0E6'>   |   {esc(title_vn)}</run>\n"
