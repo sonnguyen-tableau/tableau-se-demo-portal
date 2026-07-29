@@ -39,7 +39,6 @@
     ],
     "deny": [
       "Bash(rm -rf /*)",
-      "Bash(:(){:|:&};:)",
       "Bash(git push --force*)",
       "Bash(git push -f*)",
       "Bash(*DROP TABLE*)",
