@@ -4,15 +4,22 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useChatAgent, type ChatMessage, type RichBlock } from "@/hooks/useChatAgent";
 import { VegaChart } from "@/components/chart/VegaChart";
 import type { AgentSuggestion } from "@/lib/agent-suggestions";
+import { translator, DEFAULT_LOCALE, type Locale } from "@/lib/i18n-shared";
 
 export function AgentPage({
   tenantName,
   suggestions,
+  locale = DEFAULT_LOCALE,
 }: {
   tenantName: string;
   suggestions: AgentSuggestion[];
+  locale?: Locale;
 }) {
+  const t = translator(locale);
   const { messages, busy, tools, send, clear } = useChatAgent();
+  // Intro line bolds the tenant name inline; split the template on {tenant}
+  // so the bold styling survives translation in either locale.
+  const [introBefore, introAfter = ""] = t("agent.intro").split("{tenant}");
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -63,7 +70,7 @@ export function AgentPage({
             <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-[var(--brand-neutral)]" aria-hidden="true" />
           </span>
           <div className="flex flex-col leading-tight">
-            <span className="text-body-sm font-semibold text-white">AI Analytics Agent</span>
+            <span className="text-body-sm font-semibold text-white">{t("agent.title")}</span>
             <span className="text-meta text-white/55">{tenantName}</span>
           </div>
         </div>
@@ -77,7 +84,7 @@ export function AgentPage({
               }`}
             >
               <span className={`h-1.5 w-1.5 rounded-full ${tools.length > 0 ? "bg-emerald-400" : "bg-white/30"}`} aria-hidden="true" />
-              {tools.length > 0 ? `${tools.length} Tableau tools` : "General mode"}
+              {tools.length > 0 ? t("agent.toolsBadge", { count: tools.length }) : t("agent.generalMode")}
             </span>
           )}
           {hasMessages && (
@@ -88,7 +95,7 @@ export function AgentPage({
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              Cuộc hội thoại mới
+              {t("agent.newConversation")}
             </button>
           )}
         </div>
@@ -110,10 +117,12 @@ export function AgentPage({
             </div>
 
             <h1 className="mb-3 text-display font-bold leading-none tracking-tight">
-              <span className="bg-gradient-to-r from-white via-white to-sf-blue-40 bg-clip-text text-transparent">Xin chào</span>
+              <span className="bg-gradient-to-r from-white via-white to-sf-blue-40 bg-clip-text text-transparent">{t("agent.greeting")}</span>
             </h1>
             <p className="mb-10 max-w-lg text-center text-body-lg text-white/60">
-              Trợ lý phân tích dữ liệu của <span className="font-semibold text-white">{tenantName}</span>. Hỏi tôi bất cứ điều gì về dữ liệu của bạn.
+              {introBefore}
+              <span className="font-semibold text-white">{tenantName}</span>
+              {introAfter}
             </p>
 
             {/* Suggestion cards */}
@@ -139,7 +148,7 @@ export function AgentPage({
         ) : (
           <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
             {messages.map((msg, i) => (
-              <MessageBubble key={i} message={msg} />
+              <MessageBubble key={i} message={msg} locale={locale} />
             ))}
             {busy && <TypingIndicator />}
             <div ref={endRef} />
@@ -162,7 +171,7 @@ export function AgentPage({
               e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
             }}
             onKeyDown={onKeyDown}
-            placeholder={busy ? "Đang xử lý…" : "Hỏi AI agent về dữ liệu của bạn…"}
+            placeholder={busy ? t("agent.processing") : t("agent.inputPlaceholder")}
             disabled={busy}
             rows={1}
             className="flex-1 resize-none bg-transparent text-body text-white placeholder-white/40 outline-none disabled:opacity-50"
@@ -186,7 +195,7 @@ export function AgentPage({
           </button>
         </form>
         <p className="mt-2 text-center text-meta text-white/40">
-          Enter để gửi · Shift+Enter xuống dòng
+          {t("agent.inputHint")}
         </p>
       </div>
     </div>
@@ -216,7 +225,7 @@ function TypingIndicator() {
   );
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({ message, locale = DEFAULT_LOCALE }: { message: ChatMessage; locale?: Locale }) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end animate-slide-up">
@@ -265,7 +274,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
         )}
 
         {message.richBlocks?.map((block, i) => (
-          <RichBlockView key={i} block={block} />
+          <RichBlockView key={i} block={block} locale={locale} />
         ))}
 
         {message.content && (
@@ -280,7 +289,8 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
 const MAX_VISIBLE_ROWS = 50;
 
-function RichBlockView({ block }: { block: RichBlock }) {
+function RichBlockView({ block, locale = DEFAULT_LOCALE }: { block: RichBlock; locale?: Locale }) {
+  const t = translator(locale);
   if (block.kind === "image") {
     return (
       <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/30 shadow-elev-2">
@@ -328,7 +338,7 @@ function RichBlockView({ block }: { block: RichBlock }) {
       </table>
       {truncated && (
         <p className="border-t border-white/[0.06] px-3 py-2 text-meta text-white/45">
-          Hiển thị {MAX_VISIBLE_ROWS} / {block.rows.length} dòng
+          {t("agent.rowsShown", { shown: MAX_VISIBLE_ROWS, total: block.rows.length })}
         </p>
       )}
     </div>

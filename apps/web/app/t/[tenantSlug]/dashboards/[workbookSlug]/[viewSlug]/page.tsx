@@ -172,6 +172,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
               suggestions={getAgentSuggestions({
                 slug: tenantSlug,
                 industry: tenantRecord?.industry,
+                locale,
               }).map((s) => s.title)}
             />
           </ChatPanelWrapper>

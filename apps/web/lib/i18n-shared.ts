@@ -135,6 +135,18 @@ const vi = {
   "chat.suggest2": "Có biến động nào bất thường không?",
   "chat.suggest3": "Tóm tắt view này trong 3 ý chính.",
 
+  // full-page AI agent
+  "agent.title": "AI Analytics Agent",
+  "agent.toolsBadge": "{count} công cụ Tableau",
+  "agent.generalMode": "Chế độ chung",
+  "agent.newConversation": "Cuộc hội thoại mới",
+  "agent.greeting": "Xin chào",
+  "agent.intro": "Trợ lý phân tích dữ liệu của {tenant}. Hỏi tôi bất cứ điều gì về dữ liệu của bạn.",
+  "agent.inputPlaceholder": "Hỏi AI agent về dữ liệu của bạn…",
+  "agent.processing": "Đang xử lý…",
+  "agent.inputHint": "Enter để gửi · Shift+Enter xuống dòng",
+  "agent.rowsShown": "Hiển thị {shown} / {total} dòng",
+
   // ⌘K search
   "search.trigger": "Tìm dashboards, dự án, AI prompt…",
   "search.ariaLabel": "Tìm kiếm",
@@ -238,6 +250,17 @@ const en: Messages = {
   "chat.suggest1": "What stood out most in the latest period?",
   "chat.suggest2": "Are there any unusual movements?",
   "chat.suggest3": "Summarise this view in 3 key points.",
+
+  "agent.title": "AI Analytics Agent",
+  "agent.toolsBadge": "{count} Tableau tools",
+  "agent.generalMode": "General mode",
+  "agent.newConversation": "New conversation",
+  "agent.greeting": "Hi there",
+  "agent.intro": "{tenant}'s data analytics assistant. Ask me anything about your data.",
+  "agent.inputPlaceholder": "Ask the AI agent about your data…",
+  "agent.processing": "Working…",
+  "agent.inputHint": "Enter to send · Shift+Enter for a new line",
+  "agent.rowsShown": "Showing {shown} / {total} rows",
 
   "search.trigger": "Search dashboards, projects, AI prompts…",
   "search.ariaLabel": "Search",
