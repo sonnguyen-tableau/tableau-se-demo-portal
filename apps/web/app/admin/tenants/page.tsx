@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
 import { listTenants } from "@/lib/tenants";
 import { getImpressionStatus } from "@/lib/billing";
+import { TenantSyncButton } from "@/components/admin/TenantSyncButton";
 
 export default async function TenantsAdminPage() {
   const session = await auth();
@@ -49,6 +50,17 @@ export default async function TenantsAdminPage() {
           + New tenant
         </Link>
       </header>
+
+      <section className="space-y-2 rounded-lg border border-[hsl(var(--border))] p-4">
+        <h2 className="text-sm font-semibold">Sync with Tableau</h2>
+        <p className="text-xs text-[hsl(var(--muted-foreground))]">
+          Reconcile this list against your Tableau site: tenants whose Demo folder has no
+          dashboards are hidden (archived), and archived tenants whose folder reappears are shown
+          again. Previews first — nothing changes until you apply. Tableau artifacts are never
+          touched.
+        </p>
+        <TenantSyncButton />
+      </section>
 
       <table className="w-full overflow-hidden rounded-lg border border-[hsl(var(--border))] text-sm">
         <thead className="bg-[hsl(var(--muted))]">
