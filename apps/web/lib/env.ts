@@ -41,7 +41,40 @@ const schema = z.object({
   TABLEAU_PAT_SECRET: z.string().optional(),
 
   // Anthropic (optional until Phase 3)
+  // First-party Anthropic Console key. Used unless a Bedrock gateway is configured below.
   ANTHROPIC_API_KEY: z.string().startsWith("sk-ant-").optional(),
+
+  // ── Alternative: route the agent through a Bedrock-compatible gateway ────────
+  // For SEs whose org provides Claude via an internal Amazon Bedrock proxy
+  // (e.g. a corporate gateway reachable over VPN) instead of a personal
+  // sk-ant key. When ANTHROPIC_BEDROCK_BASE_URL is set, the agent uses the
+  // Bedrock path (resolveAnthropicConfig in lib/anthropic-config.ts) instead of
+  // the first-party API.
+  //
+  // NOTE: this path requires the `@anthropic-ai/bedrock-sdk` dependency, which
+  // is NOT yet installed — see the TODO in lib/agent.ts. Setting these vars
+  // without completing that step yields a clear runtime error, not a silent
+  // fallback. Declared here now so config + docs are ready for that step.
+  //
+  // Corresponds to Claude Code's own CLAUDE_CODE_USE_BEDROCK / *_BASE_URL /
+  // CLAUDE_CODE_SKIP_BEDROCK_AUTH env vars.
+  ANTHROPIC_BEDROCK_BASE_URL: z.string().url().optional(),
+  // AWS region for the Bedrock endpoint + inference-profile model IDs. The
+  // bedrock-sdk also reads AWS_REGION directly; declared here so validation and
+  // the resolved config agree. Defaults to us-east-1 downstream when unset.
+  AWS_REGION: z.string().optional(),
+  // When true (the default whenever a gateway base URL is set), the SDK does NOT
+  // attach AWS SigV4 — the gateway authenticates the caller (via VPN). Mirrors
+  // CLAUDE_CODE_SKIP_BEDROCK_AUTH. Set to "false" only if the gateway expects
+  // SigV4-signed requests with real AWS credentials.
+  ANTHROPIC_BEDROCK_SKIP_AUTH: z
+    .string()
+    .transform((v) => v === "true" || v === "1")
+    .optional(),
+  // Bedrock model / inference-profile ID for the agent, e.g.
+  // "us.anthropic.claude-sonnet-4-6-20260514-v1:0". REQUIRED on the Bedrock path:
+  // first-party IDs like "claude-sonnet-4-6" are not valid Bedrock model IDs.
+  ANTHROPIC_BEDROCK_MODEL: z.string().optional(),
 
   // Sidecars (optional until later phases)
   TABLEAU_MCP_URL: z.string().url().optional(),

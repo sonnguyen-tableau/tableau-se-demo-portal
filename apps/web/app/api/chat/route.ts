@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 import { tenantFromSession } from "@/lib/tenant";
 import { buildSystemPrompt, type VizContext } from "@/lib/system-prompt";
 import { runAgentTurn, type AgentEvent } from "@/lib/agent";
+import { resolveAnthropicConfig } from "@/lib/anthropic-config";
 import { allowedToolNames, openTableauMcp } from "@/lib/mcp-client";
 import { wrapMcpWithCatalogFilter } from "@/lib/mcp-catalog-guard";
 import { audit, shortHash } from "@/lib/audit";
@@ -78,12 +79,12 @@ export async function POST(req: Request): Promise<Response> {
     });
   }
 
-  const anthropicKey = env.ANTHROPIC_API_KEY;
-  if (!anthropicKey) {
+  const anthropicConfig = resolveAnthropicConfig();
+  if ("error" in anthropicConfig) {
     return new Response(
       sseLine({
         type: "error",
-        message: "ANTHROPIC_API_KEY is not configured. The chat agent is disabled.",
+        message: `${anthropicConfig.error} The chat agent is disabled.`,
       }) + sseLine({ type: "done" }),
       { status: 200, headers: sseHeaders() },
     );
@@ -219,7 +220,7 @@ export async function POST(req: Request): Promise<Response> {
 
         const activeMcp = guardedMcp ?? mcp;
         for await (const event of runAgentTurn({
-          apiKey: anthropicKey,
+          config: anthropicConfig,
           systemPrompt,
           userMessage: parsed.data.message,
           history: parsed.data.history,

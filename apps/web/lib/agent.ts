@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { TableauMcpSession, McpToolDescriptor } from "./mcp-client";
 import { VIZ_TOOLS, isVizToolName } from "./viz-tools";
+import type { AnthropicConfig } from "./anthropic-config";
 
 const DEFAULT_MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 8192;
@@ -27,7 +28,12 @@ export interface ConversationTurn {
 }
 
 export interface AgentTurnInput {
-  apiKey: string;
+  /**
+   * How to reach Claude — first-party API key or a Bedrock gateway. Resolved by
+   * `resolveAnthropicConfig()` in the route. On the Bedrock path, `config.model`
+   * is authoritative and `input.model` below is ignored.
+   */
+  config: AnthropicConfig;
   model?: string;
   systemPrompt: string;
   userMessage: string;
@@ -85,7 +91,49 @@ function withMessageCache(messages: Anthropic.MessageParam[]): Anthropic.Message
  * the SSE route forwards to the browser.
  */
 export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<AgentEvent> {
-  const anthropic = new Anthropic({ apiKey: input.apiKey });
+  // Provider branch. First-party is the shipped default; Bedrock is for SEs on
+  // an org gateway (see lib/anthropic-config.ts). Capture the model while the
+  // config union is intact — on the Bedrock path the inference-profile ID is
+  // authoritative; first-party uses the caller's model or the default.
+  const resolvedModel =
+    input.config.provider === "bedrock"
+      ? input.config.model
+      : (input.model ?? DEFAULT_MODEL);
+  let anthropic: Anthropic;
+
+  if (input.config.provider === "bedrock") {
+    // TODO(bedrock-gateway): wire the Bedrock client. Blocked on two deps that
+    // are NOT yet installed (deliberately deferred — see the ANTHROPIC_BEDROCK_*
+    // block in lib/env.ts and the onboarding note):
+    //
+    //   1. Bump `@anthropic-ai/sdk` from 0.39.0 to current.
+    //   2. Add `@anthropic-ai/bedrock-sdk` (a version whose peer `@anthropic-ai/sdk`
+    //      matches the bumped core — skipAuth landed in bedrock-sdk 0.22.0).
+    //
+    // Then replace this throw with:
+    //
+    //   const { AnthropicBedrock } = await import("@anthropic-ai/bedrock-sdk");
+    //   anthropic = new AnthropicBedrock({
+    //     baseURL: input.config.baseURL,     // else reads ANTHROPIC_BEDROCK_BASE_URL
+    //     awsRegion: input.config.awsRegion,  // else reads AWS_REGION
+    //     skipAuth: input.config.skipAuth,    // gateway authenticates (VPN) — no SigV4
+    //   }) as unknown as Anthropic;          // same messages.* surface
+    //
+    // ...then drop this early return and let control fall through. `resolvedModel`
+    // below already prefers input.config.model on the Bedrock path (the
+    // inference-profile ID), so no other change is needed — the rest of this
+    // function (messages.stream, finalMessage, tool loop) is provider-agnostic.
+    yield {
+      type: "error",
+      message:
+        "Bedrock gateway is configured but not yet wired: install " +
+        "@anthropic-ai/bedrock-sdk and bump @anthropic-ai/sdk (see the TODO in " +
+        "lib/agent.ts). Until then, use a first-party ANTHROPIC_API_KEY.",
+    };
+    return;
+  } else {
+    anthropic = new Anthropic({ apiKey: input.config.apiKey });
+  }
   const mcpTools = input.mcp?.tools ?? [];
   const tools: McpToolDescriptor[] = input.enableVizTools
     ? [...mcpTools, ...VIZ_TOOLS]
@@ -121,7 +169,7 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const baseParams: Anthropic.MessageCreateParamsStreaming = {
-      model: input.model ?? DEFAULT_MODEL,
+      model: resolvedModel,
       max_tokens: MAX_TOKENS,
       // Cache the system prompt (stable across the whole conversation).
       system: [{ type: "text", text: input.systemPrompt, cache_control: EPHEMERAL }],
