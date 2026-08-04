@@ -75,22 +75,30 @@ export const authConfig: NextAuthConfig = {
           // KV unavailable — fall through to DEV_USERS_JSON
         }
 
-        // 2. Fall back to DEV_USERS_JSON (dev / local only)
+        // 2. Fall back to DEV_USERS_JSON (dev / local only) — explicit accounts
+        // (e.g. the internal admin) win over auto-derived tenant logins below.
         if (env.PORTAL_ENV !== "dev") return null;
         const user = devUsers.find(
           (u) => u.email === email && u.password === password,
         );
-        if (!user) return null;
-        const displayName = user.email.split("@")[0] ?? user.email;
-        return {
-          id: user.email,
-          email: user.email,
-          name: displayName,
-          tenantId: user.tenantId,
-          tenantName: user.tenantName,
-          ...(user.region ? { region: user.region } : {}),
-          groups: user.groups,
-        };
+        if (user) {
+          const displayName = user.email.split("@")[0] ?? user.email;
+          return {
+            id: user.email,
+            email: user.email,
+            name: displayName,
+            tenantId: user.tenantId,
+            tenantName: user.tenantName,
+            ...(user.region ? { region: user.region } : {}),
+            groups: user.groups,
+          };
+        }
+
+        // 3. Auto-derived per-tenant login: `<slug>@demo.com` / `dev` for any
+        // ACTIVE tenant. Creating a tenant gives it a demo login for free; no
+        // DEV_USERS_JSON upkeep needed locally. Disabled outside dev.
+        const { verifyDevTenantLogin } = await import("@/lib/dev-logins");
+        return await verifyDevTenantLogin(email, password);
       },
     }),
   ],

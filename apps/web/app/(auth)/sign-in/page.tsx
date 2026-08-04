@@ -3,6 +3,7 @@ import { auth, signIn } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { getT } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { listDevTenantLogins } from "@/lib/dev-logins";
 
 interface PageProps {
   searchParams: Promise<{ next?: string; error?: string }>;
@@ -13,6 +14,11 @@ export default async function SignInPage({ searchParams }: PageProps) {
   const { next, error } = await searchParams;
   if (session?.user) redirect(next && next.startsWith("/") ? next : "/");
   const { locale, t } = await getT();
+  // Demo-account chips are derived from the ACTIVE tenant registry (one
+  // <slug>@demo.com login each, password "dev") — so the list stays in sync with
+  // tenant archive/reactivate and only shows logins that actually work. Empty
+  // outside dev.
+  const demoLogins = await listDevTenantLogins();
 
   return (
     <div className="flex min-h-dvh">
@@ -176,32 +182,24 @@ export default async function SignInPage({ searchParams }: PageProps) {
             </button>
           </form>
 
-          {env.PORTAL_ENV === "dev" && (
+          {env.PORTAL_ENV === "dev" && demoLogins.length > 0 && (
             <div className="mt-8 rounded-xl border border-sf-neutral-3 bg-sf-neutral-1 p-4">
               <p className="mb-2.5 text-caption font-semibold uppercase tracking-widest text-sf-neutral-5">
                 {t("signIn.demoAccounts")}
               </p>
               <div className="space-y-1.5">
-                {[
-                  { email: "sia@demo.com", role: "Singapore Airlines" },
-                  { email: "acb@demo.com", role: "ACB" },
-                  { email: "bank@demo.com", role: "Salesforce Bank" },
-                  { email: "vincom@demo.com", role: "Vincom Retail" },
-                  { email: "mediamart@demo.com", role: "MediaMart" },
-                  { email: "namabank@demo.com", role: "Nam A Bank" },
-                  { email: "meygroup@demo.com", role: "Mey Group" },
-                  { email: "vacs@demo.com", role: "VACS" },
-                  { email: "shb@demo.com", role: "SHB" },
-                  { email: "vnpt@demo.com", role: "VNPT" },
-                ].map((u) => (
+                {demoLogins.map((u) => (
                   <div key={u.email} className="flex items-center justify-between gap-2">
                     <span className="font-mono text-caption text-sf-neutral-6">{u.email}</span>
                     <span className="rounded-full bg-sf-neutral-2 px-2 py-px text-[10px] font-medium text-sf-neutral-5 border border-sf-neutral-3">
-                      {u.role}
+                      {u.tenantName}
                     </span>
                   </div>
                 ))}
               </div>
+              <p className="mt-3 text-[10px] text-sf-neutral-4">
+                Password: <span className="font-mono">dev</span> · one login per active tenant
+              </p>
             </div>
           )}
 
