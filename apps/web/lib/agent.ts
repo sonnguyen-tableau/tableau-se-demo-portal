@@ -91,14 +91,16 @@ function withMessageCache(messages: Anthropic.MessageParam[]): Anthropic.Message
  * the SSE route forwards to the browser.
  */
 export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<AgentEvent> {
-  // Provider branch. First-party is the shipped default; Bedrock is for SEs on
-  // an org gateway (see lib/anthropic-config.ts). Capture the model while the
-  // config union is intact — on the Bedrock path the inference-profile ID is
-  // authoritative; first-party uses the caller's model or the default.
+  // Provider branch. Native path (api.anthropic.com OR a native-API gateway
+  // like the SF root endpoint) is the working default; the Bedrock-wire path is
+  // still deferred (see lib/anthropic-config.ts). Capture the model while the
+  // config union is intact: Bedrock uses its inference-profile ID; the native
+  // path prefers an explicit config.model (gateway-required ID), then the
+  // caller's model, then the default.
   const resolvedModel =
     input.config.provider === "bedrock"
       ? input.config.model
-      : (input.model ?? DEFAULT_MODEL);
+      : (input.config.model ?? input.model ?? DEFAULT_MODEL);
   let anthropic: Anthropic;
 
   if (input.config.provider === "bedrock") {
@@ -132,7 +134,12 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
     };
     return;
   } else {
-    anthropic = new Anthropic({ apiKey: input.config.apiKey });
+    // Native Anthropic API. baseURL points at a gateway when set (SF root
+    // endpoint), else the SDK's api.anthropic.com default.
+    anthropic = new Anthropic({
+      apiKey: input.config.apiKey,
+      ...(input.config.baseURL ? { baseURL: input.config.baseURL } : {}),
+    });
   }
   const mcpTools = input.mcp?.tools ?? [];
   const tools: McpToolDescriptor[] = input.enableVizTools

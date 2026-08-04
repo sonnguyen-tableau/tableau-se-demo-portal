@@ -41,8 +41,22 @@ const schema = z.object({
   TABLEAU_PAT_SECRET: z.string().optional(),
 
   // Anthropic (optional until Phase 3)
-  // First-party Anthropic Console key. Used unless a Bedrock gateway is configured below.
-  ANTHROPIC_API_KEY: z.string().startsWith("sk-ant-").optional(),
+  // API key for the agent. Usually a first-party Console key (`sk-ant-…`), but
+  // also accepts a gateway/proxy key (e.g. Salesforce's `eng-ai-model-gateway`,
+  // which issues `sk-…` bearer tokens). Only the presence is validated — the
+  // `sk-ant-` prefix is NOT required, so gateway keys work.
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  // Base URL of a gateway that speaks the NATIVE Anthropic Messages API. When
+  // set, the agent's SDK client is pointed here instead of api.anthropic.com.
+  // This is the SF gateway's root endpoint (the one WITHOUT /bedrock). Distinct
+  // from ANTHROPIC_BEDROCK_BASE_URL below, which is the Bedrock-wire endpoint
+  // and needs the (not-yet-added) bedrock-sdk.
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
+  // Model ID the agent sends. Override when the gateway expects a specific ID
+  // (a Bedrock-backed gateway may want a profile ID like
+  // "us.anthropic.claude-sonnet-4-6-…" rather than the bare "claude-sonnet-4-6").
+  // Unset → the code default (claude-sonnet-4-6).
+  ANTHROPIC_MODEL: z.string().optional(),
 
   // ── Alternative: route the agent through a Bedrock-compatible gateway ────────
   // For SEs whose org provides Claude via an internal Amazon Bedrock proxy

@@ -21,10 +21,17 @@
  */
 import { env } from "@/lib/env";
 
-/** First-party Anthropic API using an sk-ant key. */
+/**
+ * Native Anthropic Messages API — either api.anthropic.com (Console key) or a
+ * gateway that speaks the same protocol (e.g. the SF gateway's root endpoint).
+ */
 export interface FirstPartyConfig {
   provider: "anthropic";
   apiKey: string;
+  /** Override endpoint. Unset → SDK default (api.anthropic.com). */
+  baseURL?: string;
+  /** Override model ID. Unset → the agent's DEFAULT_MODEL. */
+  model?: string;
 }
 
 /** Claude via a Bedrock-compatible gateway (org proxy over VPN). */
@@ -48,6 +55,23 @@ export type AnthropicConfig = FirstPartyConfig | BedrockConfig;
  * gateway did so deliberately.
  */
 export function resolveAnthropicConfig(): AnthropicConfig | { error: string } {
+  // Native path first. A key + optional ANTHROPIC_BASE_URL covers both
+  // api.anthropic.com (Console key) and a gateway that speaks the native
+  // Anthropic Messages API (e.g. the SF gateway ROOT endpoint, not /bedrock).
+  // This works with the installed SDK today — no bedrock-sdk needed. It wins
+  // over the Bedrock-wire branch below because when a key is present the native
+  // route is the working one.
+  if (env.ANTHROPIC_API_KEY) {
+    return {
+      provider: "anthropic",
+      apiKey: env.ANTHROPIC_API_KEY,
+      ...(env.ANTHROPIC_BASE_URL ? { baseURL: env.ANTHROPIC_BASE_URL } : {}),
+      ...(env.ANTHROPIC_MODEL ? { model: env.ANTHROPIC_MODEL } : {}),
+    };
+  }
+
+  // Bedrock-wire path — only when there's no key to use the native route. Still
+  // requires the deferred bedrock-sdk (see the TODO in lib/agent.ts).
   if (env.ANTHROPIC_BEDROCK_BASE_URL) {
     if (!env.ANTHROPIC_BEDROCK_MODEL) {
       return {
@@ -66,10 +90,6 @@ export function resolveAnthropicConfig(): AnthropicConfig | { error: string } {
       skipAuth: env.ANTHROPIC_BEDROCK_SKIP_AUTH !== false,
       model: env.ANTHROPIC_BEDROCK_MODEL,
     };
-  }
-
-  if (env.ANTHROPIC_API_KEY) {
-    return { provider: "anthropic", apiKey: env.ANTHROPIC_API_KEY };
   }
 
   return {
