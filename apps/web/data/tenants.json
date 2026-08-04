@@ -1,42 +1,27 @@
 [
   {
-    "id": "singapore-airlines",
-    "slug": "singapore-airlines",
-    "name": "Singapore Airlines",
-    "industry": "airline-passenger",
-    "sourceUrl": "https://www.singaporeair.com/",
-    "createdAt": "2026-07-13T00:00:00.000Z",
-    "status": "active",
-    "allowedProjects": [
-      "Demo/Singapore Airlines"
-    ],
-    "isDefault": false
-  },
-  {
     "id": "acb",
     "slug": "acb",
     "name": "ACB",
     "industry": "market-intelligence",
     "sourceUrl": "https://acb.com.vn/",
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "status": "active",
+    "status": "archived",
     "allowedProjects": [
       "Demo/ACB"
     ],
     "isDefault": false
   },
   {
-    "id": "vnpt",
-    "slug": "vnpt",
-    "name": "VNPT",
-    "industry": "telecom",
-    "sourceUrl": "https://vnpt.vn/",
-    "createdAt": "2026-07-10T00:00:00.000Z",
+    "id": "fairprice",
+    "slug": "fairprice",
+    "name": "FairPrice",
+    "industry": "FairPrice",
+    "createdAt": "2026-08-04T04:18:34.774Z",
     "status": "active",
     "allowedProjects": [
-      "Demo/VNPT"
-    ],
-    "isDefault": false
+      "Demo/FairPrice"
+    ]
   },
   {
     "id": "mediamart",
@@ -45,7 +30,7 @@
     "industry": "retail-mediamart",
     "sourceUrl": "https://mediamart.vn/",
     "createdAt": "2026-06-30T00:00:00.000Z",
-    "status": "active",
+    "status": "archived",
     "allowedProjects": [
       "Demo/MediaMart",
       "MediaMart"
@@ -59,7 +44,7 @@
     "industry": "retail-realestate",
     "sourceUrl": "https://meygroup.vn/",
     "createdAt": "2026-07-03T00:00:00.000Z",
-    "status": "active",
+    "status": "archived",
     "allowedProjects": [
       "Demo/Mey Group"
     ],
@@ -72,7 +57,7 @@
     "industry": "retail-banking",
     "sourceUrl": "https://www.namabank.com.vn/",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "status": "active",
+    "status": "archived",
     "allowedProjects": [
       "Demo/Nam A Bank"
     ],
@@ -84,7 +69,7 @@
     "name": "Salesforce Bank",
     "industry": "retail-banking",
     "createdAt": "2026-06-01T00:00:00.000Z",
-    "status": "active",
+    "status": "archived",
     "allowedProjects": [
       "Demo/Salesforce Bank"
     ],
@@ -97,9 +82,22 @@
     "industry": "sme-corporate-banking",
     "sourceUrl": "https://www.shb.com.vn/",
     "createdAt": "2026-07-09T00:00:00.000Z",
-    "status": "active",
+    "status": "archived",
     "allowedProjects": [
       "Demo/SHB"
+    ],
+    "isDefault": false
+  },
+  {
+    "id": "singapore-airlines",
+    "slug": "singapore-airlines",
+    "name": "Singapore Airlines",
+    "industry": "airline-passenger",
+    "sourceUrl": "https://www.singaporeair.com/",
+    "createdAt": "2026-07-13T00:00:00.000Z",
+    "status": "archived",
+    "allowedProjects": [
+      "Demo/Singapore Airlines"
     ],
     "isDefault": false
   },
@@ -110,7 +108,7 @@
     "industry": "airline-catering",
     "sourceUrl": "https://vnaircaterers.com/",
     "createdAt": "2026-07-09T00:00:00.000Z",
-    "status": "active",
+    "status": "archived",
     "allowedProjects": [
       "Demo/VACS"
     ],
@@ -123,9 +121,22 @@
     "industry": "retail-mall",
     "sourceUrl": "https://vincom.com.vn/",
     "createdAt": "2026-06-12T00:00:00.000Z",
-    "status": "active",
+    "status": "archived",
     "allowedProjects": [
       "Demo/Vincom Retail"
+    ],
+    "isDefault": false
+  },
+  {
+    "id": "vnpt",
+    "slug": "vnpt",
+    "name": "VNPT",
+    "industry": "telecom",
+    "sourceUrl": "https://vnpt.vn/",
+    "createdAt": "2026-07-10T00:00:00.000Z",
+    "status": "archived",
+    "allowedProjects": [
+      "Demo/VNPT"
     ],
     "isDefault": false
   }
