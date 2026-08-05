@@ -14,6 +14,7 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "mcp": "bash scripts/start-mcp.sh",
     "clean": "turbo run clean && rm -rf node_modules .turbo"
   },
   "devDependencies": {

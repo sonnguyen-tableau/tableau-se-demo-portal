@@ -3,34 +3,54 @@ version: "3.9"
 # Local development sidecars. The web app runs separately via `pnpm dev`
 # and reaches these services over the host network on the published ports.
 #
-# Required env (in repo-root .env, gitignored):
-#   TABLEAU_SITE_URL=https://<pod>.online.tableau.com
-#   TABLEAU_SITE_NAME=<contentUrl>
-#   TABLEAU_PAT_NAME=<service-account-pat-name>
-#   TABLEAU_PAT_SECRET=<service-account-pat-secret>
+# NOTE: Docker is OPTIONAL. If you don't have Docker, run the MCP sidecar with
+# `pnpm mcp` (scripts/start-mcp.sh) instead — it uses the same @tableau/mcp-server
+# package via npx and reads apps/web/.env.local directly.
 #
-# Bring up:  docker compose -f infra/docker-compose.yml up -d
+# Required env — put these in a repo-root .env (gitignored). Compose reads .env
+# from the directory you run it in, so run from repo root or pass --env-file:
+#   docker compose --env-file .env -f infra/docker-compose.yml up -d tableau-mcp
+#
+#   SERVER=https://<pod>.online.tableau.com     # bare origin, NO #/site/... fragment
+#   SITE_NAME=<contentUrl>                       # site short name
+#   PAT_NAME=<service-account-pat-name>
+#   PAT_VALUE=<service-account-pat-secret>
+#
+# These are the v4 @tableau/mcp-server env names (SERVER/SITE_NAME/PAT_NAME/
+# PAT_VALUE) — NOT the portal's TABLEAU_* names. The portal must set
+# TABLEAU_MCP_URL="http://localhost:8081/tableau-mcp" (v4 serves at /tableau-mcp).
 
 services:
   tableau-mcp:
-    # Official Tableau MCP server distributed on npm as @tableau/mcp-server.
-    # We run it in HTTP transport mode on port 8081 so the portal's chat
-    # route can connect via streamable HTTP.
+    # Official Tableau MCP server (@tableau/mcp-server v4), HTTP transport on
+    # 8081 so the portal's chat route connects via streamable HTTP.
     image: node:22.13-alpine
     container_name: tableau-mcp
     working_dir: /srv
     command: >
-      sh -c "npm i -g @tableau/mcp-server &&
-             tableau-mcp --transport http --port 8081 --host 0.0.0.0"
+      sh -c "npx -y @tableau/mcp-server@latest"
     environment:
-      TABLEAU_SITE_URL: ${TABLEAU_SITE_URL:?required}
-      TABLEAU_SITE_NAME: ${TABLEAU_SITE_NAME:?required}
-      TABLEAU_PAT_NAME: ${TABLEAU_PAT_NAME:?required}
-      TABLEAU_PAT_SECRET: ${TABLEAU_PAT_SECRET:?required}
+      # v4 transport config
+      TRANSPORT: http
+      PORT: "8081"
+      # v4 HTTP mode requires OAuth unless explicitly disabled; we authenticate
+      # with a PAT instead. Safe for a localhost-only dev sidecar; NEVER expose
+      # this container publicly with OAuth disabled.
+      DANGEROUSLY_DISABLE_OAUTH: "true"
+      # Skip the per-registration GET /sites/:id/settings/mcp call — it throws
+      # -32603 (zero tools) on sites without MCP site-settings provisioned.
+      ENABLE_MCP_SITE_SETTINGS: "false"
+      # Auth (v4 names)
+      SERVER: ${SERVER:?required — bare origin, e.g. https://10ax.online.tableau.com}
+      SITE_NAME: ${SITE_NAME:?required}
+      PAT_NAME: ${PAT_NAME:?required}
+      PAT_VALUE: ${PAT_VALUE:?required}
     ports:
       - "8081:8081"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      # v4 serves the MCP endpoint at /tableau-mcp; a GET returns 4xx (no valid
+      # session) but proves the server is listening — good enough for liveness.
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/tableau-mcp"]
       interval: 30s
       timeout: 5s
       retries: 3
