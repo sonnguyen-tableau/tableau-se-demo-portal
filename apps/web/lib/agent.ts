@@ -61,6 +61,41 @@ export interface AgentTurnInput {
 const EPHEMERAL = { type: "ephemeral" as const };
 
 /**
+ * Map a raw SDK/stream error to a user-facing message. `overloaded` and
+ * connection-level failures get a friendly, actionable line; everything else
+ * passes through. Connection errors are common when the AI gateway is reached
+ * over VPN / a preprod endpoint and briefly hiccups — the terse SDK default
+ * ("Connection error.") doesn't tell the user to just retry.
+ */
+function friendlyAgentError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : "";
+  if (raw.includes("overloaded")) {
+    return "Hệ thống AI đang quá tải, vui lòng thử lại sau vài giây.";
+  }
+  // APIConnectionError surfaces as "Connection error." from the SDK; also catch
+  // low-level fetch/network failures.
+  if (isConnectionError(err)) {
+    return "Không kết nối được tới AI gateway (có thể do VPN/mạng chập chờn). Vui lòng thử lại sau vài giây.";
+  }
+  return raw || "stream error";
+}
+
+/**
+ * A transient connection/network failure worth retrying — the gateway (reached
+ * over VPN / preprod) occasionally drops a request mid-flight. Distinct from a
+ * 4xx/validation error, which won't get better on retry.
+ */
+function isConnectionError(err: unknown): boolean {
+  const raw = err instanceof Error ? err.message : "";
+  return (
+    err instanceof Anthropic.APIConnectionError ||
+    /connection error|fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EPIPE|ENOTFOUND|socket hang up|network|terminated/i.test(
+      raw,
+    )
+  );
+}
+
+/**
  * Add a prompt-cache breakpoint on the last content block of the last message.
  * Combined with the cached system + tool definitions, this makes re-sending a
  * long retained transcript on a follow-up turn nearly free. Returns a shallow
@@ -187,45 +222,50 @@ export async function* runAgentTurn(input: AgentTurnInput): AsyncGenerator<Agent
       baseParams.tools = cachedTools as unknown as Anthropic.Tool[];
     }
 
-    // Retry on overloaded_error with exponential backoff (up to 3 attempts)
-    let stream: Awaited<ReturnType<typeof anthropic.messages.stream>>;
-    for (let attempt = 0; attempt < 3; attempt++) {
+    // Create + consume + finalize the stream, retrying transient failures
+    // (overloaded, or a connection drop) with exponential backoff. The SDK does
+    // NOT connect at .stream() creation — it throws during iteration — so the
+    // whole read must be inside the retry, not just the constructor.
+    //
+    // Retry is only safe while NO text has been emitted this attempt: we buffer
+    // this attempt's deltas and flush them only on success, so a mid-stream drop
+    // can be retried without double-printing. (The observed failure mode emits
+    // zero text before dropping, so this covers it.)
+    const MAX_STREAM_ATTEMPTS = 3;
+    let message!: Anthropic.Message;
+    let streamSucceeded = false;
+    for (let attempt = 0; attempt < MAX_STREAM_ATTEMPTS; attempt++) {
+      const bufferedDeltas: string[] = [];
       try {
-        stream = anthropic.messages.stream(baseParams);
-        // Trigger connection; if overloaded it throws on first read
+        const stream = anthropic.messages.stream(baseParams);
+        for await (const event of stream) {
+          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+            bufferedDeltas.push(event.delta.text);
+          }
+        }
+        message = await stream.finalMessage();
+        // Success — flush this attempt's text to the client, then proceed.
+        for (const delta of bufferedDeltas) yield { type: "text_delta", delta };
+        streamSucceeded = true;
         break;
       } catch (err) {
-        const isOverloaded = err instanceof Error && err.message.includes("overloaded");
-        if (isOverloaded && attempt < 2) {
-          await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+        const retriable =
+          (err instanceof Error && err.message.includes("overloaded")) || isConnectionError(err);
+        if (retriable && attempt < MAX_STREAM_ATTEMPTS - 1) {
+          yield {
+            type: "system",
+            message: `AI gateway hiccup — retrying (${attempt + 2}/${MAX_STREAM_ATTEMPTS})…`,
+          };
+          await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
           continue;
         }
-        yield { type: "error", message: err instanceof Error ? err.message : "stream error" };
+        yield { type: "error", message: friendlyAgentError(err) };
         return;
       }
     }
-    stream = stream!;
+    if (!streamSucceeded) return;
 
     const toolCalls: Array<{ id: string; name: string; input: Record<string, unknown> }> = [];
-
-    try {
-      for await (const event of stream) {
-        if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-          yield { type: "text_delta", delta: event.delta.text };
-        }
-      }
-    } catch (err) {
-      const isOverloaded = err instanceof Error && err.message.includes("overloaded");
-      yield {
-        type: "error",
-        message: isOverloaded
-          ? "Hệ thống AI đang quá tải, vui lòng thử lại sau vài giây."
-          : err instanceof Error ? err.message : "stream error",
-      };
-      return;
-    }
-
-    const message = await stream.finalMessage();
 
     for (const block of message.content) {
       if (block.type === "tool_use") {
