@@ -56,6 +56,7 @@ Then open Claude Code in the repo and run the **`new-tenant-portal`** skill to b
 ### Onboarding (start here)
 
 - [`docs/onboarding/se-setup-guide.md`](./docs/onboarding/se-setup-guide.md) — **complete step-by-step setup guide** (clone → your Tableau Cloud site → first live demo)
+- [`docs/onboarding/se-workshop.md`](./docs/onboarding/se-workshop.md) — **hands-on workshop** (the in-repo version of the SE workshop deck: setup → build your first tenant, ~1 hr)
 - [`docs/onboarding/se-quickstart.md`](./docs/onboarding/se-quickstart.md) — condensed first-run reference
 - [`docs/onboarding/new-demo-request.md`](./docs/onboarding/new-demo-request.md) — the repeatable per-customer demo playbook
 - [`docs/onboarding/DISTRIBUTION.md`](./docs/onboarding/DISTRIBUTION.md) — for the maintainer: publishing this repo to the team
