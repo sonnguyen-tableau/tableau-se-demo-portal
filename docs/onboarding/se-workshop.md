@@ -393,6 +393,38 @@ agent is live. 🎉
 > - **Add the deployed hostname to the Connected App domain allow-list**, or
 >   embeds 401.
 
+### Heroku — set config vars BEFORE the build
+
+Heroku runs `pnpm run build` during the deploy, and Next.js's build step loads
+every route module. `AUTH_SECRET` is the one required env var — set it (and the
+others) as **config vars before you push**, or the build fails with:
+
+```
+Error: Invalid environment configuration:
+  - AUTH_SECRET: Required
+Failed to collect page data for /api/admin/catalog-filter
+```
+
+Minimum to make the build pass, then run:
+
+```bash
+heroku config:set AUTH_SECRET="$(openssl rand -base64 32)" -a <app>
+heroku config:set AUTH_URL="https://<app>.herokuapp.com" PORTAL_ENV=prod -a <app>
+# then the runtime vars: Tableau site + Connected App + PAT + TABLEAU_EMBED_USER,
+# ANTHROPIC_API_KEY (a real sk-ant- key — the SF gateway is VPN-only),
+# KV_REST_API_URL + KV_REST_API_TOKEN, TABLEAU_MCP_URL (hosted, not localhost).
+git push heroku HEAD:main
+```
+
+> ⚠️ **Don't set a validated var to an empty string.** `SITE_CONFIG_ENCRYPTION_KEY`
+> (64 hex) and `FACTORY_PROVISION_SECRET` (≥16 chars) are format-checked — an
+> empty value is *present-but-invalid* and fails the build. Leave them **unset**
+> if you're not using them.
+
+> The build itself no longer needs secrets to *compile* (it detects the build
+> phase and relaxes validation), but `AUTH_SECRET` must still be present for the
+> app to **boot** at runtime — so set it regardless.
+
 ---
 
 ## Part 6 — Keeping Your Portal Up to Date

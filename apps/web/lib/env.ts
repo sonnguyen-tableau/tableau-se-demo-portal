@@ -122,5 +122,30 @@ function loadEnv(): Env {
   return parsed.data;
 }
 
-// Single-shot init; module-scoped so it runs once per process.
-export const env: Env = loadEnv();
+/**
+ * `next build` executes "Collecting page data", which loads every route module
+ * top-level. Route modules (and `lib/auth.ts`'s NextAuth config) read `env.*`,
+ * so a strict `loadEnv()` at import time makes the BUILD require real secrets
+ * that only exist at runtime — e.g. on Heroku/Vercel the build fails with
+ * "AUTH_SECRET: Required" because `.env.local` is never deployed.
+ *
+ * The build doesn't need secrets — those code paths aren't executed while
+ * building (every page is dynamic / server-rendered on demand). So during the
+ * build phase we return a non-throwing best-effort view: AUTH_SECRET is relaxed
+ * to optional, every other field keeps its real default/transform. At RUNTIME
+ * (`next start`, a fresh process where NEXT_PHASE is unset) validation is
+ * strict and fail-fast, exactly as before.
+ */
+function isBuildPhase(): boolean {
+  return process.env.NEXT_PHASE === "phase-production-build";
+}
+
+function buildStub(): Env {
+  const relaxed = schema.extend({ AUTH_SECRET: z.string().optional() });
+  const parsed = relaxed.safeParse(process.env);
+  return (parsed.success ? parsed.data : (process.env as unknown as Env)) as Env;
+}
+
+// Single-shot init; module-scoped so it runs once per process. Strict at
+// runtime, permissive during `next build` (see isBuildPhase note above).
+export const env: Env = isBuildPhase() ? buildStub() : loadEnv();
