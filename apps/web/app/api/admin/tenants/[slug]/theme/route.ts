@@ -15,6 +15,8 @@ const themeSchema = z.object({
   fontFamily: z.string().min(1).max(80).optional(),
   logoUrl: z.string().url().max(1024).optional(),
   tone: z.enum(["professional", "playful", "technical"]).optional(),
+  chartPalette: z.array(z.string().regex(/^#[0-9a-fA-F]{6}$/)).max(8).optional(),
+  heroVariant: z.enum(["aurora", "editorial", "spotlight"]).optional(),
 });
 
 export async function PUT(
@@ -44,6 +46,8 @@ export async function PUT(
     ...(d.fontFamily !== undefined ? { fontFamily: d.fontFamily } : {}),
     ...(d.logoUrl !== undefined ? { logoUrl: d.logoUrl } : {}),
     ...(d.tone !== undefined ? { tone: d.tone } : {}),
+    ...(d.chartPalette !== undefined ? { chartPalette: d.chartPalette } : {}),
+    ...(d.heroVariant !== undefined ? { heroVariant: d.heroVariant } : {}),
   });
   return NextResponse.json(next);
 }

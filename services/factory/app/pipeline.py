@@ -534,6 +534,8 @@ class FactoryJob:
                     "fontFamily": t.font_family,
                     "tone": t.tone,
                     **({"logoUrl": t.logo_url} if t.logo_url else {}),
+                    **({"chartPalette": t.chart_palette} if t.chart_palette else {}),
+                    **({"heroVariant": t.hero_variant} if t.hero_variant else {}),
                 }
                 r = await session.put(
                     f"{base}/api/admin/provision/theme", json=theme_payload, headers=headers

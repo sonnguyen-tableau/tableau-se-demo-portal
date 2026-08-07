@@ -6,7 +6,9 @@ import { getLiveCatalog } from "@/lib/tableau-rest";
 import { getTenant } from "@/lib/tenants";
 import { getRecentViews, getPopularViews } from "@/lib/view-history";
 import { getPulseConfig } from "@/lib/pulse";
+import { getTenantTheme } from "@/lib/tenant-theme";
 import { PulseSection } from "@/components/embed/PulseSection";
+import { TenantHero } from "@/components/layout/TenantHero";
 import { getT, type Locale, type MessageKey } from "@/lib/i18n";
 
 type T = (key: MessageKey, vars?: Record<string, string | number>) => string;
@@ -23,11 +25,12 @@ export default async function TenantHome({ params }: PageProps) {
   const { locale, t } = await getT();
 
   const tenantRecord = await getTenant(tenantSlug);
-  const [impressions, catalog, recentViews, popularRaw] = await Promise.all([
+  const [impressions, catalog, recentViews, popularRaw, theme] = await Promise.all([
     ctx ? getImpressionStatus(ctx.tenantId) : Promise.resolve(null),
     getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects),
     getRecentViews(email),
     getPopularViews(6),
+    getTenantTheme(ctx?.tenantId ?? tenantSlug),
   ]);
 
   const dashboardIndex = new Map(
@@ -53,75 +56,16 @@ export default async function TenantHome({ params }: PageProps) {
 
   return (
     <div className="space-y-7 animate-fade-in">
-      {/* ── Welcome banner ─────────────────────────────────────────────── */}
-      <section
-        className="relative overflow-hidden rounded-2xl border border-white/[0.08] px-7 py-8 text-white shadow-elev-3"
-        style={{
-          background:
-            "linear-gradient(135deg, var(--brand-neutral) 0%, color-mix(in oklab, var(--brand-neutral) 80%, var(--brand-primary) 20%) 70%, var(--brand-primary) 130%)",
-        }}
-      >
-        {/* mesh accents */}
-        <div className="pointer-events-none absolute inset-0 opacity-70 bg-mesh-brand mix-blend-screen" aria-hidden="true" />
-        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/[0.06] blur-2xl" aria-hidden="true" />
-        <div className="pointer-events-none absolute -bottom-16 right-32 h-40 w-40 rounded-full bg-sf-blue-60/20 blur-3xl" aria-hidden="true" />
-
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="inline-flex items-center gap-2 text-meta font-semibold uppercase tracking-[0.16em] text-sf-blue-40">
-              <span className="h-1 w-1 rounded-full bg-sf-blue-40" aria-hidden="true" />
-              {ctx?.tenantName ?? tenantSlug}
-            </p>
-            <h1 className="mt-2 text-h1 font-bold leading-tight text-white">
-              {t("th.welcome")}
-              <span className="ml-2 inline-block animate-[fade-in_400ms_ease-out]">👋</span>
-            </h1>
-            <p className="mt-2 text-body-lg text-white/75 leading-relaxed">
-              {t("th.subtitle")}
-            </p>
-
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Link
-                href={`/t/${tenantSlug}/dashboards`}
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-body-sm font-semibold text-sf-neutral-9 shadow-elev-1 transition-all duration-base ease-smooth hover:-translate-y-px hover:bg-sf-neutral-2 hover:shadow-elev-2 active:scale-[0.98]"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                {t("th.viewDashboards")}
-              </Link>
-              <Link
-                href={`/t/${tenantSlug}/agent`}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/[0.08] px-4 py-2 text-body-sm font-semibold text-white backdrop-blur-sm transition-all duration-base ease-smooth hover:-translate-y-px hover:border-white/30 hover:bg-white/[0.14]"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.091 3.091z" />
-                </svg>
-                {t("th.askAgent")}
-              </Link>
-            </div>
-          </div>
-
-          {impressions && (
-            <div className="rounded-xl border border-white/[0.12] bg-white/[0.06] px-4 py-3 backdrop-blur-md min-w-[220px]">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-meta font-semibold uppercase tracking-[0.14em] text-sf-blue-40">{t("th.viewsToday")}</span>
-                <span className="flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" aria-hidden="true" />
-              </div>
-              <div className="mt-2 flex items-baseline gap-1.5 text-white">
-                <span className="text-h2 font-bold">{impressions.used.toLocaleString(locale)}</span>
-                <span className="text-body-sm text-white/60">/ {impressions.cap.toLocaleString(locale)}</span>
-              </div>
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-sf-blue-40 transition-[width] duration-slow ease-smooth"
-                  style={{ width: `${usedPct}%` }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
+      {/* ── Welcome hero (per-tenant variant) ──────────────────────────── */}
+      <TenantHero
+        variant={theme.heroVariant ?? "aurora"}
+        tenantSlug={tenantSlug}
+        tenantName={ctx?.tenantName ?? tenantSlug}
+        impressions={impressions}
+        usedPct={usedPct}
+        locale={locale}
+        t={t}
+      />
 
       {/* ── KPI tiles ──────────────────────────────────────────────────── */}
       <section className="grid gap-4 sm:grid-cols-3">

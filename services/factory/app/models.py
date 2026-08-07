@@ -149,6 +149,11 @@ class BrandTheme(BaseModel):
     font_family: str = "Inter"
     logo_url: str | None = None
     tone: Literal["professional", "playful", "technical"] = "professional"
+    # Optional categorical chart palette (hex). When empty, the portal derives a
+    # brand-led default at render time, so leaving this unset is always safe.
+    chart_palette: list[str] = []
+    # Tenant-home hero layout. None → portal default ("aurora").
+    hero_variant: Literal["aurora", "editorial", "spotlight"] | None = None
 
 
 class GeneratorParams(BaseModel):

@@ -15,6 +15,19 @@ export type Tone = "professional" | "playful" | "technical";
 //   width on its own, no redundant text beside it.
 export type LogoLayout = "icon" | "wordmark";
 
+// Tenant home hero layout. All three keep the same shared shell (sidebar,
+// dashboards, agent, RLS, i18n) — only the top welcome banner differs, so a
+// tenant feels tailored without forking the single-shell architecture.
+// - "aurora":    the original brand-gradient mesh banner (default).
+// - "editorial": light surface, left accent bar, calmer/enterprise feel.
+// - "spotlight": centered, brand-ring, minimal.
+export type HeroVariant = "aurora" | "editorial" | "spotlight";
+
+export const HERO_VARIANTS: readonly HeroVariant[] = ["aurora", "editorial", "spotlight"] as const;
+
+// Max categorical colors we persist/emit for a tenant chart palette.
+export const MAX_CHART_COLORS = 8;
+
 export interface TenantTheme {
   tenantId: string;
   companyName: string;
@@ -26,6 +39,12 @@ export interface TenantTheme {
   logoUrl?: string | undefined;
   logoLayout?: LogoLayout | undefined;
   tone: Tone;
+  // Categorical palette for charts (Vega / dashboard cards). Optional: when
+  // absent, resolveChartPalette() derives a brand-led default so older tenants
+  // keep working unchanged.
+  chartPalette?: string[] | undefined;
+  // Which tenant-home hero layout to render. Defaults to "aurora".
+  heroVariant?: HeroVariant | undefined;
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -38,6 +57,7 @@ export const DEFAULT_THEME: Omit<TenantTheme, "tenantId"> = {
   sidebarTextColor: "#ffffff",
   fontFamily: "Inter",
   tone: "professional",
+  heroVariant: "aurora",
 };
 
 // ── Storage helpers ──────────────────────────────────────────────────────────
@@ -122,6 +142,16 @@ export async function setTenantTheme(
       : existing.logoLayout !== undefined
         ? { logoLayout: existing.logoLayout }
         : {}),
+    ...(input.chartPalette !== undefined
+      ? { chartPalette: sanitizeChartPalette(input.chartPalette) }
+      : existing.chartPalette !== undefined
+        ? { chartPalette: existing.chartPalette }
+        : {}),
+    ...(isHeroVariant(input.heroVariant)
+      ? { heroVariant: input.heroVariant }
+      : existing.heroVariant !== undefined
+        ? { heroVariant: existing.heroVariant }
+        : {}),
   };
 
   if (hasKv()) {
@@ -169,6 +199,7 @@ export async function getTenantDesignMd(tenantId: string): Promise<string | null
 
 export function themeToCssVariables(theme: TenantTheme): string {
   const textColor = theme.sidebarTextColor ?? "#ffffff";
+  const palette = resolveChartPalette(theme);
   return [
     `--brand-primary: ${theme.primaryColor};`,
     `--brand-secondary: ${theme.secondaryColor};`,
@@ -177,7 +208,48 @@ export function themeToCssVariables(theme: TenantTheme): string {
     `--sidebar-text-muted: ${textColor}99;`,
     `--sidebar-text-dim: ${textColor}66;`,
     `--font-sans: ${theme.fontFamily}, Inter, system-ui, sans-serif;`,
+    ...palette.map((c, i) => `--brand-chart-${i + 1}: ${c};`),
   ].join(" ");
+}
+
+/**
+ * The categorical chart palette for a tenant. Uses the stored `chartPalette`
+ * when present; otherwise derives a brand-led default (primary → secondary →
+ * neutral, then a fixed set of accessible accents) so every tenant — including
+ * ones provisioned before this field existed — gets on-brand charts.
+ * Always returns MAX_CHART_COLORS entries.
+ */
+export function resolveChartPalette(theme: Pick<TenantTheme, "primaryColor" | "secondaryColor" | "neutralColor" | "chartPalette">): string[] {
+  const stored = theme.chartPalette?.filter((c) => HEX.test(c));
+  const seed = stored && stored.length > 0 ? stored : deriveChartPalette(theme);
+  // Pad to MAX_CHART_COLORS by cycling, so `--brand-chart-N` is always defined.
+  const out: string[] = [];
+  for (let i = 0; i < MAX_CHART_COLORS; i++) {
+    out.push((seed[i % seed.length] ?? "#0176d3").toLowerCase());
+  }
+  return out;
+}
+
+// Deterministic brand-led categorical palette: the three brand colors first
+// (so charts read as "this tenant"), then fixed accents chosen to stay
+// distinguishable on white at typical chart mark sizes.
+const _CHART_ACCENTS = ["#7c3aed", "#0891b2", "#ea580c", "#16a34a", "#db2777"];
+
+function deriveChartPalette(theme: Pick<TenantTheme, "primaryColor" | "secondaryColor" | "neutralColor">): string[] {
+  const brand = [theme.primaryColor, theme.secondaryColor, theme.neutralColor].filter((c) => HEX.test(c));
+  const seen = new Set(brand.map((c) => c.toLowerCase()));
+  const accents = _CHART_ACCENTS.filter((c) => !seen.has(c.toLowerCase()));
+  return [...brand, ...accents].slice(0, MAX_CHART_COLORS);
+}
+
+function sanitizeChartPalette(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  const out: string[] = [];
+  for (const c of input) {
+    if (typeof c === "string" && HEX.test(c)) out.push(c.toLowerCase());
+    if (out.length >= MAX_CHART_COLORS) break;
+  }
+  return out;
 }
 
 function pickHex(candidate: string | undefined, fallback: string): string {
@@ -191,4 +263,8 @@ function isTone(v: unknown): v is Tone {
 
 function isLogoLayout(v: unknown): v is LogoLayout {
   return v === "icon" || v === "wordmark";
+}
+
+function isHeroVariant(v: unknown): v is HeroVariant {
+  return v === "aurora" || v === "editorial" || v === "spotlight";
 }

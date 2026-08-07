@@ -29,6 +29,8 @@ const putSchema = z.object({
   logoUrl: z.string().url().max(2048).or(z.literal("")).optional(),
   logoLayout: z.enum(["icon", "wordmark"]).optional(),
   tone: z.enum(["professional", "playful", "technical"]),
+  chartPalette: z.array(z.string().regex(/^#[0-9a-fA-F]{6}$/)).max(8).optional(),
+  heroVariant: z.enum(["aurora", "editorial", "spotlight"]).optional(),
 });
 
 export async function PUT(req: Request): Promise<Response> {
@@ -42,12 +44,14 @@ export async function PUT(req: Request): Promise<Response> {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { logoUrl, logoLayout, sidebarTextColor, ...rest } = parsed.data;
+  const { logoUrl, logoLayout, sidebarTextColor, chartPalette, heroVariant, ...rest } = parsed.data;
   const theme = await setTenantTheme({
     ...rest,
     ...(logoUrl !== undefined ? { logoUrl } : {}),
     ...(logoLayout !== undefined ? { logoLayout } : {}),
     ...(sidebarTextColor !== undefined ? { sidebarTextColor } : {}),
+    ...(chartPalette !== undefined ? { chartPalette } : {}),
+    ...(heroVariant !== undefined ? { heroVariant } : {}),
   });
   return NextResponse.json(theme);
 }

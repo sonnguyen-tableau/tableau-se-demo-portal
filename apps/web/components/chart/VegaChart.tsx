@@ -23,6 +23,15 @@ export function VegaChart({ spec, title, dark = false }: Props) {
       try {
         const vegaEmbed = (await import("vega-embed")).default;
 
+        // Read the tenant brand chart palette from CSS vars (set by
+        // themeToCssVariables → --brand-chart-N). Falls back to Vega's default
+        // scheme when no vars are present (e.g. SSR/first paint), so charts are
+        // always on-brand for a tenant without hard-coding colors here.
+        const brandRange = readBrandChartPalette(container);
+
+        const specConfig = typeof spec.config === "object" && spec.config !== null ? (spec.config as Record<string, unknown>) : {};
+        const specRange = typeof specConfig.range === "object" && specConfig.range !== null ? (specConfig.range as Record<string, unknown>) : {};
+
         // Patch spec: remove explicit width/height to let it fill container,
         // apply dark or light theme config
         const patched: Record<string, unknown> = {
@@ -30,7 +39,12 @@ export function VegaChart({ spec, title, dark = false }: Props) {
           width: "container",
           background: dark ? "#0f172a" : "transparent",
           config: {
-            ...(typeof spec.config === "object" && spec.config !== null ? spec.config : {}),
+            ...specConfig,
+            // Only inject a brand categorical range when the spec doesn't
+            // already define one, so an explicit chart color choice always wins.
+            ...(brandRange && specRange.category === undefined
+              ? { range: { ...specRange, category: brandRange } }
+              : {}),
             axis: {
               labelColor: dark ? "#94a3b8" : "#475569",
               titleColor: dark ? "#94a3b8" : "#475569",
@@ -89,4 +103,20 @@ export function VegaChart({ spec, title, dark = false }: Props) {
       <div ref={containerRef} className="w-full p-2" />
     </div>
   );
+}
+
+/**
+ * Collect the tenant brand chart palette from the cascade (--brand-chart-1..N,
+ * emitted by themeToCssVariables). Returns null when none are defined so the
+ * caller can fall back to Vega's default scheme.
+ */
+function readBrandChartPalette(el: Element): string[] | null {
+  if (typeof window === "undefined") return null;
+  const styles = getComputedStyle(el);
+  const out: string[] = [];
+  for (let i = 1; i <= 8; i++) {
+    const v = styles.getPropertyValue(`--brand-chart-${i}`).trim();
+    if (v) out.push(v);
+  }
+  return out.length > 0 ? out : null;
 }

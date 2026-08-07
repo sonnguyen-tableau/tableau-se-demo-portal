@@ -19,6 +19,8 @@ const schema = z.object({
   fontFamily: z.string().max(80),
   logoUrl: z.string().url().max(2048).optional(),
   tone: z.enum(["professional", "playful", "technical"]).optional(),
+  chartPalette: z.array(z.string().regex(/^#[0-9a-fA-F]{6}$/)).max(8).optional(),
+  heroVariant: z.enum(["aurora", "editorial", "spotlight"]).optional(),
 });
 
 function authorized(req: Request): boolean {
@@ -36,11 +38,13 @@ export async function PUT(req: Request): Promise<Response> {
     return NextResponse.json({ error: "invalid_request", issues: parsed.error.issues }, { status: 400 });
   }
 
-  const { logoUrl, tone, ...rest } = parsed.data;
+  const { logoUrl, tone, chartPalette, heroVariant, ...rest } = parsed.data;
   const theme = await setTenantTheme({
     ...rest,
     ...(logoUrl ? { logoUrl } : {}),
     ...(tone ? { tone } : {}),
+    ...(chartPalette ? { chartPalette } : {}),
+    ...(heroVariant ? { heroVariant } : {}),
   });
   return NextResponse.json(theme, { status: 200 });
 }

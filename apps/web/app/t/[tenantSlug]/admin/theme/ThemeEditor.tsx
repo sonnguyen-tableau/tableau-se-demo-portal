@@ -1,9 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { LogoLayout, TenantTheme, Tone } from "@/lib/tenant-theme";
+import type { HeroVariant, LogoLayout, TenantTheme, Tone } from "@/lib/tenant-theme";
 
 const FONT_OPTIONS = ["Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Source Sans Pro"];
+const HERO_OPTIONS: { value: HeroVariant; label: string; desc: string }[] = [
+  { value: "aurora", label: "Aurora", desc: "Nền gradient thương hiệu, mesh — mặc định, nổi bật" },
+  { value: "editorial", label: "Editorial", desc: "Nền sáng, thanh accent trái — điềm tĩnh, doanh nghiệp" },
+  { value: "spotlight", label: "Spotlight", desc: "Căn giữa, viền brand, tối giản" },
+];
 const LOGO_LAYOUT_OPTIONS: { value: LogoLayout; label: string; desc: string }[] = [
   { value: "icon", label: "Biểu tượng", desc: "Logo vuông/gọn, hiện kèm tên công ty bên cạnh" },
   { value: "wordmark", label: "Logo chữ (ngang)", desc: "Logo đã có sẵn tên → hiện to, không kèm chữ trùng" },
@@ -230,6 +235,33 @@ export function ThemeEditor({ initial, tenantId }: Props) {
               ))}
             </div>
           </section>
+
+          {/* Hero layout — the per-tenant home banner */}
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-sf-neutral-6">Bố cục trang chủ</h3>
+            <p className="-mt-2 text-xs text-sf-neutral-5">
+              Chọn kiểu banner chào mừng trên trang chủ portal. Sidebar, dashboards và AI agent giữ nguyên.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {HERO_OPTIONS.map((h) => {
+                const active = (form.heroVariant ?? "aurora") === h.value;
+                return (
+                  <button
+                    key={h.value}
+                    type="button"
+                    onClick={() => set("heroVariant", h.value)}
+                    className={`rounded-xl border p-4 text-left transition ${
+                      active ? "border-sf-blue-70 bg-sf-blue-10" : "border-sf-neutral-3 bg-white hover:border-sf-blue-70"
+                    }`}
+                  >
+                    <HeroThumb variant={h.value} theme={form} />
+                    <p className={`mt-2.5 text-sm font-semibold ${active ? "text-sf-blue-80" : "text-sf-neutral-9"}`}>{h.label}</p>
+                    <p className="mt-0.5 text-xs text-sf-neutral-5">{h.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         </div>
 
         {/* Live preview */}
@@ -283,6 +315,46 @@ function ColorField({
           maxLength={7}
         />
       </div>
+    </div>
+  );
+}
+
+// Small at-a-glance thumbnail of each hero variant, tinted by the current
+// brand colors so the SE can see the difference before saving.
+function HeroThumb({ variant, theme }: { variant: HeroVariant; theme: TenantTheme }) {
+  const primary = theme.primaryColor;
+  const neutral = theme.neutralColor;
+  const secondary = theme.secondaryColor;
+  if (variant === "aurora") {
+    return (
+      <div
+        className="h-14 w-full overflow-hidden rounded-lg"
+        style={{ background: `linear-gradient(135deg, ${neutral} 0%, ${primary} 130%)` }}
+      >
+        <div className="mt-3 ml-3 h-1.5 w-2/3 rounded" style={{ backgroundColor: "#ffffffcc" }} />
+        <div className="mt-1.5 ml-3 h-1 w-1/2 rounded" style={{ backgroundColor: "#ffffff66" }} />
+      </div>
+    );
+  }
+  if (variant === "editorial") {
+    return (
+      <div className="flex h-14 w-full overflow-hidden rounded-lg border border-sf-neutral-3 bg-white">
+        <span className="w-1.5" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }} />
+        <div className="flex-1 pt-3 pl-3">
+          <div className="h-1.5 w-2/3 rounded" style={{ backgroundColor: neutral }} />
+          <div className="mt-1.5 h-1 w-1/2 rounded bg-sf-neutral-3" />
+        </div>
+      </div>
+    );
+  }
+  // spotlight
+  return (
+    <div
+      className="flex h-14 w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-lg bg-white"
+      style={{ border: `1px solid ${primary}44` }}
+    >
+      <div className="h-1.5 w-1/2 rounded" style={{ backgroundColor: primary }} />
+      <div className="h-1 w-2/3 rounded bg-sf-neutral-3" />
     </div>
   );
 }
