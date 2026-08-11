@@ -157,6 +157,36 @@ fields + worksheets + one layout-flow dashboard.
 - **Hide worksheet tabs** (standing user request): every
   `<window class='worksheet' ...>` gets `hidden='true'`; only dashboard windows
   stay visible.
+- **Cross-filter (click-to-filter) — ALWAYS APPLY**: "click a mark in one chart
+  and the rest of the dashboard filters" is a DASHBOARD FILTER ACTION, NOT a
+  datasource relationship — do not try to fix it with joins. Emit a workbook-level
+  `<actions>` block (sits BETWEEN `</datasources>` and `<worksheets>`, verified
+  placement), one `<action>` per source worksheet:
+  ```xml
+  <action caption='Filter 1 (generated)' name='[Action1_<UUIDHEX>]'>
+    <activation auto-clear='true' type='on-select' />
+    <source dashboard='<Dash Name>' type='sheet' worksheet='<Sheet>' />
+    <command command='tsc:tsl-filter'>
+      <param name='special-fields' value='all' />
+      <param name='target' value='<Dash Name>' />
+    </command>
+  </action>
+  ```
+  This is exactly what Tableau Desktop's "Use as Filter" produces (verified live
+  against the meygroup + BSL workbooks). Make every non-KPI chart a source; skip
+  the KPI/BAN cards (book-totals, no dimension to filter by), the month-trend, and
+  the funnel (no shared key — see the grain caveat below). Escape `&` in the
+  dashboard name (`&amp;`) inside both `dashboard=` and the `target` param.
+  > **Gotcha (same-datasource requirement)**: `special-fields='all'` cross-filters
+  > by FIELD NAME. Two sheets cross-filter fully only when they share a datasource
+  > OR share an identically-named dimension. On the "one datasource per table"
+  > extract path, charts on DIFFERENT tables only cross-filter on same-named dims
+  > (e.g. `VendorGroup`, `Region`). To make a summary chart (Sales, Health)
+  > cross-filter with the detail charts, RE-SOURCE it onto the detail table
+  > grouped by the shared dimension — safe when that summary is a pure roll-up of
+  > the detail table (identical figures, zero drift). Verify render before/after.
+  > KPI book-totals, month-trend, and funnel have no detail key and stay
+  > non-cross-filterable — a data-model limit, not a bug.
 - **Iterating**: to change KPIs on an already-good workbook, do an IN-PLACE
   surgical patch — inject calc columns + replace only the KPI `<worksheet>`
   bodies keeping exact names. Rebuilding a dashboard from scratch reintroduces
