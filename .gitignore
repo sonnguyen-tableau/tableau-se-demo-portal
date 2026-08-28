@@ -22,6 +22,15 @@ __pycache__/
 .env.*
 !.env.example
 !.env.*.example
+
+# No-dot variants (env.example, env.local) are NOT matched by the .env / .env.*
+# rules above. They have leaked real secrets before — the only committed template
+# is .env.example (with the leading dot). Never commit these. (Scoped to these
+# exact names so legit sources like lib/env.ts are unaffected.)
+env.example
+env.local
+**/env.example
+**/env.local
 .claude/settings.local.json
 secrets/
 *.pem

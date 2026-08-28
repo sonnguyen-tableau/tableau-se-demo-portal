@@ -4,6 +4,13 @@
 #
 # Hook contract: receives JSON on stdin describing the tool invocation.
 # Exit 0 => allow. Exit non-zero (with stderr message) => block.
+#
+# SCOPE LIMIT (important): this only fires on Claude Code's Edit/Write tool.
+# A manual `git commit`, a GitHub-web edit, or a file created outside Claude
+# bypasses it entirely — that is exactly how apps/web/env.example leaked real
+# secrets. The durable fix is server-side: enable GitHub Push Protection +
+# secret scanning, and a git pre-commit hook (core.hooksPath) that scans staged
+# content. Treat this hook as defense-in-depth, not the primary guardrail.
 
 set -euo pipefail
 
@@ -48,7 +55,14 @@ PATTERNS=(
   'tableau_pat_[A-Za-z0-9]{20,}'
   '"secret_value"[[:space:]]*:[[:space:]]*"[A-Za-z0-9+/=]{16,}"'
   '"client_secret"[[:space:]]*:[[:space:]]*"[A-Za-z0-9_.-]{20,}"'
-  'TABLEAU_CONNECTED_APP_SECRET_VALUE[[:space:]]*=[[:space:]]*[A-Za-z0-9+/=]{16,}'
+  'TABLEAU_CONNECTED_APP_SECRET_VALUE[[:space:]]*=[[:space:]]*["'"'"']?[A-Za-z0-9+/=]{16,}'
+  # The exact shapes that leaked via apps/web/env.example — env-var assignments
+  # with a real-looking value (quoted or unquoted). Placeholders like
+  # <your-secret-here> / redacted do not match.
+  'TABLEAU_PAT_SECRET[[:space:]]*=[[:space:]]*["'"'"']?[A-Za-z0-9+/=]{8,}[:=][A-Za-z0-9+/=]{8,}'
+  'AUTH_SECRET[[:space:]]*=[[:space:]]*["'"'"']?[A-Za-z0-9+/=]{24,}'
+  'ANTHROPIC_API_KEY[[:space:]]*=[[:space:]]*["'"'"']?sk-ant-'
+  '(^|[^A-Za-z0-9_])SECRET_VALUE[[:space:]]*=[[:space:]]*["'"'"']?[A-Za-z0-9+/=]{16,}'
 )
 
 HITS=()
