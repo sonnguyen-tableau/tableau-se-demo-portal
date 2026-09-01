@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AuthError } from "next-auth";
 import { auth, signIn } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { getT } from "@/lib/i18n";
@@ -133,11 +134,25 @@ export default async function SignInPage({ searchParams }: PageProps) {
           <form
             action={async (formData) => {
               "use server";
-              await signIn("credentials", {
-                email: formData.get("email"),
-                password: formData.get("password"),
-                redirectTo: next && next.startsWith("/") ? next : "/",
-              });
+              const safeNext = next && next.startsWith("/") ? next : "/";
+              try {
+                await signIn("credentials", {
+                  email: formData.get("email"),
+                  password: formData.get("password"),
+                  redirectTo: safeNext,
+                });
+              } catch (err) {
+                // A successful sign-in throws a NEXT_REDIRECT — let it propagate
+                // so the redirect happens. Only credential failures are AuthError;
+                // send those back to the form with a friendly banner instead of
+                // bubbling up as a generic "Application error" screen.
+                if (err instanceof AuthError) {
+                  const params = new URLSearchParams({ error: "CredentialsSignin" });
+                  if (safeNext !== "/") params.set("next", safeNext);
+                  redirect(`/sign-in?${params.toString()}`);
+                }
+                throw err;
+              }
             }}
             className="space-y-5"
           >
