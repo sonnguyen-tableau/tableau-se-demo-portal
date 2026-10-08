@@ -78,6 +78,21 @@ export type AuditEvent =
       userId: string;
       tenantId: string;
       message: string;
+    }
+  | {
+      kind: "chat.abort";
+      userId: string;
+      tenantId: string;
+    }
+  | {
+      kind: "chat.feedback";
+      userId: string;
+      tenantId: string;
+      rating: "up" | "down";
+      chatSessionId: string;
+      messageIndex: number;
+      // No free-text `comment` here — untrusted user text is stored on a separate
+      // sink (chat.feedback_comment), per the audit.ts PII rule above (FX-04).
     };
 
 function emit(event: AuditEvent): void {
@@ -86,7 +101,6 @@ function emit(event: AuditEvent): void {
     ...event,
   };
   // Use stderr so it doesn't interleave with response bodies in dev tooling.
-  // eslint-disable-next-line no-console
   console.warn(JSON.stringify(line));
 }
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { tenantFromSession } from "@/lib/tenant";
-import { getLiveCatalog } from "@/lib/tableau-rest";
+import { getUserCatalog } from "@/lib/user-catalog";
 import { getTenant } from "@/lib/tenants";
 import { getAgentSuggestions } from "@/lib/agent-suggestions";
 import { env } from "@/lib/env";
@@ -12,11 +12,14 @@ import { enforceImpressionBudget, ImpressionBudgetExceededError } from "@/lib/bi
 import { mintTableauJwt } from "@portal/tableau-jwt";
 import { TableauVizShell } from "@/components/embed/TableauVizShell";
 import { UnconfiguredState } from "@/components/embed/UnconfiguredState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { VizContextProvider } from "@/components/bridge/VizContextProvider";
-import { recordView } from "@/lib/view-history";
 import { ChatPanelWrapper, ChatPanelToggle } from "@/components/layout/ChatPanelToggle";
-import { getLocale } from "@/lib/i18n";
+import { ViewHeader } from "@/components/report/ViewHeader";
+import { ViewToolbar } from "@/components/report/ViewToolbar";
+import { FilterChips } from "@/components/report/FilterChips";
+import { getT } from "@/lib/i18n";
 
 interface PageProps {
   params: Promise<{ tenantSlug: string; workbookSlug: string; viewSlug: string }>;
@@ -29,33 +32,25 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   if (!ctx) notFound();
 
   const { tenantSlug, workbookSlug, viewSlug } = await params;
-  const locale = await getLocale();
+  const { locale, t } = await getT();
 
   const tenantRecord = await getTenant(tenantSlug);
-  const catalog = await getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects);
-  const dashboard = catalog.dashboards.find(
+  const { dashboards } = await getUserCatalog(session, tenantSlug);
+  const dashboard = dashboards.find(
     (d) => d.workbookSlug === workbookSlug && d.viewSlug === viewSlug,
   );
   if (!dashboard) notFound();
 
-  const siblings = catalog.dashboards.filter((d) => d.workbookSlug === workbookSlug);
+  const siblings = dashboards.filter((d) => d.workbookSlug === workbookSlug);
 
-  // Record view server-side on every page load (fire-and-forget, never blocks render)
-  void recordView(session.user.email ?? "", {
-    workbookSlug,
-    viewSlug,
-    workbookName: dashboard.workbookName,
-    viewName: dashboard.viewName,
-    projectName: dashboard.projectName,
-  });
+  // View counting happens client-side on the viz `firstinteractive` event
+  // (TableauVizShell → POST /api/views/record), so it only counts views that
+  // actually loaded. Recording again here on every server render would
+  // double-count popular-views (HL-05).
 
   if (!isTableauConfigured()) {
-    return (
-      <div className="space-y-3">
-        <Breadcrumb tenantSlug={tenantSlug} workbookSlug={workbookSlug} dashboard={dashboard} siblings={siblings} viewSlug={viewSlug} />
-        <UnconfiguredState viewPath={dashboard.viewPath} />
-      </div>
-    );
+    // No in-page breadcrumb — the global one (SH-03) already shows the path (FX-12).
+    return <UnconfiguredState viewPath={dashboard.viewPath} locale={locale} />;
   }
 
   const site = await getSiteForTenant(ctx.tenantId);
@@ -82,12 +77,27 @@ export default async function ViewEmbedPage({ params }: PageProps) {
     if (e instanceof ImpressionBudgetExceededError) {
       return (
         <div className="space-y-3">
-          <Breadcrumb tenantSlug={tenantSlug} workbookSlug={workbookSlug} dashboard={dashboard} siblings={siblings} viewSlug={viewSlug} />
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-900">
-            <h3 className="font-semibold">Đã đạt hạn mức lượt xem trong ngày</h3>
-            <p className="mt-1 text-sm">
-              {ctx.tenantName} đã dùng {e.status.used} / {e.status.cap} lượt xem hôm nay. Hạn mức được làm mới lúc 00:00 UTC.
-            </p>
+          <div className="rounded-xl border border-amber-200 bg-amber-50/70 py-6">
+            <EmptyState
+              tone="warning"
+              icon={
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+              }
+              title={t("view.quotaTitle")}
+              body={t("view.quotaBody", { tenant: ctx.tenantName, used: e.status.used, cap: e.status.cap })}
+              action={
+                <div className="flex items-center gap-2">
+                  <Link href={`/t/${tenantSlug}`} className="rounded-lg border border-sf-neutral-3 bg-white px-3 py-1.5 text-caption font-semibold text-sf-neutral-8 transition-colors hover:border-brand/40 hover:text-brand">
+                    {t("th.pulseMetrics")}
+                  </Link>
+                  <Link href={`/t/${tenantSlug}/agent`} className="rounded-lg bg-brand px-3 py-1.5 text-caption font-semibold text-brand-on transition-all hover:brightness-110">
+                    {t("view.askAi")}
+                  </Link>
+                </div>
+              }
+            />
           </div>
         </div>
       );
@@ -98,57 +108,34 @@ export default async function ViewEmbedPage({ params }: PageProps) {
   const src = resolvedSiteViewUrl(site, dashboard.viewPath);
 
   return (
+    // VizContextProvider wraps the whole view (not just the viz row) so the
+    // "Hỏi AI" toggle in the top bar can read selectedMarks for its count badge.
+    <VizContextProvider>
     <div className="flex flex-col gap-3 flex-1 min-h-0">
-      {/* Top bar: breadcrumb + view tabs + chat toggle */}
-      <div className="flex items-center gap-x-3 gap-y-2 shrink-0 min-w-0 flex-wrap">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-1 text-caption text-sf-neutral-5 min-w-0 flex-1">
-          <Link href={`/t/${tenantSlug}/dashboards`} className="shrink-0 transition-colors hover:text-sf-neutral-9">
-            Dashboards
-          </Link>
-          <ChevronIcon />
-          {siblings.length > 1 ? (
-            <>
-              <Link
-                href={`/t/${tenantSlug}/dashboards/${workbookSlug}`}
-                className="truncate max-w-[180px] transition-colors hover:text-sf-neutral-9"
-              >
-                {dashboard.workbookName}
-              </Link>
-              <ChevronIcon />
-              <span className="truncate max-w-[220px] font-semibold text-sf-neutral-9">{dashboard.viewName}</span>
-            </>
-          ) : (
-            <span className="truncate max-w-[320px] font-semibold text-sf-neutral-9">{dashboard.workbookName}</span>
-          )}
-        </nav>
+      {/* View header: name + freshness + in-place sheet tabs + chat toggle (RV-01).
+          The path breadcrumb comes from the global one (SH-03). */}
+      <ViewHeader
+        tenantSlug={tenantSlug}
+        workbookSlug={workbookSlug}
+        workbookName={dashboard.workbookName}
+        projectName={dashboard.projectName}
+        viewName={dashboard.viewName}
+        updatedAt={dashboard.updatedAt}
+        tabs={siblings.map((s) => ({ viewSlug: s.viewSlug, viewName: s.viewName }))}
+        locale={locale}
+        rightSlot={
+          <>
+            <ViewToolbar locale={locale} />
+            <ChatPanelToggle locale={locale} />
+          </>
+        }
+      />
 
-        {/* View tabs — segmented control */}
-        {siblings.length > 1 && (
-          <div className="flex flex-wrap items-center gap-1 rounded-lg border border-sf-neutral-3 bg-white p-1 shadow-elev-0">
-            {siblings.map((s) => (
-              <Link
-                key={s.viewSlug}
-                href={`/t/${tenantSlug}/dashboards/${workbookSlug}/${s.viewSlug}`}
-                className={`rounded-md px-2.5 py-1 text-caption font-medium transition-all duration-base ease-smooth ${
-                  s.viewSlug === viewSlug
-                    ? "bg-brand text-white shadow-elev-1"
-                    : "text-sf-neutral-7 hover:bg-sf-neutral-2 hover:text-sf-neutral-9"
-                }`}
-              >
-                {s.viewName}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* AI panel toggle */}
-        <ChatPanelToggle />
-      </div>
+      {/* Active-filter chips (RV-03) — hidden when there are no filters */}
+      <FilterChips locale={locale} />
 
       {/* Main content: viz + chat side by side, fills remaining space */}
-      <VizContextProvider>
-        <div className="flex flex-1 min-h-0" style={{ minHeight: "500px" }}>
+      <div className="flex flex-1 min-h-0" style={{ minHeight: "500px" }}>
           {/* Tableau embed — fills remaining width */}
           <div className="flex-1 min-w-0 min-h-0">
             <TableauVizShell
@@ -156,6 +143,7 @@ export default async function ViewEmbedPage({ params }: PageProps) {
               initialToken={token}
               height="100%"
               locale={locale}
+              isInternal={ctx.isInternal}
               viewMeta={{
                 workbookSlug,
                 viewSlug,
@@ -165,58 +153,22 @@ export default async function ViewEmbedPage({ params }: PageProps) {
               }}
             />
           </div>
-          {/* Chat panel — collapsible */}
-          <ChatPanelWrapper>
+          {/* Chat panel — collapsible, resizable/overlay/bottom-sheet (RV-07) */}
+          <ChatPanelWrapper locale={locale}>
             <ChatPanel
               locale={locale}
+              isInternal={ctx.isInternal}
+              tenantSlug={tenantSlug}
               suggestions={getAgentSuggestions({
                 slug: tenantSlug,
                 industry: tenantRecord?.industry,
+                viewName: dashboard.viewName,
                 locale,
-              }).map((s) => s.title)}
+              })}
             />
           </ChatPanelWrapper>
         </div>
-      </VizContextProvider>
     </div>
-  );
-}
-
-function ChevronIcon() {
-  return (
-    <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}
-
-// Typed to avoid repeating prop drilling inline
-interface BreadcrumbProps {
-  tenantSlug: string;
-  workbookSlug: string;
-  dashboard: { workbookName: string; viewName: string };
-  siblings: { viewSlug: string }[];
-  viewSlug: string;
-}
-
-function Breadcrumb({ tenantSlug, workbookSlug, dashboard, siblings }: BreadcrumbProps) {
-  return (
-    <nav className="flex items-center gap-1 text-xs text-sf-neutral-5">
-      <Link href={`/t/${tenantSlug}/dashboards`} className="hover:text-sf-neutral-9 transition-colors">
-        Dashboards
-      </Link>
-      <ChevronIcon />
-      {siblings.length > 1 ? (
-        <>
-          <Link href={`/t/${tenantSlug}/dashboards/${workbookSlug}`} className="hover:text-sf-neutral-9 transition-colors">
-            {dashboard.workbookName}
-          </Link>
-          <ChevronIcon />
-          <span className="font-medium text-sf-neutral-9">{dashboard.viewName}</span>
-        </>
-      ) : (
-        <span className="font-medium text-sf-neutral-9">{dashboard.workbookName}</span>
-      )}
-    </nav>
+    </VizContextProvider>
   );
 }

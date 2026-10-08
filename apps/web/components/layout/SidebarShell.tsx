@@ -13,10 +13,23 @@ export function useSidebar() { return useContext(Ctx); }
 
 // ── Provider (wraps the whole layout) ────────────────────────────────────────
 
-export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(true);
+export function SidebarProvider({
+  children,
+  initialOpen = true,
+}: {
+  children: ReactNode;
+  /** Seeded from the `sidebar` cookie in the layout so SSR matches (no flash). */
+  initialOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(initialOpen);
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    // Persist so a reload renders the same collapsed/expanded state server-side.
+    document.cookie = `sidebar=${next ? "1" : "0"}; path=/; max-age=31536000; samesite=lax`;
+  };
   return (
-    <Ctx.Provider value={{ open, toggle: () => setOpen((v) => !v) }}>
+    <Ctx.Provider value={{ open, toggle }}>
       {children}
     </Ctx.Provider>
   );
@@ -28,6 +41,7 @@ export function SidebarWrapper({ children }: { children: ReactNode }) {
   const { open } = useSidebar();
   return (
     <aside
+      inert={!open}
       className={`hidden lg:flex flex-col h-full overflow-hidden shrink-0 transition-[width] duration-base ease-smooth ${
         open ? "w-[260px]" : "w-0"
       }`}
@@ -46,13 +60,21 @@ export function SidebarWrapper({ children }: { children: ReactNode }) {
 
 // ── Toggle button ─────────────────────────────────────────────────────────────
 
-export function SidebarToggle() {
+export function SidebarToggle({
+  collapseLabel,
+  expandLabel,
+}: {
+  collapseLabel: string;
+  expandLabel: string;
+}) {
   const { open, toggle } = useSidebar();
+  const label = open ? collapseLabel : expandLabel;
   return (
     <button
       onClick={toggle}
-      title={open ? "Thu gọn menu" : "Mở rộng menu"}
-      aria-label={open ? "Thu gọn menu" : "Mở rộng menu"}
+      title={label}
+      aria-label={label}
+      aria-expanded={open}
       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sf-neutral-6 transition-all duration-base ease-smooth hover:bg-sf-neutral-2 hover:text-sf-neutral-9 active:scale-95"
     >
       <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">

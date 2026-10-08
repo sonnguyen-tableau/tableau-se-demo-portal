@@ -10,13 +10,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Brand layer — tenant-overridable via runtime CSS vars (see
+        // lib/tenant-theme.ts#themeToCssVariables and :root in globals.css).
+        // DEFAULT/neutral use the `rgb(var(--x-rgb) / <alpha-value>)` form so
+        // alpha utilities (bg-brand/8, border-brand/40, ring-brand/10 …) emit
+        // real CSS — the plain `var(--x)` form silently dropped them.
         brand: {
-          DEFAULT: "var(--brand-primary, #0176d3)",
-          hover: "#0b5cab",
-          dark: "#032d60",
-          light: "#eef4ff",
-          secondary: "var(--brand-secondary, #032d60)",
-          neutral: "var(--brand-neutral, #032d60)",
+          DEFAULT: "rgb(var(--brand-primary-rgb, 1 118 211) / <alpha-value>)",
+          hover: "var(--brand-primary-hover, #0b5cab)",
+          subtle: "var(--brand-primary-subtle, #eef4ff)",
+          text: "var(--brand-primary-text, #0176d3)",
+          on: "var(--brand-on-primary, #ffffff)",
+          secondary: "var(--brand-secondary, #1b96ff)",
+          neutral: "rgb(var(--brand-neutral-rgb, 3 45 96) / <alpha-value>)",
         },
         sf: {
           blue: {
@@ -48,6 +54,8 @@ const config: Config = {
           inverted: "var(--surface-inverted, #0b1220)",
         },
       },
+      // Non-default opacity steps used by brand alpha utilities (bg-brand/8 …).
+      opacity: { 8: "0.08", 12: "0.12", 14: "0.14", 55: "0.55", 65: "0.65" },
       fontFamily: {
         sans: [
           "var(--font-sans)",
@@ -110,6 +118,8 @@ const config: Config = {
         "elev-4": "0 24px 56px 0 rgba(15, 23, 42, 0.18), 0 8px 16px 0 rgba(15, 23, 42, 0.08)",
         "glow-brand": "0 0 0 1px var(--brand-primary, #0176d3), 0 10px 28px -8px rgba(1, 118, 211, 0.45)",
         "ring-focus": "0 0 0 2px #ffffff, 0 0 0 4px var(--brand-primary, #0176d3)",
+        // Brief brand ring flashed on the viz frame after an agent viz action (AG-05).
+        "ai-change": "0 0 0 2px rgb(var(--brand-primary-rgb, 1 118 211) / 0.55), 0 0 0 6px rgb(var(--brand-primary-rgb, 1 118 211) / 0.12)",
       },
       transitionDuration: {
         fast: "120ms",

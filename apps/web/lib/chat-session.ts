@@ -34,6 +34,146 @@ function sessionKey(tenantId: string, userEmail: string, sessionId: string): str
   return `chat-session:${tenantId}:${shortHash(userEmail)}:${sessionId}`;
 }
 
+// ── Session history (AG-11) ──────────────────────────────────────────────────
+// A per-user index of recent conversations + the rendered client messages
+// (with rich blocks) so the agent page can list past sessions and reopen one.
+// Separate from the Anthropic transcript above (that's a 2h tool-reuse cache).
+
+const HISTORY_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+const MAX_SESSIONS = 20;
+const MAX_RENDERED_BYTES = 900_000; // under the KV ~1MB per-value limit
+
+export interface SessionMeta {
+  sessionId: string;
+  title: string;
+  updatedAt: number;
+}
+
+function indexKey(tenantId: string, userEmail: string): string {
+  return `chat-sessions:${tenantId}:${shortHash(userEmail)}`;
+}
+function renderedKey(tenantId: string, userEmail: string, sessionId: string): string {
+  return `chat-rendered:${tenantId}:${shortHash(userEmail)}:${sessionId}`;
+}
+
+/** List a user's recent sessions, newest first (empty when KV off). Entries
+ *  older than the history TTL are filtered out — their bodies have already
+ *  TTL-expired in KV, so they would restore empty (FX-04). */
+export async function listChatSessions(tenantId: string, userEmail: string): Promise<SessionMeta[]> {
+  if (!hasKv() || !userEmail) return [];
+  try {
+    const { kv } = await import("@vercel/kv");
+    const stored = await kv.get<SessionMeta[]>(indexKey(tenantId, userEmail));
+    if (!Array.isArray(stored)) return [];
+    const cutoff = Date.now() - HISTORY_TTL_SECONDS * 1000;
+    return stored.filter((s) => s && typeof s.updatedAt === "number" && s.updatedAt > cutoff);
+  } catch {
+    return [];
+  }
+}
+
+/** Load a session's rendered client messages (with rich blocks), or [] .
+ *  Export-card download URLs are re-checked on the way out — a stored value
+ *  that is not a relative path or an https URL is blanked (FX-04). */
+export async function getRenderedSession(
+  tenantId: string,
+  userEmail: string,
+  sessionId: string | undefined,
+): Promise<unknown[]> {
+  if (!hasKv() || !sessionId || !userEmail) return [];
+  try {
+    const { kv } = await import("@vercel/kv");
+    const stored = await kv.get<unknown[]>(renderedKey(tenantId, userEmail, sessionId));
+    return Array.isArray(stored) ? sanitizeDownloadUrls(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** A download href safe to re-surface: a same-origin relative path or https. */
+function isSafeDownloadUrl(u: unknown): boolean {
+  if (typeof u !== "string" || u === "") return false;
+  if (u.startsWith("/") && !u.startsWith("//")) return true; // relative, not protocol-relative
+  try {
+    return new URL(u).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/** Walk rendered messages and blank any unsafe export-card downloadUrl. */
+function sanitizeDownloadUrls(rendered: unknown[]): unknown[] {
+  return mapRichBlocks(rendered, (b) => {
+    if (!isObj(b) || b.kind !== "export" || !isObj(b.event)) return b;
+    if (isSafeDownloadUrl((b.event as Record<string, unknown>).downloadUrl)) return b;
+    return { ...b, event: { ...(b.event as object), downloadUrl: "" } };
+  });
+}
+
+function isObj(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === "object";
+}
+
+/** Apply `fn` to every rich block of every message, defensively (unknown shape). */
+function mapRichBlocks(rendered: unknown[], fn: (b: unknown) => unknown): unknown[] {
+  return rendered.map((m) => {
+    if (!isObj(m) || !Array.isArray(m.richBlocks)) return m;
+    return { ...m, richBlocks: m.richBlocks.map(fn) };
+  });
+}
+
+/**
+ * Persist a session's rendered messages + upsert the index (move-to-top, cap
+ * MAX_SESSIONS, newest wins). `title` is derived from the first user message.
+ * Never throws; skips oversized payloads so one huge session can't wedge a save.
+ *
+ * NOTE (FX-14): the index upsert is a non-atomic read-modify-write (get → splice
+ * → set), so two concurrent saves for the SAME user could race and lose one
+ * entry. Accepted deliberately — the index is per-user (keyed by tenant + email
+ * hash) and a user rarely has two in-flight turns at once; the body (renderedKey)
+ * is always written first, so at worst a session is briefly missing from the
+ * list, not lost. Switch to a Redis sorted set (zadd) if this ever contends.
+ */
+export async function saveRenderedSession(
+  tenantId: string,
+  userEmail: string,
+  sessionId: string | undefined,
+  rendered: unknown[],
+  title: string,
+  now: number,
+): Promise<void> {
+  if (!hasKv() || !sessionId || !userEmail || rendered.length === 0) return;
+  // Drop base64 image payloads before storing (FX-04): they are the heavy part,
+  // the chart is transient, and the restore renderer shows a muted placeholder.
+  const toStore = stripRenderedImages(rendered);
+  // Don't index a session whose body is too large to store — it would appear in
+  // the history list but restore empty (review m5). Byte-accurate measurement.
+  if (jsonBytes(toStore) > MAX_RENDERED_BYTES) return;
+  try {
+    const { kv } = await import("@vercel/kv");
+    await kv.set(renderedKey(tenantId, userEmail, sessionId), toStore, { ex: HISTORY_TTL_SECONDS });
+    const index = await listChatSessions(tenantId, userEmail);
+    const meta: SessionMeta = { sessionId, title: title.slice(0, 120) || sessionId, updatedAt: now };
+    const merged = [meta, ...index.filter((s) => s.sessionId !== sessionId)];
+    const next = merged.slice(0, MAX_SESSIONS);
+    // Evict the bodies of sessions pushed past the cap so they don't linger
+    // until TTL as orphaned KV values (FX-04).
+    for (const evicted of merged.slice(MAX_SESSIONS)) {
+      await kv.del(renderedKey(tenantId, userEmail, evicted.sessionId));
+    }
+    await kv.set(indexKey(tenantId, userEmail), next, { ex: HISTORY_TTL_SECONDS });
+  } catch {
+    // Never break the chat because history persistence failed.
+  }
+}
+
+/** Replace base64 image rich-blocks with empty placeholders (keep the shape). */
+function stripRenderedImages(rendered: unknown[]): unknown[] {
+  return mapRichBlocks(rendered, (b) =>
+    isObj(b) && b.kind === "image" ? { ...b, data: "" } : b,
+  );
+}
+
 /** Load the stored transcript for a conversation, or [] if none / KV off. */
 export async function getChatSession(
   tenantId: string,
@@ -131,7 +271,9 @@ export function trimTranscript(messages: MessageParam[]): MessageParam[] {
 
 function jsonBytes(v: unknown): number {
   try {
-    return JSON.stringify(v).length;
+    // Byte length, not string length — multibyte (Vietnamese, emoji) would
+    // otherwise undercount against the KV per-value byte limit (FX-04).
+    return Buffer.byteLength(JSON.stringify(v), "utf8");
   } catch {
     return Number.MAX_SAFE_INTEGER;
   }

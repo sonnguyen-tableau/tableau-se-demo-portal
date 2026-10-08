@@ -8,6 +8,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./"),
+      // `server-only` is a build-time guard with no runtime export; in tests it
+      // has nothing to resolve to, so map it to an empty stub (a no-op here).
+      "server-only": path.resolve(__dirname, "test/stubs/server-only.ts"),
     },
   },
   test: {

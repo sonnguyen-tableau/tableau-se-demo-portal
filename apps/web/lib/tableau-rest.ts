@@ -43,6 +43,7 @@ interface SiteView {
   contentUrl: string; // e.g. "Superstore/sheets/Overview"
   owner: { id: string };
   workbook: { id: string };
+  updatedAt?: string; // ISO timestamp of the last view update (freshness, RV-01/RV-02)
 }
 
 export interface LiveProject {
@@ -57,11 +58,13 @@ export interface LiveDashboard {
   viewSlug: string;     // slugified view name — used in URL
   name: string;         // human-readable view name (sheet title)
   workbookId: string;   // Tableau workbook UUID — used for hide/show filtering
+  viewId: string;       // Tableau view LUID — used for the previewImage thumbnail (HL-01)
   workbookName: string;
   viewName: string;
   viewPath: string;     // "<workbookContentUrl>/<viewName>" for embed URL
   projectId: string;
   projectName: string;
+  updatedAt?: string | undefined; // ISO last-updated, for the view-header freshness label (RV-01)
 }
 
 interface LiveCatalog {
@@ -78,6 +81,64 @@ interface CacheEntry {
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const _cacheBysite = new Map<string, CacheEntry>();
 const _inFlightBySite = new Map<string, Promise<LiveCatalog>>();
+
+// ── REST auth-session reuse (FX-07) ──────────────────────────────────────────
+// Signing in costs a round-trip; a cold library load fires one previewImage
+// request per card. Cache one PAT session per site (Tableau tokens live ~240
+// min) and coalesce concurrent sign-ins, so 20 thumbnails make ≤ 1 sign-in.
+interface RestAuth {
+  token: string;
+  siteId: string;
+  ts: number;
+}
+const REST_AUTH_TTL_MS = 3 * 60 * 60 * 1000; // 3h — under Tableau's ~4h token life
+const _authBySite = new Map<string, RestAuth>();
+const _authInFlight = new Map<string, Promise<RestAuth>>();
+
+async function getRestAuth(site: ResolvedSite, forceNew = false): Promise<RestAuth> {
+  const key = site.tableauSiteName;
+  if (!forceNew) {
+    const cached = _authBySite.get(key);
+    if (cached && Date.now() - cached.ts < REST_AUTH_TTL_MS) return cached;
+    const inFlight = _authInFlight.get(key);
+    if (inFlight) return inFlight;
+  } else {
+    _authBySite.delete(key);
+  }
+  const base = `${resolvedSiteOrigin(site)}/api/${API_VERSION}`;
+  const promise = apiFetch<{ credentials: SignInResponse["credentials"] }>(`${base}/auth/signin`, {
+    method: "POST",
+    body: JSON.stringify({
+      credentials: {
+        personalAccessTokenName: env.TABLEAU_PAT_NAME,
+        personalAccessTokenSecret: env.TABLEAU_PAT_SECRET,
+        site: { contentUrl: site.tableauSiteName },
+      },
+    }),
+  })
+    .then((r) => {
+      const auth: RestAuth = { token: r.credentials.token, siteId: r.credentials.site.id, ts: Date.now() };
+      _authBySite.set(key, auth);
+      _authInFlight.delete(key);
+      return auth;
+    })
+    .catch((e) => {
+      _authInFlight.delete(key);
+      throw e;
+    });
+  _authInFlight.set(key, promise);
+  return promise;
+}
+
+// Coalesce concurrent misses for the same view into one upstream fetch.
+const _previewInFlight = new Map<string, Promise<{ bytes: ArrayBuffer; contentType: string }>>();
+
+/** Clear the cached REST sessions + in-flight preview requests (tests only). */
+export function __resetThumbnailCachesForTests(): void {
+  _authBySite.clear();
+  _authInFlight.clear();
+  _previewInFlight.clear();
+}
 
 /**
  * Fetch the live catalog for the given tenant's Tableau site.
@@ -269,11 +330,13 @@ async function fetchFromTableau(site: ResolvedSite): Promise<LiveCatalog> {
       viewSlug,
       name: view.name,
       workbookId: wb.id,
+      viewId: view.id,
       workbookName: wb.name,
       viewName: view.name,
       viewPath,
       projectId: wb.project.id,
       projectName: wb.project.name,
+      ...(view.updatedAt ? { updatedAt: view.updatedAt } : {}),
     });
   }
 
@@ -286,6 +349,58 @@ async function fetchFromTableau(site: ResolvedSite): Promise<LiveCatalog> {
     dashboards,
     fetchedAt: Date.now(),
   };
+}
+
+/**
+ * Fetch a view's preview thumbnail (PNG) using the service-account PAT (HL-01).
+ *
+ * The PAT is a privileged service credential, so the CALLER MUST authorize the
+ * request first — confirm the (workbookId, viewId) belongs to the requesting
+ * user's visible catalog before calling this. Signs in to the view's site,
+ * GETs .../workbooks/{workbookId}/views/{viewId}/previewImage, signs out, and
+ * returns the raw bytes. Throws on a missing PAT or a non-200 response.
+ */
+export async function fetchViewPreviewImage(
+  tenantId: string | undefined,
+  workbookId: string,
+  viewId: string,
+): Promise<{ bytes: ArrayBuffer; contentType: string }> {
+  if (!env.TABLEAU_PAT_NAME || !env.TABLEAU_PAT_SECRET) {
+    throw new Error("Tableau PAT not configured");
+  }
+
+  const site = await getSiteForTenant(tenantId ?? "");
+  // Coalesce concurrent misses for the same (site, view) — the thumbnail route
+  // can fire the same request from several card loads at once (FX-07).
+  const flightKey = `${site.tableauSiteName}:${viewId}`;
+  const inFlight = _previewInFlight.get(flightKey);
+  if (inFlight) return inFlight;
+
+  const promise = (async () => {
+    const base = `${resolvedSiteOrigin(site)}/api/${API_VERSION}`;
+    // Reuse the cached session; on a 401 (token aged out) re-auth once.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const auth = await getRestAuth(site, attempt === 1);
+      const res = await fetch(
+        `${base}/sites/${auth.siteId}/workbooks/${encodeURIComponent(workbookId)}/views/${encodeURIComponent(viewId)}/previewImage`,
+        { headers: { "X-Tableau-Auth": auth.token }, cache: "no-store" },
+      );
+      if (res.status === 401 && attempt === 0) continue; // stale token — force a fresh sign-in
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Tableau previewImage ${res.status} ${res.statusText}: ${text.slice(0, 200)}`);
+      }
+      return {
+        bytes: await res.arrayBuffer(),
+        contentType: res.headers.get("content-type") ?? "image/png",
+      };
+    }
+    throw new Error("Tableau previewImage: authentication failed");
+  })().finally(() => {
+    _previewInFlight.delete(flightKey);
+  });
+  _previewInFlight.set(flightKey, promise);
+  return promise;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

@@ -76,7 +76,7 @@ export default async function SignInPage({ searchParams }: PageProps) {
 
           {/* Feature pills */}
           <div className="mt-8 flex flex-wrap gap-2">
-            {["Tableau Embedding", "Claude AI Agent", "Multi-tenant RLS", "Demo Factory"].map((f) => (
+            {["Tableau Embedding", "Tableau AI Agent", "Multi-tenant RLS", "Demo Factory"].map((f) => (
               <span
                 key={f}
                 className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-meta text-white/50"

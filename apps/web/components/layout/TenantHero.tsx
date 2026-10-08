@@ -13,6 +13,10 @@ interface Props {
   variant: HeroVariant;
   tenantSlug: string;
   tenantName: string;
+  /** Time-of-day greeting, resolved server-side (HL-02); replaces the old static welcome. */
+  greeting: string;
+  /** Impression meter + KPI tiles are internal-only (HL-02); hidden for end users. */
+  isInternal: boolean;
   impressions: ImpressionInfo | null;
   usedPct: number;
   locale: Locale;
@@ -20,14 +24,10 @@ interface Props {
 }
 
 /**
- * Tenant-home hero. All variants share the same content (title, subtitle, the
- * two CTAs, the optional impression meter) and the same brand CSS variables —
- * only the visual treatment differs. This is the one per-tenant "tailored"
- * surface; the sidebar, dashboards, agent, RLS and i18n are identical across
- * every tenant, so adding a variant never forks the single-shell architecture.
- *
- * Add a new look by adding a `HeroVariant` value + a case here. Keep each
- * variant self-contained and WCAG-AA safe against the brand palette.
+ * Tenant-home hero. All variants share the same content (greeting, subtitle, a
+ * quick-ask input + two CTAs, and — for internal users only — the impression
+ * meter) and the same brand CSS variables; only the visual treatment differs.
+ * This is the one per-tenant "tailored" surface.
  */
 export function TenantHero(props: Props) {
   switch (props.variant) {
@@ -42,6 +42,47 @@ export function TenantHero(props: Props) {
 }
 
 // ── Shared pieces ────────────────────────────────────────────────────────────
+
+/**
+ * "Hỏi nhanh" input (HL-02). A plain GET form → `/t/<slug>/agent?q=…`, so it
+ * needs no client JS; the agent page reads `?q` and auto-sends it once.
+ */
+function QuickAsk({ tenantSlug, t, tone }: { tenantSlug: string; t: T; tone: "onDark" | "onLight" }) {
+  const wrap =
+    tone === "onDark"
+      ? "border-white/20 bg-white/[0.08] backdrop-blur-sm focus-within:border-white/40 focus-within:bg-white/[0.14]"
+      : "border-sf-neutral-3 bg-white focus-within:border-brand/50 focus-within:shadow-elev-1";
+  const input = tone === "onDark" ? "text-white placeholder-white/50" : "text-sf-neutral-9 placeholder-sf-neutral-5";
+  const btn =
+    tone === "onDark"
+      ? "bg-white text-sf-neutral-9 hover:bg-sf-neutral-2"
+      : "bg-brand text-brand-on hover:brightness-110";
+  return (
+    <form
+      action={`/t/${tenantSlug}/agent`}
+      method="get"
+      className={`flex w-full max-w-xl items-center gap-2 rounded-xl border px-3 py-2 transition-colors duration-base ease-smooth ${wrap}`}
+    >
+      <svg className={`h-4 w-4 shrink-0 ${tone === "onDark" ? "text-white/60" : "text-brand"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.091 3.091z" />
+      </svg>
+      <input
+        name="q"
+        required
+        autoComplete="off"
+        placeholder={t("th.quickAskPlaceholder")}
+        aria-label={t("th.quickAskPlaceholder")}
+        className={`min-w-0 flex-1 bg-transparent text-body-sm outline-none ${input}`}
+      />
+      <button
+        type="submit"
+        className={`shrink-0 rounded-lg px-3 py-1.5 text-caption font-semibold transition-all duration-base ease-smooth active:scale-95 ${btn}`}
+      >
+        {t("th.quickAskSubmit")}
+      </button>
+    </form>
+  );
+}
 
 function PrimaryCta({ tenantSlug, t, tone }: { tenantSlug: string; t: T; tone: "light" | "brand" }) {
   const cls =
@@ -115,18 +156,9 @@ function ImpressionMeterLight({ impressions, usedPct, locale, t }: { impressions
   );
 }
 
-function WelcomeHeading({ t, className }: { t: T; className: string }) {
-  return (
-    <h1 className={className}>
-      {t("th.welcome")}
-      <span className="ml-2 inline-block animate-[fade-in_400ms_ease-out]">👋</span>
-    </h1>
-  );
-}
+// ── Variant: aurora (default — brand-gradient mesh) ──────────────────────────
 
-// ── Variant: aurora (default — brand-gradient mesh, unchanged from original) ──
-
-function AuroraHero({ tenantSlug, tenantName, impressions, usedPct, locale, t }: Props) {
+function AuroraHero({ tenantSlug, tenantName, greeting, isInternal, impressions, usedPct, locale, t }: Props) {
   return (
     <section
       className="relative overflow-hidden rounded-2xl border border-white/[0.08] px-7 py-8 text-white shadow-elev-3"
@@ -140,19 +172,20 @@ function AuroraHero({ tenantSlug, tenantName, impressions, usedPct, locale, t }:
       <div className="pointer-events-none absolute -bottom-16 right-32 h-40 w-40 rounded-full bg-sf-blue-60/20 blur-3xl" aria-hidden="true" />
 
       <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl flex-1">
           <p className="inline-flex items-center gap-2 text-meta font-semibold uppercase tracking-[0.16em] text-sf-blue-40">
             <span className="h-1 w-1 rounded-full bg-sf-blue-40" aria-hidden="true" />
             {tenantName}
           </p>
-          <WelcomeHeading t={t} className="mt-2 text-h1 font-bold leading-tight text-white" />
+          <h1 className="mt-2 text-h1 font-bold leading-tight text-white">{greeting}</h1>
           <p className="mt-2 text-body-lg text-white/75 leading-relaxed">{t("th.subtitle")}</p>
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="mt-5"><QuickAsk tenantSlug={tenantSlug} t={t} tone="onDark" /></div>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <PrimaryCta tenantSlug={tenantSlug} t={t} tone="light" />
             <AgentCta tenantSlug={tenantSlug} t={t} tone="onDark" />
           </div>
         </div>
-        {impressions && <ImpressionMeterDark impressions={impressions} usedPct={usedPct} locale={locale} t={t} />}
+        {isInternal && impressions && <ImpressionMeterDark impressions={impressions} usedPct={usedPct} locale={locale} t={t} />}
       </div>
     </section>
   );
@@ -160,24 +193,25 @@ function AuroraHero({ tenantSlug, tenantName, impressions, usedPct, locale, t }:
 
 // ── Variant: editorial (light surface, left brand accent bar) ────────────────
 
-function EditorialHero({ tenantSlug, tenantName, impressions, usedPct, locale, t }: Props) {
+function EditorialHero({ tenantSlug, tenantName, greeting, isInternal, impressions, usedPct, locale, t }: Props) {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-sf-neutral-3 bg-white px-7 py-8 shadow-elev-1">
       <span className="absolute inset-y-0 left-0 w-1.5" style={{ background: "linear-gradient(to bottom, var(--brand-primary), var(--brand-secondary))" }} aria-hidden="true" />
       <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl flex-1">
           <p className="inline-flex items-center gap-2 text-meta font-semibold uppercase tracking-[0.16em] text-brand">
             <span className="h-1 w-1 rounded-full bg-brand" aria-hidden="true" />
             {tenantName}
           </p>
-          <WelcomeHeading t={t} className="mt-2 text-h1 font-bold leading-tight text-sf-neutral-10" />
+          <h1 className="mt-2 text-h1 font-bold leading-tight text-sf-neutral-10">{greeting}</h1>
           <p className="mt-2 text-body-lg text-sf-neutral-6 leading-relaxed">{t("th.subtitle")}</p>
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="mt-5"><QuickAsk tenantSlug={tenantSlug} t={t} tone="onLight" /></div>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <PrimaryCta tenantSlug={tenantSlug} t={t} tone="brand" />
             <AgentCta tenantSlug={tenantSlug} t={t} tone="onLight" />
           </div>
         </div>
-        {impressions && <ImpressionMeterLight impressions={impressions} usedPct={usedPct} locale={locale} t={t} />}
+        {isInternal && impressions && <ImpressionMeterLight impressions={impressions} usedPct={usedPct} locale={locale} t={t} />}
       </div>
     </section>
   );
@@ -185,7 +219,7 @@ function EditorialHero({ tenantSlug, tenantName, impressions, usedPct, locale, t
 
 // ── Variant: spotlight (centered, brand ring, minimal) ───────────────────────
 
-function SpotlightHero({ tenantSlug, tenantName, impressions, usedPct, locale, t }: Props) {
+function SpotlightHero({ tenantSlug, tenantName, greeting, isInternal, impressions, usedPct, locale, t }: Props) {
   return (
     <section
       className="relative overflow-hidden rounded-2xl px-7 py-10 text-center shadow-elev-1"
@@ -198,13 +232,14 @@ function SpotlightHero({ tenantSlug, tenantName, impressions, usedPct, locale, t
         <p className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1 text-meta font-semibold uppercase tracking-[0.16em] text-brand">
           {tenantName}
         </p>
-        <WelcomeHeading t={t} className="mt-4 text-display font-extrabold leading-tight text-sf-neutral-10" />
+        <h1 className="mt-4 text-display font-extrabold leading-tight text-sf-neutral-10">{greeting}</h1>
         <p className="mt-2 text-body-lg text-sf-neutral-6 leading-relaxed">{t("th.subtitle")}</p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-6 w-full max-w-xl"><QuickAsk tenantSlug={tenantSlug} t={t} tone="onLight" /></div>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
           <PrimaryCta tenantSlug={tenantSlug} t={t} tone="brand" />
           <AgentCta tenantSlug={tenantSlug} t={t} tone="onLight" />
         </div>
-        {impressions && (
+        {isInternal && impressions && (
           <p className="mt-6 text-caption text-sf-neutral-5">
             {t("th.viewsToday")}:{" "}
             <span className="font-semibold text-sf-neutral-8 tabular-nums">{impressions.used.toLocaleString(locale)}</span>

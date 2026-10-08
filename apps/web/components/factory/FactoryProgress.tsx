@@ -31,7 +31,7 @@ const STAGE_ORDER = [
 
 const STAGE_LABELS: Record<string, string> = {
   scrape:    "Đọc website khách hàng",
-  profile:   "Phân tích doanh nghiệp với Claude",
+  profile:   "Phân tích doanh nghiệp với Tableau AI",
   schema:    "Thiết kế mô hình dữ liệu",
   confirm:   "Chờ xác nhận profile",
   generate:  "Sinh 2 năm dữ liệu tổng hợp",

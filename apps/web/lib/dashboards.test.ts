@@ -18,7 +18,7 @@ describe("dashboard catalog", () => {
   });
 
   it("getDashboard returns the correct entry", () => {
-    const d = getDashboard("retail-executive");
+    const d = getDashboard("superstore-overview");
     expect(d?.industry).toBe("retail");
     expect(getDashboard("missing")).toBeUndefined();
   });

@@ -12,8 +12,10 @@ export type Tone = "professional" | "playful" | "technical";
 // How the logo asset is shaped, so the sidebar header can render it correctly:
 // - "icon": square/compact mark → small boxed icon paired with the company name.
 // - "wordmark": wide logo that already includes the company name → render full
-//   width on its own, no redundant text beside it.
-export type LogoLayout = "icon" | "wordmark";
+//   width on a light plate (its ink is dark/colored), no redundant text beside it.
+// - "wordmark-light": wide logo whose ink is white/light → render full width
+//   directly on the dark sidebar (NO white plate, which would hide white text).
+export type LogoLayout = "icon" | "wordmark" | "wordmark-light";
 
 // Tenant home hero layout. All three keep the same shared shell (sidebar,
 // dashboards, agent, RLS, i18n) — only the top welcome banner differs, so a
@@ -31,6 +33,9 @@ export const MAX_CHART_COLORS = 8;
 export interface TenantTheme {
   tenantId: string;
   companyName: string;
+  /** Short sidebar subtitle under the company name (SH-05); falls back to the
+   * generic "Analytics Portal" label when unset. */
+  tagline?: string | undefined;
   primaryColor: string;
   secondaryColor: string;
   neutralColor: string;
@@ -38,13 +43,13 @@ export interface TenantTheme {
   fontFamily: string;
   logoUrl?: string | undefined;
   logoLayout?: LogoLayout | undefined;
-  tone: Tone;
   // Categorical palette for charts (Vega / dashboard cards). Optional: when
   // absent, resolveChartPalette() derives a brand-led default so older tenants
   // keep working unchanged.
   chartPalette?: string[] | undefined;
   // Which tenant-home hero layout to render. Defaults to "aurora".
   heroVariant?: HeroVariant | undefined;
+  tone: Tone;
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -132,6 +137,11 @@ export async function setTenantTheme(
     sidebarTextColor: pickHex(input.sidebarTextColor, existing.sidebarTextColor),
     fontFamily: (input.fontFamily ?? existing.fontFamily).slice(0, 80),
     tone: isTone(input.tone) ? input.tone : existing.tone,
+    ...(input.tagline !== undefined
+      ? { tagline: String(input.tagline).slice(0, 120) }
+      : existing.tagline !== undefined
+        ? { tagline: existing.tagline }
+        : {}),
     ...(input.logoUrl !== undefined
       ? { logoUrl: String(input.logoUrl).slice(0, 2048) }
       : existing.logoUrl !== undefined
@@ -195,18 +205,91 @@ export async function getTenantDesignMd(tenantId: string): Promise<string | null
   }
 }
 
+// ── Color math (WCAG contrast + brand-derived vars) ──────────────────────────
+
+const WHITE = "#ffffff";
+const DARK_INK = "#0b1220"; // sf-neutral-10 — used when white text fails on brand
+
+/** Parse #rrggbb → [r,g,b] (0–255). Falls back to SF Blue on malformed input. */
+function hexToRgb(hex: string): [number, number, number] {
+  const clean = hex.trim();
+  if (!/^#[0-9a-fA-F]{6}$/.test(clean)) return [1, 118, 211];
+  const int = parseInt(clean.slice(1), 16);
+  return [(int >> 16) & 255, (int >> 8) & 255, int & 255];
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  const h = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
+  return `#${h(r)}${h(g)}${h(b)}`;
+}
+
+/** Space-separated "r g b" triplet for the `rgb(var(--x) / <alpha>)` pattern. */
+export function hexToRgbTriplet(hex: string): string {
+  const [r, g, b] = hexToRgb(hex);
+  return `${r} ${g} ${b}`;
+}
+
+/** WCAG 2.1 relative luminance of an sRGB color. */
+function relativeLuminance([r, g, b]: [number, number, number]): number {
+  const lin = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+/** WCAG contrast ratio between two hex colors (1.0 – 21.0). */
+export function contrastRatio(a: string, b: string): number {
+  const la = relativeLuminance(hexToRgb(a));
+  const lb = relativeLuminance(hexToRgb(b));
+  const [hi, lo] = la >= lb ? [la, lb] : [lb, la];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
+ * Return `hex` if it already meets `min` contrast against white; otherwise
+ * darken it toward black in 5% steps until it does. Used for brand-colored
+ * *text* on white surfaces (links, "Xem tất cả"), where a light tenant primary
+ * would otherwise be illegible.
+ */
+export function ensureContrastOnWhite(hex: string, min = 4.5): string {
+  if (contrastRatio(hex, WHITE) >= min) return hex.toLowerCase();
+  let [r, g, b] = hexToRgb(hex);
+  for (let i = 0; i < 24; i++) {
+    r *= 0.95;
+    g *= 0.95;
+    b *= 0.95;
+    const next = rgbToHex(r, g, b);
+    if (contrastRatio(next, WHITE) >= min) return next;
+  }
+  return DARK_INK;
+}
+
 // ── CSS variable helpers ─────────────────────────────────────────────────────
 
 export function themeToCssVariables(theme: TenantTheme): string {
   const textColor = theme.sidebarTextColor ?? "#ffffff";
+  const primary = theme.primaryColor;
+  const neutral = theme.neutralColor;
   const palette = resolveChartPalette(theme);
   return [
-    `--brand-primary: ${theme.primaryColor};`,
+    `--brand-primary: ${primary};`,
+    // -rgb triplets enable Tailwind alpha utilities (bg-brand/8, ring-brand/10…)
+    `--brand-primary-rgb: ${hexToRgbTriplet(primary)};`,
+    `--brand-primary-hover: color-mix(in oklab, ${primary} 88%, black);`,
+    `--brand-primary-subtle: color-mix(in oklab, ${primary} 8%, white);`,
+    // white text on solid brand only when it clears AA, else dark ink
+    `--brand-on-primary: ${contrastRatio(primary, WHITE) >= 4.5 ? WHITE : DARK_INK};`,
+    // brand-colored text on white, darkened until AA-legible
+    `--brand-primary-text: ${ensureContrastOnWhite(primary, 4.5)};`,
     `--brand-secondary: ${theme.secondaryColor};`,
-    `--brand-neutral: ${theme.neutralColor};`,
+    `--brand-neutral: ${neutral};`,
+    `--brand-neutral-rgb: ${hexToRgbTriplet(neutral)};`,
     `--sidebar-text: ${textColor};`,
-    `--sidebar-text-muted: ${textColor}99;`,
-    `--sidebar-text-dim: ${textColor}66;`,
+    // Alpha levels kept ≥ 65% so secondary/tertiary sidebar text clears WCAG AA
+    // against the sidebar background on BOTH dark and light presets (FX-08).
+    `--sidebar-text-muted: ${textColor}b3;`,
+    `--sidebar-text-dim: ${textColor}a6;`,
     `--font-sans: ${theme.fontFamily}, Inter, system-ui, sans-serif;`,
     ...palette.map((c, i) => `--brand-chart-${i + 1}: ${c};`),
   ].join(" ");
@@ -262,7 +345,7 @@ function isTone(v: unknown): v is Tone {
 }
 
 function isLogoLayout(v: unknown): v is LogoLayout {
-  return v === "icon" || v === "wordmark";
+  return v === "icon" || v === "wordmark" || v === "wordmark-light";
 }
 
 function isHeroVariant(v: unknown): v is HeroVariant {

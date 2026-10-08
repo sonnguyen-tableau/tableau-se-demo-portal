@@ -31,7 +31,7 @@ export default async function FactoryNewPage() {
         </p>
         <h1 className="text-2xl font-semibold tracking-tight">Launch Portal</h1>
         <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
-          Nhập URL website khách hàng. Pipeline sẽ tự động scrape, phân tích với Claude,
+          Nhập URL website khách hàng. Pipeline sẽ tự động scrape, phân tích với Tableau AI,
           sinh 2 năm dữ liệu tổng hợp, publish lên Tableau Cloud, tạo Pulse metrics và
           provisioning portal tenant hoàn chỉnh — trong khoảng 5–7 phút.
         </p>

@@ -6,6 +6,26 @@ import { listTenants } from "@/lib/tenants";
 import type { TenantRecord } from "@/lib/tenants";
 import { getT, type Locale, type MessageKey } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import {
+  Landmark,
+  Store,
+  Tv,
+  Building,
+  ShoppingBag,
+  Shield,
+  HeartPulse,
+  Truck,
+  Factory,
+  RadioTower,
+  TrendingUp,
+  Plane,
+  Tractor,
+  Zap,
+  CreditCard,
+  Headphones,
+  ChartColumn,
+  type LucideIcon,
+} from "lucide-react";
 
 type T = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
@@ -35,24 +55,30 @@ export default async function Home() {
 
 // ── Industry icons ───────────────────────────────────────────────────────────
 
-const INDUSTRY_ICON: Record<string, string> = {
-  "retail-banking": "🏦",
-  "retail-mall": "🏬",
-  "retail-mediamart": "📺",
-  "retail-realestate": "🏢",
-  "retail-ecommerce": "🛒",
-  "ecommerce": "🛒",
-  "insurance": "🛡️",
-  "healthcare": "🏥",
-  "logistics": "🚚",
-  "manufacturing": "🏭",
-  "telco": "📡",
-  "market-intelligence": "📈",
-  "airline-passenger": "✈️",
+const INDUSTRY_ICON: Record<string, LucideIcon> = {
+  "retail-banking": Landmark,
+  "retail-mall": Store,
+  "retail-mediamart": Tv,
+  "retail-realestate": Building,
+  "retail-ecommerce": ShoppingBag,
+  "ecommerce": ShoppingBag,
+  "insurance": Shield,
+  "healthcare": HeartPulse,
+  "logistics": Truck,
+  "manufacturing": Factory,
+  "telco": RadioTower,
+  "market-intelligence": TrendingUp,
+  "airline-passenger": Plane,
+  "airline-vietnam": Plane,
+  "financial-leasing": Tractor,
+  "power-distribution": Zap,
+  "credit-card-activation": CreditCard,
+  "retail-cx-marketing": Headphones,
+  "corporate-banking": Landmark,
 };
 
-function industryIcon(industry: string | undefined) {
-  return INDUSTRY_ICON[industry ?? ""] ?? "📊";
+function industryIcon(industry: string | undefined): LucideIcon {
+  return INDUSTRY_ICON[industry ?? ""] ?? ChartColumn;
 }
 
 // ── Admin Hub ────────────────────────────────────────────────────────────────
@@ -167,7 +193,7 @@ function AdminHub({
 // ── Portal card ──────────────────────────────────────────────────────────────
 
 function PortalCard({ tenant, t }: { tenant: TenantRecord; t: T }) {
-  const icon = industryIcon(tenant.industry);
+  const Icon = industryIcon(tenant.industry);
   const folders = tenant.allowedProjects ?? [];
 
   return (
@@ -182,8 +208,8 @@ function PortalCard({ tenant, t }: { tenant: TenantRecord; t: T }) {
       />
 
       <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sf-neutral-2 text-2xl ring-1 ring-sf-neutral-3 group-hover:ring-sf-blue-70/30 transition-colors">
-          {icon}
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sf-neutral-2 text-sf-neutral-7 ring-1 ring-sf-neutral-3 group-hover:ring-sf-blue-70/30 transition-colors">
+          <Icon className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
         </div>
         {tenant.isDefault && (
           <span className="shrink-0 rounded-full bg-sf-blue-10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sf-blue-80">
