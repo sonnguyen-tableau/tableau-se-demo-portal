@@ -1,23 +1,61 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { vegaConfig, vegaBackground } from "@/lib/vega-theme";
+import { translator, DEFAULT_LOCALE, type Locale } from "@/lib/i18n-shared";
+
+interface VegaView {
+  toImageURL: (type: string, scaleFactor?: number) => Promise<string>;
+  finalize: () => void;
+}
 
 interface Props {
   spec: Record<string, unknown>;
   title?: string | undefined;
   dark?: boolean | undefined;
+  /** Hide Vega's native action menu when false (AG-02: ChartBlock owns actions). */
+  actions?: boolean | undefined;
+  /** Receive the rendered Vega view — e.g. for Download PNG via toImageURL. */
+  onView?: ((view: VegaView) => void) | undefined;
+  locale?: Locale | undefined;
 }
 
-export function VegaChart({ spec, title, dark = false }: Props) {
+/**
+ * Strip remote data loaders from an untrusted (agent-authored) Vega-Lite spec
+ * (FX-04). Agent charts always embed inline `data.values`; a `url` anywhere in
+ * the spec is a remote loader that would make the user's browser fetch an
+ * attacker-chosen URL (SSRF-by-proxy / data exfiltration). Vega-Lite has no
+ * legitimate non-`url` use of that key, so we drop every `url` recursively.
+ */
+export function sanitizeVegaSpec(spec: Record<string, unknown>): Record<string, unknown> {
+  const walk = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+        if (k === "url") continue; // remote data / image loader
+        out[k] = walk(val);
+      }
+      return out;
+    }
+    return v;
+  };
+  return walk(spec) as Record<string, unknown>;
+}
+
+export function VegaChart({ spec, title, dark = false, actions = true, onView, locale = DEFAULT_LOCALE }: Props) {
+  const t = translator(locale);
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const onViewRef = useRef(onView);
+  onViewRef.current = onView;
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     let cancelled = false;
-    let vegaView: { finalize: () => void } | null = null;
+    let vegaView: VegaView | null = null;
 
     (async () => {
       try {
@@ -28,51 +66,32 @@ export function VegaChart({ spec, title, dark = false }: Props) {
         // scheme when no vars are present (e.g. SSR/first paint), so charts are
         // always on-brand for a tenant without hard-coding colors here.
         const brandRange = readBrandChartPalette(container);
+        const specConfig =
+          typeof spec.config === "object" && spec.config !== null
+            ? (spec.config as Record<string, unknown>)
+            : {};
 
-        const specConfig = typeof spec.config === "object" && spec.config !== null ? (spec.config as Record<string, unknown>) : {};
-        const specRange = typeof specConfig.range === "object" && specConfig.range !== null ? (specConfig.range as Record<string, unknown>) : {};
-
-        // Patch spec: remove explicit width/height to let it fill container,
-        // apply dark or light theme config
+        // Fill the container; apply the shared light/dark theme config
+        // (lib/vega-theme), injecting the tenant brand range when present.
+        // Strip remote loaders first — the spec is agent-authored (untrusted).
         const patched: Record<string, unknown> = {
-          ...spec,
+          ...sanitizeVegaSpec(spec),
           width: "container",
-          background: dark ? "#0f172a" : "transparent",
-          config: {
-            ...specConfig,
-            // Only inject a brand categorical range when the spec doesn't
-            // already define one, so an explicit chart color choice always wins.
-            ...(brandRange && specRange.category === undefined
-              ? { range: { ...specRange, category: brandRange } }
-              : {}),
-            axis: {
-              labelColor: dark ? "#94a3b8" : "#475569",
-              titleColor: dark ? "#94a3b8" : "#475569",
-              gridColor: dark ? "#1e293b" : "#f1f5f9",
-              domainColor: dark ? "#334155" : "#e2e8f0",
-              tickColor: dark ? "#334155" : "#e2e8f0",
-            },
-            legend: {
-              labelColor: dark ? "#94a3b8" : "#475569",
-              titleColor: dark ? "#94a3b8" : "#475569",
-            },
-            title: {
-              color: dark ? "#f1f5f9" : "#0f172a",
-            },
-            view: {
-              stroke: "transparent",
-            },
-          },
+          background: vegaBackground(dark),
+          config: vegaConfig(dark, specConfig, brandRange),
         };
 
         if (cancelled) return;
 
         const result = await vegaEmbed(container, patched as never, {
-          actions: { export: true, source: false, compiled: false, editor: false },
+          actions: actions
+            ? { export: true, source: false, compiled: false, editor: false }
+            : false,
           renderer: "svg",
           theme: dark ? "dark" : "vox",
         });
-        vegaView = result.view as { finalize: () => void };
+        vegaView = result.view as VegaView;
+        onViewRef.current?.(vegaView);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Chart render failed");
       }
@@ -83,12 +102,12 @@ export function VegaChart({ spec, title, dark = false }: Props) {
       vegaView?.finalize();
       if (container) container.innerHTML = "";
     };
-  }, [spec, dark]);
+  }, [spec, dark, actions]);
 
   if (error) {
     return (
       <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs text-red-400">
-        Chart render error: {error}
+        {t("block.chartError")}: {error}
       </div>
     );
   }

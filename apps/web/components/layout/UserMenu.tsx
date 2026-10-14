@@ -13,8 +13,8 @@ interface Props {
 export function UserMenu({
   email,
   signOut,
-  signedInAsLabel = "Đăng nhập với",
-  signOutLabel = "Đăng xuất",
+  signedInAsLabel = "Signed in as",
+  signOutLabel = "Sign out",
 }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);

@@ -125,6 +125,44 @@ export const VIZ_TOOLS: readonly McpToolDescriptor[] = [
   },
 ] as const;
 
+/** The exact set of client-side viz tool names (used to validate the untrusted
+ *  vizActionResults payload with z.enum). Kept in sync with VIZ_TOOLS by a test. */
+export const VIZ_TOOL_NAMES = [
+  "viz_applyFilter",
+  "viz_clearFilter",
+  "viz_selectMarks",
+  "viz_clearSelectedMarks",
+  "viz_switchTab",
+  "viz_setParameter",
+  "viz_showPulseCard",
+  "viz_drawChart",
+] as const;
+
 export function isVizToolName(name: string): boolean {
   return name.startsWith("viz_");
 }
+
+/**
+ * Follow-up suggestions pseudo-tool (AG-09). The model calls it once as the last
+ * action of a turn; the agent loop emits a `followups` SSE event (rendered as
+ * clickable chips under the latest reply) and returns ok. Handled server-side
+ * like the viz_* tools — never reaches MCP.
+ */
+export const SUGGEST_FOLLOWUPS_TOOL: McpToolDescriptor = {
+  name: "suggest_followups",
+  description:
+    "Call this ONCE as the very last action of your turn, AFTER your narrative answer, to offer the user 2–3 short follow-up questions they are most likely to ask next. Phrase each in the SAME language as the user's message, keep each under ~10 words, and make them specific to the data just discussed. Do not mention this tool or the chips in your reply text.",
+  input_schema: {
+    type: "object",
+    properties: {
+      items: {
+        type: "array",
+        items: { type: "string" },
+        minItems: 2,
+        maxItems: 3,
+        description: "2–3 short follow-up questions in the user's language.",
+      },
+    },
+    required: ["items"],
+  },
+};

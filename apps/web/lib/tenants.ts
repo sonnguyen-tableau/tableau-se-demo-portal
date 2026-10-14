@@ -28,6 +28,12 @@ export interface TenantRecord {
    * Only one tenant should have isDefault=true at a time.
    */
   isDefault?: boolean;
+  /**
+   * Whether this tenant runs on synthetic/demo data (AG-08 sources chip). All
+   * current tenants are demos; defaults to true at the call site. A real-data
+   * tenant sets this to false explicitly.
+   */
+  syntheticData?: boolean;
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────────

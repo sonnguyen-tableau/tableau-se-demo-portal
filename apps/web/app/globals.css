@@ -30,10 +30,18 @@
   --sf-warning:  #fe9339;
   --sf-error:    #ea001e;
 
-  /* Brand variables — overridable per tenant */
-  --brand-primary:   #0176d3;
-  --brand-secondary: #1b96ff;
-  --brand-neutral:   #032d60;
+  /* Brand variables — overridable per tenant (see lib/tenant-theme.ts).
+     The -rgb triplets back the `rgb(var(--x) / <alpha-value>)` Tailwind
+     tokens so brand alpha utilities (bg-brand/8, border-brand/40 …) work. */
+  --brand-primary:       #0176d3;
+  --brand-primary-rgb:   1 118 211;
+  --brand-primary-hover: #0b5cab;
+  --brand-primary-subtle:#eef4ff;
+  --brand-primary-text:  #0176d3;
+  --brand-on-primary:    #ffffff;
+  --brand-secondary:     #1b96ff;
+  --brand-neutral:       #032d60;
+  --brand-neutral-rgb:   3 45 96;
 
   /* Surfaces */
   --surface-base:     #ffffff;
@@ -116,7 +124,7 @@ body {
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-body font-semibold text-white shadow-elev-1 transition-all duration-base ease-smooth hover:brightness-110 hover:shadow-elev-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-body font-semibold text-brand-on shadow-elev-1 transition-all duration-base ease-smooth hover:bg-brand-hover hover:shadow-elev-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg border border-sf-neutral-3 bg-white px-4 py-2 text-body font-semibold text-sf-neutral-9 transition-all duration-base ease-smooth hover:border-sf-neutral-4 hover:bg-sf-neutral-2 active:scale-[0.98];
@@ -132,15 +140,134 @@ body {
     @apply inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-0.5 text-meta font-semibold text-brand;
   }
 
+  /* ── DS-04 primitives recipes (DESIGN v2 §2.3) ─────────────────────────── */
+  .btn-icon {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-lg text-sf-neutral-6 transition-colors duration-base ease-smooth hover:bg-sf-neutral-2 hover:text-sf-neutral-9 disabled:opacity-50;
+  }
+  .chip {
+    @apply inline-flex h-7 items-center gap-1.5 rounded-full border border-sf-neutral-3 bg-white px-2.5 text-caption font-medium text-sf-neutral-8;
+  }
+  /* Combine with .chip — brand-tinted chip (and .chip-ai adds a leading sparkle). */
+  .chip-brand {
+    @apply border-brand/30 bg-brand/8 text-brand-text;
+  }
+  .chip-ai {
+    @apply border-brand/30 bg-brand/8 text-brand-text;
+  }
+
   .gradient-text {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(120deg, var(--brand-primary) 0%, var(--brand-secondary) 60%, #78b0fd 100%);
   }
+
+  /* ── Agent message Markdown (react-markdown) — DESIGN v2 §4.9 ───────────── */
+  /* Panel variant: light surface, 13px. Page variant adds .prose-chat-page. */
+  .prose-chat {
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--sf-neutral-8);
+    word-break: break-word;
+  }
+  .prose-chat > :first-child { margin-top: 0; }
+  .prose-chat > :last-child { margin-bottom: 0; }
+  .prose-chat p { margin: 0.5rem 0; }
+  .prose-chat h1, .prose-chat h2, .prose-chat h3, .prose-chat h4 {
+    margin: 0.75rem 0 0.25rem;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--sf-neutral-10);
+  }
+  .prose-chat ul, .prose-chat ol { margin: 0.5rem 0; padding-left: 1.25rem; }
+  .prose-chat ul { list-style: disc; }
+  .prose-chat ol { list-style: decimal; }
+  .prose-chat li { margin: 0.125rem 0; }
+  .prose-chat li > ul, .prose-chat li > ol { margin: 0.125rem 0; }
+  .prose-chat strong { font-weight: 600; color: var(--sf-neutral-10); }
+  .prose-chat em { font-style: italic; }
+  .prose-chat a {
+    color: var(--brand-primary-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose-chat code {
+    font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    background: var(--sf-neutral-2);
+    border-radius: 4px;
+    padding: 1px 4px;
+  }
+  .prose-chat pre {
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+    background: var(--sf-neutral-2);
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  .prose-chat pre code { padding: 0; background: transparent; font-size: 12px; }
+  .prose-chat blockquote {
+    margin: 0.5rem 0;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--sf-neutral-3);
+    color: var(--sf-neutral-6);
+  }
+  .prose-chat table {
+    width: 100%;
+    margin: 0.5rem 0;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .prose-chat th {
+    text-align: left;
+    font-weight: 600;
+    background: var(--sf-neutral-2);
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--sf-neutral-3);
+  }
+  .prose-chat td { padding: 4px 8px; border-bottom: 1px solid var(--sf-neutral-3); }
+  .prose-chat hr { margin: 0.75rem 0; border: 0; border-top: 1px solid var(--sf-neutral-3); }
+
+  /* Page variant — larger, inverted for the dark Agent page (until AG-11 relights it). */
+  .prose-chat-page {
+    font-size: 14px;
+    line-height: 22px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .prose-chat-page h1, .prose-chat-page h2, .prose-chat-page h3, .prose-chat-page h4 {
+    font-size: 16px;
+    color: #ffffff;
+  }
+  .prose-chat-page strong { color: #ffffff; }
+  .prose-chat-page a { color: var(--sf-blue-40); }
+  .prose-chat-page code { background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+  .prose-chat-page pre { background: rgba(255, 255, 255, 0.06); }
+  .prose-chat-page blockquote { border-left-color: rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.6); }
+  .prose-chat-page th { background: rgba(255, 255, 255, 0.08); border-bottom-color: rgba(255, 255, 255, 0.12); }
+  .prose-chat-page td { border-bottom-color: rgba(255, 255, 255, 0.1); }
+  .prose-chat-page hr { border-top-color: rgba(255, 255, 255, 0.12); }
 
   .grid-bg {
     background-image:
       linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
       linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
     background-size: 32px 32px;
+  }
+}
+
+/*
+ * Reduced motion (DS-06, DESIGN §6). Users who ask their OS to minimise motion
+ * get near-instant animations/transitions across the whole app — the hover
+ * lifts, slide-ups, pulse rings and shimmer all collapse to a static state.
+ * Complements the `motion-safe:` prefixes on individual components. Kept outside
+ * @layer so the !important declarations reliably win.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

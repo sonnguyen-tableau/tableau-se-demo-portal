@@ -8,7 +8,7 @@ export function NavLabel({ children }: { children: ReactNode }) {
   return (
     <p
       className="mb-1 mt-1 px-3 text-meta font-semibold uppercase tracking-[0.12em]"
-      style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 40%, transparent)" }}
+      style={{ color: "color-mix(in srgb, var(--sidebar-text, #fff) 65%, transparent)" }}
     >
       {children}
     </p>
@@ -32,7 +32,9 @@ export function NavLink({ href, icon, badge, exact, children }: NavLinkProps) {
       href={href}
       aria-current={active ? "page" : undefined}
       className={`group relative flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-body-sm font-medium transition-all duration-base ease-smooth ${
-        active ? "bg-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]" : "hover:bg-white/[0.06]"
+        active
+          ? "bg-[color-mix(in_srgb,var(--sidebar-text)_12%,transparent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--sidebar-text)_10%,transparent)]"
+          : "hover:bg-[color-mix(in_srgb,var(--sidebar-text)_7%,transparent)]"
       }`}
       style={{
         color: active
@@ -40,9 +42,9 @@ export function NavLink({ href, icon, badge, exact, children }: NavLinkProps) {
           : "color-mix(in srgb, var(--sidebar-text, #fff) 65%, transparent)",
       }}
     >
-      {/* Active indicator */}
+      {/* Active indicator — 3px brand strip */}
       <span
-        className={`absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-sf-blue-40 to-sf-blue-60 transition-opacity duration-base ${
+        className={`absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand transition-opacity duration-base ${
           active ? "opacity-100" : "opacity-0"
         }`}
         aria-hidden="true"
@@ -64,7 +66,7 @@ export function NavLink({ href, icon, badge, exact, children }: NavLinkProps) {
       </svg>
       <span className="flex-1 truncate">{children}</span>
       {badge && (
-        <span className="rounded-full bg-gradient-to-br from-sf-blue-40 to-sf-blue-60 px-1.5 py-px text-[10px] font-bold text-white shadow-elev-1">
+        <span className="rounded-full bg-brand px-1.5 py-px text-[10px] font-bold text-brand-on shadow-elev-1">
           {badge}
         </span>
       )}

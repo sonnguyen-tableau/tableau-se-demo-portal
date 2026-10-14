@@ -12,8 +12,9 @@ import { checkAndRecord } from "@/lib/rate-limit";
 import { getSiteForTenant } from "@/lib/tenant-site";
 import { getTenantDesignMd } from "@/lib/tenant-theme";
 import { getTenant } from "@/lib/tenants";
-import { getLiveCatalog } from "@/lib/tableau-rest";
+import { getUserCatalog } from "@/lib/user-catalog";
 import { getChatSession, saveChatSession } from "@/lib/chat-session";
+import { VIZ_TOOL_NAMES } from "@/lib/viz-tools";
 import type Anthropic from "@anthropic-ai/sdk";
 
 const CHAT_RATE_LIMIT = { windowSeconds: 60, max: 12 } as const;
@@ -52,6 +53,19 @@ const requestSchema = z.object({
   // Opaque client-minted conversation id used to load/save the full transcript
   // in KV so a follow-up turn reuses already-fetched data instead of re-querying.
   chatSessionId: z.string().min(8).max(80).optional(),
+  // Executor results for the prior turn's viz actions (AG-05). UNTRUSTED — the
+  // server injects them as a bounded data note, never as instructions (FX-04).
+  vizActionResults: z
+    .array(
+      z.object({
+        toolUseId: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
+        name: z.enum(VIZ_TOOL_NAMES),
+        ok: z.boolean(),
+        error: z.string().max(500).optional(),
+      }),
+    )
+    .max(20)
+    .optional(),
 });
 
 function sseLine(event: AgentEvent | { type: "open"; tools: readonly string[] }): string {
@@ -122,10 +136,25 @@ export async function POST(req: Request): Promise<Response> {
   const startedAt = Date.now();
 
   const encoder = new TextEncoder();
+  // Abort source for the agent turn: fires on a client disconnect (req.signal)
+  // OR when the consumer cancels the response stream (Stop) — see cancel() below.
+  const ac = new AbortController();
+  const abort = () => ac.abort();
+  if (req.signal.aborted) ac.abort();
+  else req.signal.addEventListener("abort", abort, { once: true });
+
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      // Once the stream is closed/cancelled, enqueue() throws — guard every send
+      // so a late event can't raise an unhandled rejection (FX-05).
+      let closed = false;
       const send = (event: AgentEvent | { type: "open"; tools: readonly string[] }): void => {
-        controller.enqueue(encoder.encode(sseLine(event)));
+        if (closed || ac.signal.aborted) return;
+        try {
+          controller.enqueue(encoder.encode(sseLine(event)));
+        } catch {
+          closed = true;
+        }
       };
 
       const userEmail = session.user.email as string;
@@ -172,13 +201,15 @@ export async function POST(req: Request): Promise<Response> {
 
         const allowedProjects = tenantRecord?.allowedProjects ?? [];
 
-        // Build catalog-scoped allowlists for the guard and system prompt
+        // Build catalog-scoped allowlists for the guard and system prompt.
+        // getUserCatalog folds in per-user visibility (HL-07), so the agent's
+        // advisory workbook list matches what the user can actually see.
         let allowedWorkbookIds = new Set<string>();
         let allowedWorkbookNames: string[] = [];
         if (allowedProjects.length > 0) {
-          const catalog = await getLiveCatalog(ctx.tenantId, allowedProjects);
+          const { dashboards } = await getUserCatalog(session, ctx.tenantId);
           const wbMap = new Map<string, string>();
-          for (const d of catalog.dashboards) {
+          for (const d of dashboards) {
             wbMap.set(d.workbookId, d.workbookName);
           }
           allowedWorkbookIds = new Set(wbMap.keys());
@@ -226,7 +257,19 @@ export async function POST(req: Request): Promise<Response> {
           history: parsed.data.history,
           priorMessages,
           transcriptSink,
-          enableVizTools: true,
+          // Only offer viz.* tools when a viz is actually present (the view page
+          // sends vizContext); the standalone Agent page has none (FX-13).
+          enableVizTools: !!parsed.data.vizContext,
+          // Only internal users receive raw VizQL query JSON on the wire (C8).
+          isInternal: ctx.isInternal,
+          // Abort the agent loop when the client disconnects or hits Stop (AG-01).
+          signal: ac.signal,
+          ...(parsed.data.vizActionResults ? { vizActionResults: parsed.data.vizActionResults } : {}),
+          // Sources footer (AG-08): datasource names + synthetic-data flag. All
+          // current tenants run on synthetic demo data; a real-data tenant sets
+          // syntheticData:false explicitly on its record.
+          ...(parsed.data.vizContext?.datasources ? { vizDatasources: parsed.data.vizContext.datasources } : {}),
+          syntheticData: tenantRecord?.syntheticData ?? true,
           ...(activeMcp ? { mcp: activeMcp } : {}),
         })) {
           send(event);
@@ -287,6 +330,10 @@ export async function POST(req: Request): Promise<Response> {
           message: msg.slice(0, 200),
         });
       } finally {
+        if (ac.signal.aborted) {
+          audit.emit({ kind: "chat.abort", userId, tenantId });
+        }
+        req.signal.removeEventListener("abort", abort);
         // Persist the full transcript (tool blocks included) so the next turn
         // in this conversation reuses already-fetched data. Only set on a clean
         // terminal turn; a no-op when KV is off or no chatSessionId was sent.
@@ -313,8 +360,17 @@ export async function POST(req: Request): Promise<Response> {
           ...(lastUsage?.output_tokens !== undefined ? { outputTokens: lastUsage.output_tokens } : {}),
           totalLatencyMs: Date.now() - startedAt,
         });
-        controller.close();
+        closed = true;
+        try {
+          controller.close();
+        } catch {
+          // already closed by a cancel() — ignore
+        }
       }
+    },
+    // The consumer cancelled the response (Stop / navigation) — abort the turn.
+    cancel() {
+      ac.abort();
     },
   });
 

@@ -16,11 +16,8 @@ export function TableauPulseCard({ src, token, name, height = "260px" }: Props):
     const container = containerRef.current;
     if (!container) return;
 
-    // Origin is derived from `src`; the env fallback only applies if `src` is
-    // unparseable. Set NEXT_PUBLIC_TABLEAU_HOST to your Tableau Cloud origin.
-    let origin =
-      process.env.NEXT_PUBLIC_TABLEAU_HOST || "https://online.tableau.com";
-    try { origin = new URL(src).origin; } catch { /* keep fallback */ }
+    let origin = "https://prod-apsoutheast-c.online.tableau.com";
+    try { origin = new URL(src).origin; } catch { /* keep default */ }
 
     const existing = document.querySelector('script[data-tableau-embed]');
     const mount = () => {
@@ -47,8 +44,8 @@ export function TableauPulseCard({ src, token, name, height = "260px" }: Props):
   }, [src, token, height]);
 
   return (
-    <div className="rounded-lg border border-[hsl(var(--border))] p-3">
-      <h4 className="mb-2 text-sm font-medium">{name}</h4>
+    <div className="rounded-xl border border-sf-neutral-3 bg-white p-4 shadow-elev-1 transition-shadow duration-base ease-smooth hover:shadow-elev-2">
+      <h4 className="mb-2 truncate text-body-sm font-semibold text-sf-neutral-9">{name}</h4>
       <div ref={containerRef} style={{ minHeight: height }} />
     </div>
   );

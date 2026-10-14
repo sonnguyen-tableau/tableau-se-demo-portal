@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { tenantFromSession } from "@/lib/tenant";
-import { getImpressionStatus } from "@/lib/billing";
-import { getLiveCatalog } from "@/lib/tableau-rest";
+import { tenantFromSession, workspaceDisplayName } from "@/lib/tenant";
 import { getTenant } from "@/lib/tenants";
+import { getImpressionStatus } from "@/lib/billing";
+import { getUserCatalog } from "@/lib/user-catalog";
+import { DashboardCard } from "@/components/dashboards/DashboardCard";
+import { PinnedRow } from "@/components/pins/PinnedRow";
 import { getRecentViews, getPopularViews } from "@/lib/view-history";
 import { getPulseConfig } from "@/lib/pulse";
 import { getTenantTheme } from "@/lib/tenant-theme";
@@ -24,17 +26,34 @@ export default async function TenantHome({ params }: PageProps) {
   const email = session?.user?.email ?? "";
   const { locale, t } = await getT();
 
-  const tenantRecord = await getTenant(tenantSlug);
-  const [impressions, catalog, recentViews, popularRaw, theme] = await Promise.all([
-    ctx ? getImpressionStatus(ctx.tenantId) : Promise.resolve(null),
-    getLiveCatalog(ctx?.tenantId, tenantRecord?.allowedProjects),
+  // Everything on the home page is scoped to the URL tenant (tenantSlug), not
+  // the session tenant, so an internal user viewing another portal sees THAT
+  // tenant's theme / name / pulse / recents (FX-06). getUserCatalog fails closed
+  // on no access, so a forbidden tenant yields an empty page.
+  const [impressions, catalog, recentViews, popularRaw, theme, tenantRecord] = await Promise.all([
+    getImpressionStatus(tenantSlug),
+    getUserCatalog(session, tenantSlug),
     getRecentViews(email),
     getPopularViews(6),
-    getTenantTheme(ctx?.tenantId ?? tenantSlug),
+    getTenantTheme(tenantSlug),
+    getTenant(tenantSlug),
   ]);
+  const tenantName = workspaceDisplayName(tenantSlug, tenantRecord?.name ?? ctx?.tenantName ?? tenantSlug);
 
   const dashboardIndex = new Map(
     catalog.dashboards.map((d) => [`${d.workbookSlug}/${d.viewSlug}`, d]),
+  );
+
+  // Recents are stored per user (not per tenant) — show only views that exist
+  // in THIS tenant's visible catalog (FX-06).
+  const recentInCatalog = recentViews.filter((v) =>
+    dashboardIndex.has(`${v.workbookSlug}/${v.viewSlug}`),
+  );
+
+  // Pins are stored per user (session tenant); PinnedRow filters them against
+  // this tenant's visible catalog keys (`wb` + `wb/view`) — FX-06.
+  const pinAllowedKeys = Array.from(
+    new Set(catalog.dashboards.flatMap((d) => [d.workbookSlug, `${d.workbookSlug}/${d.viewSlug}`])),
   );
 
   const popular = popularRaw
@@ -52,7 +71,14 @@ export default async function TenantHome({ params }: PageProps) {
   const workbookCount = new Set(catalog.dashboards.map((d) => d.workbookId)).size;
   const usedPct = impressions ? Math.min(100, Math.round((impressions.used / Math.max(1, impressions.cap)) * 100)) : 0;
 
-  const pulseConfig = ctx ? getPulseConfig(ctx.tenantId) : null;
+  const pulseConfig = getPulseConfig(tenantSlug);
+
+  // Time-of-day greeting (HL-02), resolved server-side at Vietnam time (UTC+7)
+  // so it matches the VI-default audience and never mismatches on hydration.
+  const vnHour = (new Date().getUTCHours() + 7) % 24;
+  const greeting = t(
+    vnHour < 12 ? "th.greetingMorning" : vnHour < 18 ? "th.greetingAfternoon" : "th.greetingEvening",
+  );
 
   return (
     <div className="space-y-7 animate-fade-in">
@@ -60,14 +86,17 @@ export default async function TenantHome({ params }: PageProps) {
       <TenantHero
         variant={theme.heroVariant ?? "aurora"}
         tenantSlug={tenantSlug}
-        tenantName={ctx?.tenantName ?? tenantSlug}
+        tenantName={tenantName}
+        greeting={greeting}
+        isInternal={ctx?.isInternal ?? false}
         impressions={impressions}
         usedPct={usedPct}
         locale={locale}
         t={t}
       />
 
-      {/* ── KPI tiles ──────────────────────────────────────────────────── */}
+      {/* ── KPI tiles — internal only (HL-02; end users get the admin page) ── */}
+      {ctx?.isInternal && (
       <section className="grid gap-4 sm:grid-cols-3">
         <KpiTile
           label={t("th.totalWorkbooks")}
@@ -107,23 +136,24 @@ export default async function TenantHome({ params }: PageProps) {
           }
         />
       </section>
+      )}
 
       {/* ── Tableau Pulse metrics ──────────────────────────────────────── */}
       {pulseConfig && pulseConfig.metrics.length > 0 && (
         <section>
           <SectionHeader title={t("th.pulseMetrics")} t={t} />
-          <PulseSection metrics={pulseConfig.metrics} />
+          <PulseSection metrics={pulseConfig.metrics} locale={locale} />
         </section>
       )}
 
-      {/* ── Recent views ───────────────────────────────────────────────── */}
+      {/* ── Continue viewing (recent) ──────────────────────────────────── */}
       <section>
         <SectionHeader
-          title={t("th.recentlyViewed")}
+          title={t("th.continueViewing")}
           t={t}
-          {...(recentViews.length > 0 ? { actionHref: `/t/${tenantSlug}/dashboards` } : {})}
+          {...(recentInCatalog.length > 0 ? { actionHref: `/t/${tenantSlug}/dashboards` } : {})}
         />
-        {recentViews.length === 0 ? (
+        {recentInCatalog.length === 0 ? (
           <div className="flex items-center gap-3 rounded-xl border border-dashed border-sf-neutral-3 bg-sf-neutral-2/60 px-5 py-5 text-body-sm text-sf-neutral-6">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-sf-neutral-5 shadow-elev-0">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
@@ -134,32 +164,24 @@ export default async function TenantHome({ params }: PageProps) {
           </div>
         ) : (
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x">
-            {recentViews.slice(0, 8).map((v) => (
-              <Link
-                key={`${v.workbookSlug}/${v.viewSlug}`}
-                href={`/t/${tenantSlug}/dashboards/${v.workbookSlug}/${v.viewSlug}`}
-                className="group flex min-w-[220px] max-w-[260px] shrink-0 snap-start flex-col rounded-xl border border-sf-neutral-3 bg-white p-4 shadow-elev-1 transition-all duration-base ease-smooth hover:-translate-y-px hover:border-brand/40 hover:shadow-elev-2"
-              >
-                <div className="mb-2.5 flex items-center justify-between">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/8 text-brand transition-colors group-hover:bg-brand/12">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
-                    </svg>
-                  </div>
-                  <svg className="h-4 w-4 text-sf-neutral-4 transition-transform duration-base group-hover:translate-x-0.5 group-hover:text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-                <p className="line-clamp-2 text-body-sm font-semibold leading-snug text-sf-neutral-9">{v.viewName}</p>
-                <p className="mt-1 truncate text-caption text-sf-neutral-6">{v.workbookName}</p>
-                <p className="mt-auto pt-3 text-meta text-sf-neutral-5">
-                  {new Date(v.viewedAt).toLocaleDateString(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                </p>
-              </Link>
+            {recentInCatalog.slice(0, 8).map((v) => (
+              <div key={`${v.workbookSlug}/${v.viewSlug}`} className="w-[240px] shrink-0 snap-start">
+                <DashboardCard
+                  href={`/t/${tenantSlug}/dashboards/${v.workbookSlug}/${v.viewSlug}`}
+                  title={v.viewName}
+                  eyebrow={v.workbookName}
+                  subtitle={new Date(v.viewedAt).toLocaleDateString(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  projectName={v.workbookName}
+                  thumb={{ wb: v.workbookSlug, view: v.viewSlug, t: tenantSlug }}
+                />
+              </div>
             ))}
           </div>
         )}
       </section>
+
+      {/* ── Đã ghim (pinned) ───────────────────────────────────────────── */}
+      <PinnedRow tenantSlug={tenantSlug} title={t("th.pinned")} allowedKeys={pinAllowedKeys} />
 
       {/* ── Popular / Featured ─────────────────────────────────────────── */}
       <section>
@@ -170,31 +192,26 @@ export default async function TenantHome({ params }: PageProps) {
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {popularFallback.map((d) => (
-            <Link
+            <DashboardCard
               key={`${d.workbookSlug}/${d.viewSlug}`}
               href={`/t/${tenantSlug}/dashboards/${d.workbookSlug}/${d.viewSlug}`}
-              className="group rounded-xl border border-sf-neutral-3 bg-white p-5 shadow-elev-1 transition-all duration-base ease-smooth hover:-translate-y-px hover:border-brand/40 hover:shadow-elev-2"
-            >
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="truncate text-meta font-medium uppercase tracking-wider text-sf-neutral-6">{d.projectName}</span>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  {"count" in d && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-brand/8 px-2 py-0.5 text-meta font-semibold text-brand">
-                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      {(d as typeof d & { count: number }).count}
-                    </span>
-                  )}
-                  <svg className="h-4 w-4 text-sf-neutral-4 transition-transform duration-base group-hover:translate-x-0.5 group-hover:text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-              <h4 className="text-body-lg font-semibold leading-snug text-sf-neutral-9">{d.viewName}</h4>
-              <p className="mt-1 text-body-sm text-sf-neutral-6">{d.workbookName}</p>
-            </Link>
+              title={d.viewName}
+              subtitle={d.workbookName}
+              eyebrow={d.projectName}
+              projectName={d.projectName}
+              thumb={{ wb: d.workbookSlug, view: d.viewSlug, t: tenantSlug }}
+              badge={
+                "count" in d ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-meta font-semibold text-brand shadow-elev-1 backdrop-blur-sm">
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    {(d as typeof d & { count: number }).count}
+                  </span>
+                ) : undefined
+              }
+            />
           ))}
         </div>
       </section>

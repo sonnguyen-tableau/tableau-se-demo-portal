@@ -21,7 +21,7 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Tableau AI Portal",
   description:
-    "Multi-tenant embedded Tableau analytics with a Claude-powered Self-Service Analytics agent.",
+    "Multi-tenant embedded Tableau analytics with a Tableau AI Agent for self-service, natural-language analytics.",
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

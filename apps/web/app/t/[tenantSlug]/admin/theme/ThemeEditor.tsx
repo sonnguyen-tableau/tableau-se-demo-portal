@@ -3,12 +3,12 @@
 import { useState, useTransition } from "react";
 import type { HeroVariant, LogoLayout, TenantTheme, Tone } from "@/lib/tenant-theme";
 
-const FONT_OPTIONS = ["Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Source Sans Pro"];
 const HERO_OPTIONS: { value: HeroVariant; label: string; desc: string }[] = [
   { value: "aurora", label: "Aurora", desc: "Nền gradient thương hiệu, mesh — mặc định, nổi bật" },
   { value: "editorial", label: "Editorial", desc: "Nền sáng, thanh accent trái — điềm tĩnh, doanh nghiệp" },
   { value: "spotlight", label: "Spotlight", desc: "Căn giữa, viền brand, tối giản" },
 ];
+const FONT_OPTIONS = ["Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Source Sans Pro"];
 const LOGO_LAYOUT_OPTIONS: { value: LogoLayout; label: string; desc: string }[] = [
   { value: "icon", label: "Biểu tượng", desc: "Logo vuông/gọn, hiện kèm tên công ty bên cạnh" },
   { value: "wordmark", label: "Logo chữ (ngang)", desc: "Logo đã có sẵn tên → hiện to, không kèm chữ trùng" },
@@ -128,12 +128,22 @@ export function ThemeEditor({ initial, tenantId }: Props) {
               />
             </Field>
 
-            <Field label="URL Logo" hint="Dán URL ảnh logo (PNG/SVG, nền trong suốt)">
+            <Field label="Tagline sidebar" hint="Dòng mô tả ngắn dưới tên công ty trên sidebar (để trống → “Cổng phân tích”)">
               <input
-                type="url"
+                type="text"
+                value={form.tagline ?? ""}
+                onChange={(e) => set("tagline", e.target.value || undefined)}
+                placeholder="Retail Intelligence"
+                className={inputCls}
+              />
+            </Field>
+
+            <Field label="URL Logo" hint="Dán URL ảnh logo (PNG/SVG, nền trong suốt) hoặc đường dẫn nội bộ bắt đầu bằng /">
+              <input
+                type="text"
                 value={form.logoUrl ?? ""}
                 onChange={(e) => set("logoUrl", e.target.value || undefined)}
-                placeholder="https://example.com/logo.png"
+                placeholder="https://example.com/logo.png hoặc /tenants/logo.svg"
                 className={inputCls}
               />
             </Field>
@@ -274,6 +284,46 @@ export function ThemeEditor({ initial, tenantId }: Props) {
   );
 }
 
+// Small at-a-glance thumbnail of each hero variant, tinted by the current
+// brand colors so the SE can see the difference before saving.
+function HeroThumb({ variant, theme }: { variant: HeroVariant; theme: TenantTheme }) {
+  const primary = theme.primaryColor;
+  const neutral = theme.neutralColor;
+  const secondary = theme.secondaryColor;
+  if (variant === "aurora") {
+    return (
+      <div
+        className="h-14 w-full overflow-hidden rounded-lg"
+        style={{ background: `linear-gradient(135deg, ${neutral} 0%, ${primary} 130%)` }}
+      >
+        <div className="mt-3 ml-3 h-1.5 w-2/3 rounded" style={{ backgroundColor: "#ffffffcc" }} />
+        <div className="mt-1.5 ml-3 h-1 w-1/2 rounded" style={{ backgroundColor: "#ffffff66" }} />
+      </div>
+    );
+  }
+  if (variant === "editorial") {
+    return (
+      <div className="flex h-14 w-full overflow-hidden rounded-lg border border-sf-neutral-3 bg-white">
+        <span className="w-1.5" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }} />
+        <div className="flex-1 pt-3 pl-3">
+          <div className="h-1.5 w-2/3 rounded" style={{ backgroundColor: neutral }} />
+          <div className="mt-1.5 h-1 w-1/2 rounded bg-sf-neutral-3" />
+        </div>
+      </div>
+    );
+  }
+  // spotlight
+  return (
+    <div
+      className="flex h-14 w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-lg bg-white"
+      style={{ border: `1px solid ${primary}44` }}
+    >
+      <div className="h-1.5 w-1/2 rounded" style={{ backgroundColor: primary }} />
+      <div className="h-1 w-2/3 rounded bg-sf-neutral-3" />
+    </div>
+  );
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const inputCls =
@@ -315,46 +365,6 @@ function ColorField({
           maxLength={7}
         />
       </div>
-    </div>
-  );
-}
-
-// Small at-a-glance thumbnail of each hero variant, tinted by the current
-// brand colors so the SE can see the difference before saving.
-function HeroThumb({ variant, theme }: { variant: HeroVariant; theme: TenantTheme }) {
-  const primary = theme.primaryColor;
-  const neutral = theme.neutralColor;
-  const secondary = theme.secondaryColor;
-  if (variant === "aurora") {
-    return (
-      <div
-        className="h-14 w-full overflow-hidden rounded-lg"
-        style={{ background: `linear-gradient(135deg, ${neutral} 0%, ${primary} 130%)` }}
-      >
-        <div className="mt-3 ml-3 h-1.5 w-2/3 rounded" style={{ backgroundColor: "#ffffffcc" }} />
-        <div className="mt-1.5 ml-3 h-1 w-1/2 rounded" style={{ backgroundColor: "#ffffff66" }} />
-      </div>
-    );
-  }
-  if (variant === "editorial") {
-    return (
-      <div className="flex h-14 w-full overflow-hidden rounded-lg border border-sf-neutral-3 bg-white">
-        <span className="w-1.5" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }} />
-        <div className="flex-1 pt-3 pl-3">
-          <div className="h-1.5 w-2/3 rounded" style={{ backgroundColor: neutral }} />
-          <div className="mt-1.5 h-1 w-1/2 rounded bg-sf-neutral-3" />
-        </div>
-      </div>
-    );
-  }
-  // spotlight
-  return (
-    <div
-      className="flex h-14 w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-lg bg-white"
-      style={{ border: `1px solid ${primary}44` }}
-    >
-      <div className="h-1.5 w-1/2 rounded" style={{ backgroundColor: primary }} />
-      <div className="h-1 w-2/3 rounded bg-sf-neutral-3" />
     </div>
   );
 }
